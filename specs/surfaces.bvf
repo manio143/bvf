@@ -1,0 +1,33 @@
+# BVF Parser & Resolution Engine
+
+This project implements the Behavioral Verification Framework (BVF) —
+a spec language for TDD/BDD-style behavioral declarations that AI agents
+use to drive implementation.
+
+The system parses `.bvf` files, builds a dependency graph from `@{references}`,
+tracks materialization state, and provides a CLI for managing specs.
+
+
+#decl surface cli-tool
+  A Node.js CLI application invoked as `bvf` from the command line.
+  It reads `.bvf` files from the current directory (recursively)
+  and maintains state in a `.bvf-state/` directory.
+
+  The CLI is implemented in TypeScript, compiled to JavaScript,
+  and can be run via `node` or as a standalone binary.
+
+  For testing, invoke the CLI as `node dist/cli.js` or use
+  the exported API functions directly in unit tests.
+#end
+
+
+#decl surface library-api
+  The core BVF engine exposed as a TypeScript/JavaScript library.
+  This is the programmatic API that the CLI wraps.
+
+  Functions are imported from the main package entry point.
+  All functions operate on in-memory data structures or
+  file system paths passed as arguments.
+#end
+
+#end

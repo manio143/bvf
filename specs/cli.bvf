@@ -1,0 +1,128 @@
+# CLI Interface
+
+The `bvf` command-line tool provides commands for resolving specs,
+listing entities, and managing materialization state.
+
+
+#decl feature cli-resolve on @{cli-tool}
+
+  The `bvf resolve` command parses all spec files, validates
+  references, and reports materialization status.
+
+  #context
+    A project directory contains `.bvf` spec files and a `bvf.config`.
+  #end
+
+  #behavior resolve-clean-project
+    Given a project with valid specs where all entities are current.
+
+    When `bvf resolve` is run.
+
+    Then output lists all entities with ✓ status.
+    Exit code is 0.
+    Summary shows "Errors: 0" and "Stale: 0".
+  #end
+
+  #behavior resolve-with-stale-entities
+    Given a project with some stale materializations.
+
+    When `bvf resolve` is run.
+
+    Then stale entities are marked with ✗ and reason shown.
+    Exit code is 0 (stale is informational, not an error).
+    Summary shows stale count.
+  #end
+
+  #behavior resolve-with-errors
+    Given a project with unresolved references.
+
+    When `bvf resolve` is run.
+
+    Then errors are listed with file and location.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-with-diff
+    Given a stale entity whose content changed.
+
+    When `bvf resolve --diff` is run.
+
+    Then the output includes what changed in each stale entity
+    (lines added/removed/modified).
+  #end
+
+#end
+
+
+#decl feature cli-list on @{cli-tool}
+
+  The `bvf list` command lists entities filtered by type.
+
+  #context
+    A project directory contains `.bvf` spec files.
+  #end
+
+  #behavior list-all-entities
+    Given a project with 5 entities across 2 files.
+
+    When `bvf list` is run.
+
+    Then all 5 entities are listed with their type, name,
+    and source file location.
+  #end
+
+  #behavior list-by-type
+    Given a project with 2 surfaces, 3 instruments, 4 behaviors.
+
+    When `bvf list instrument` is run.
+
+    Then only the 3 instruments are listed.
+  #end
+
+  #behavior list-by-feature
+    Given a feature "auth" containing 3 behaviors.
+
+    When `bvf list --feature auth` is run.
+
+    Then only the 3 behaviors within "auth" are listed.
+  #end
+
+  #behavior list-empty-result
+    Given a project with no fixtures.
+
+    When `bvf list fixture` is run.
+
+    Then output says "No entities of type 'fixture' found."
+    Exit code is 0.
+  #end
+
+#end
+
+
+#decl feature cli-init on @{cli-tool}
+
+  The `bvf init` command initializes a new BVF project.
+
+  #context
+    An empty directory with no BVF files.
+  #end
+
+  #behavior init-creates-config
+    When `bvf init` is run.
+
+    Then a `bvf.config` file is created with default types
+    (surface, fixture, instrument, behavior, feature).
+    A `specs/` directory is created.
+    A `.bvf-state/` directory is created.
+  #end
+
+  #behavior init-refuses-existing-project
+    Given a directory that already contains a `bvf.config`.
+
+    When `bvf init` is run.
+
+    Then an error says "BVF project already initialized."
+    Exit code is 1. No files are modified.
+  #end
+
+#end

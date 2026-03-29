@@ -1,0 +1,330 @@
+# Parsing
+
+The parser reads `.bvf` files and extracts entities, their parameters,
+clauses, references, and freeform content bodies. It handles nested
+constructs within features (#context, #behavior, #for) and ignores
+prose text between entity declarations.
+
+
+#decl fixture sample-bvf-file(content)
+  A temporary `.bvf` file written to disk with the given {content}.
+  The file is created in a temporary directory and cleaned up
+  after the test.
+#end
+
+#decl fixture sample-project-dir(files)
+  A temporary directory containing multiple `.bvf` files as specified
+  by {files} (a map of filename to content). Also contains a
+  `bvf.config` with default settings. Cleaned up after test.
+#end
+
+
+# Entity Parsing
+
+#decl feature entity-parsing on @{library-api}
+
+  Parsing individual entity declarations from `.bvf` content.
+
+  #context
+    The parser is invoked with a string of `.bvf` content.
+  #end
+
+  #behavior parses-simple-entity
+    Given content:
+    ```
+    #decl surface web-app
+      A Next.js application on localhost:3000.
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then one entity is returned with:
+    - type: "surface"
+    - name: "web-app"
+    - params: empty
+    - clauses: empty
+    - body containing "A Next.js application on localhost:3000."
+  #end
+
+  #behavior parses-entity-with-params
+    Given content:
+    ```
+    #decl fixture existing-user(email, password = "Default1!")
+      A user with {email} and {password}.
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then one entity is returned with:
+    - type: "fixture"
+    - name: "existing-user"
+    - params: email (required), password (optional, default "Default1!")
+    - body containing "A user with {email} and {password}."
+  #end
+
+  #behavior parses-entity-with-clauses
+    Given content:
+    ```
+    #decl instrument login(email, password) on @{web-app}
+      Navigate to /login and fill in credentials.
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then one entity is returned with:
+    - type: "instrument"
+    - name: "login"
+    - params: email (required), password (required)
+    - clauses: [on -> @{web-app}]
+    - references: ["web-app"]
+  #end
+
+  #behavior parses-multiple-entities
+    Given content containing three `#decl ... #end` blocks
+    separated by prose text.
+
+    When the parser processes this content.
+
+    Then three entities are returned in order.
+    The prose text between them is ignored.
+  #end
+
+  #behavior ignores-prose-between-entities
+    Given content:
+    ```
+    # Some documentation
+
+    This is just markdown prose explaining things.
+
+    #decl surface my-app
+      An application.
+    #end
+
+    More prose here about design decisions.
+
+    #decl fixture my-data
+      Some test data.
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then exactly two entities are returned: "my-app" and "my-data".
+  #end
+
+  #behavior rejects-unclosed-decl
+    Given content:
+    ```
+    #decl surface broken
+      This declaration is never closed.
+    ```
+
+    When the parser processes this content.
+
+    Then a parse error is reported indicating unclosed `#decl` block
+    with the line number where it started.
+  #end
+
+  #behavior rejects-nested-decl
+    Given content:
+    ```
+    #decl surface outer
+      #decl surface inner
+        Nested declarations are not allowed.
+      #end
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then a parse error is reported indicating that `#decl` cannot
+    be nested inside another `#decl`.
+  #end
+
+#end
+
+
+# Feature Parsing
+
+#decl feature feature-parsing on @{library-api}
+
+  Parsing feature entities with nested #context, #behavior,
+  and #for blocks.
+
+  #context
+    The parser is invoked with `.bvf` content containing
+    a feature declaration.
+  #end
+
+  #behavior parses-feature-with-context-and-behaviors
+    Given content:
+    ```
+    #decl feature registration on @{web-app}
+      Registration flows.
+
+      #context
+        The application is running.
+        Database is clean.
+      #end
+
+      #behavior valid-registration
+        When submitting valid credentials.
+        Then registration succeeds.
+      #end
+
+      #behavior invalid-email
+        When submitting "bad-email".
+        Then validation error is shown.
+      #end
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then a feature entity "registration" is returned with:
+    - clauses: [on -> @{web-app}]
+    - context: "The application is running. Database is clean."
+    - 2 child behaviors: "valid-registration" and "invalid-email"
+    - each behavior inherits the feature's context
+  #end
+
+  #behavior parses-feature-without-context
+    Given a feature declaration with behaviors but no `#context` block.
+
+    When the parser processes this content.
+
+    Then behaviors have no inherited context.
+  #end
+
+  #behavior parses-for-each-expansion
+    Given content:
+    ```
+    #decl feature email-validation on @{web-app}
+      #context
+        App is running.
+      #end
+
+      #for email in ["not-an-email", "@missing", "spaces @x.com"]
+      #behavior rejects-invalid-email({email})
+        When submitting {email} as the email.
+        Then a validation error is shown.
+      #end
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then three behaviors are expanded:
+    - rejects-invalid-email("not-an-email")
+    - rejects-invalid-email("@missing")
+    - rejects-invalid-email("spaces @x.com")
+    Each inherits the feature context.
+  #end
+
+  #behavior parses-for-each-with-tuples
+    Given content:
+    ```
+    #decl feature input-validation on @{web-app}
+      #for field, value in [("email", ""), ("password", "short")]
+      #behavior rejects-invalid({field}, {value})
+        When submitting {value} in the {field} field.
+        Then validation fails for {field}.
+      #end
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then two behaviors are expanded:
+    - rejects-invalid("email", "")
+    - rejects-invalid("password", "short")
+  #end
+
+  #behavior rejects-multiple-context-blocks
+    Given a feature with two `#context ... #end` blocks.
+
+    When the parser processes this content.
+
+    Then a parse error indicates only one #context block
+    is allowed per feature.
+  #end
+
+  #behavior rejects-behavior-outside-feature
+    Given content:
+    ```
+    #behavior orphaned-behavior
+      This behavior is not inside a feature.
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then a parse error indicates that #behavior must be
+    inside a #decl feature block.
+  #end
+
+#end
+
+
+# Reference Extraction
+
+#decl feature reference-extraction on @{library-api}
+
+  Extracting @{references} and {param} usages from entity bodies.
+
+  #context
+    The parser has successfully parsed an entity.
+  #end
+
+  #behavior extracts-bare-references
+    Given an entity body containing `@{web-app}` and `@{existing-user}`.
+
+    When references are extracted.
+
+    Then two references are found: "web-app" and "existing-user",
+    both with no arguments.
+  #end
+
+  #behavior extracts-parameterized-references
+    Given an entity body containing:
+    `@{submit-registration}(email: "test@example.com", password: "Str0ng!")`.
+
+    When references are extracted.
+
+    Then one reference is found: "submit-registration" with
+    arguments email="test@example.com" and password="Str0ng!".
+  #end
+
+  #behavior extracts-param-passthrough-in-references
+    Given an entity with params (email) and body containing:
+    `@{submit-registration}(email: {email}, password: "default")`.
+
+    When references are extracted.
+
+    Then the reference to "submit-registration" has argument
+    email as a param-passthrough to {email}, and password
+    as a literal "default".
+  #end
+
+  #behavior extracts-own-param-usage
+    Given an entity declaring params (email, password) with body:
+    "Fill {email} into the email field and {password} into password."
+
+    When param usages are extracted.
+
+    Then two param usages are found: "email" and "password".
+  #end
+
+  #behavior warns-on-undeclared-param-usage
+    Given an entity declaring params (email) with body referencing {phone}.
+
+    When param usages are validated.
+
+    Then a warning is reported: {phone} is used but not declared
+    as a parameter.
+  #end
+
+#end
