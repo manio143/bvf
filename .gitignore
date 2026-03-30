@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .trash/
-.bvf-state/
+# .bvf-state/ — tracked for portability
 *.backup
 /tmp/
 

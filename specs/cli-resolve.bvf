@@ -15,7 +15,7 @@ code signals success vs structural failure.
   When spec files contain syntax errors, resolve catches them
   at parse time and reports them clearly.
 
-  Given a @{project-dir} with a valid `bvf.config`.
+  Given a @{project-dir}(files: [], config: @{default-config}).
 
   #decl behavior resolve-catches-unclosed-decl
     Given a spec file containing:
@@ -100,22 +100,35 @@ code signals success vs structural failure.
 
   Reference validation errors surface through resolve.
 
-  Given a @{project-dir} with a valid `bvf.config`.
+  Given a @{project-dir}(files: [], config: @{default-config}).
 
   #decl behavior resolve-catches-unresolved-reference
-    Given a spec file where an entity references @{nonexistent}.
+    Given a spec file where an entity references a name that
+    does not exist in the project:
+    ```
+    #decl behavior broken-ref
+      Uses @{nonexistent} which is not declared anywhere.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
     Then stderr contains an error about unresolved reference
-    "@{nonexistent}" with the source file location.
+    "nonexistent" with the source file location.
     Exit code is 1.
   #end
 
   #decl behavior resolve-catches-missing-required-param
-    Given:
-    - an instrument `login(email, password)` — both required
-    - a behavior referencing `@{login}(email: "a@b.com")` — missing password
+    Given spec files declaring:
+    ```
+    #decl instrument login(email, password) on @{some-surface}
+      Log in.
+    #end
+
+    #decl behavior missing-param
+      Uses @{login}(email: "a@b.com") — missing password.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
@@ -124,9 +137,16 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-catches-unknown-param
-    Given:
-    - an instrument `login(email, password)`
-    - a behavior referencing `@{login}(username: "foo")`
+    Given spec files declaring:
+    ```
+    #decl instrument login(email, password) on @{some-surface}
+      Log in.
+    #end
+
+    #decl behavior unknown-param
+      Uses @{login}(username: "foo") — "username" is not a param.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
@@ -135,20 +155,34 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-catches-bare-ref-needing-params
-    Given:
-    - an instrument `login(email, password)` — both required
-    - a behavior body contains bare `@{login}` with no arguments
+    Given spec files declaring:
+    ```
+    #decl instrument login(email, password) on @{some-surface}
+      Log in.
+    #end
+
+    #decl behavior bare-ref
+      Uses @{login} with no arguments.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
-    Then stderr contains an error about @{login} requiring params.
+    Then stderr contains an error about "login" requiring params.
     Exit code is 1.
   #end
 
   #decl behavior resolve-catches-circular-dependency
-    Given:
-    - entity "a" references @{b}
-    - entity "b" references @{a}
+    Given spec files declaring:
+    ```
+    #decl surface a
+      Depends on @{b}.
+    #end
+
+    #decl surface b
+      Depends on @{a}.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
@@ -157,10 +191,22 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-accepts-valid-references
-    Given a well-formed project with:
-    - surface "web-app"
-    - instrument "login"(email, password) on @{web-app}
-    - feature with behavior using @{login}(email: "a@b.com", password: "x")
+    Given spec files declaring:
+    ```
+    #decl surface web-app
+      The app.
+    #end
+
+    #decl instrument login(email, password) on @{web-app}
+      Log in.
+    #end
+
+    #decl feature auth on @{web-app}
+      #decl behavior can-login
+        Uses @{login}(email: "a@b.com", password: "x").
+      #end
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
@@ -170,9 +216,16 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-accepts-optional-param-omission
-    Given:
-    - fixture `user(email, role = "member")`
-    - behavior using `@{user}(email: "a@b.com")` — role omitted
+    Given spec files declaring:
+    ```
+    #decl fixture user(email, role = "member")
+      A user.
+    #end
+
+    #decl behavior uses-default-role
+      Uses @{user}(email: "a@b.com") — role omitted.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
@@ -181,9 +234,16 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-accepts-bare-ref-to-paramless-entity
-    Given:
-    - surface "web-app" with no params
-    - instrument body contains `@{web-app}`
+    Given spec files declaring:
+    ```
+    #decl surface web-app
+      The app.
+    #end
+
+    #decl instrument check on @{web-app}
+      References @{web-app} in body.
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
@@ -200,7 +260,7 @@ code signals success vs structural failure.
   This is validated indirectly — if entities parse correctly,
   they appear in resolve output with correct names and types.
 
-  Given a @{project-dir} with valid specs.
+  Given a @{project-dir}(files: [], config: @{default-config}).
 
   #decl behavior resolve-shows-simple-entities
     Given a spec file with a surface and a fixture declaration.
@@ -223,7 +283,7 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-shows-for-expanded-entities
-    Given a feature with `#for email in ["a@b.com", "bad", ""]`:
+    Given a feature with `#for` expansion:
     ```
     #decl feature validation on @{some-surface}
       #for email in ["a@b.com", "bad", ""]
@@ -310,7 +370,8 @@ code signals success vs structural failure.
   Resolve reads the manifest, computes hashes, and reports
   which entities are current, stale, pending, or orphaned.
 
-  Given a @{project-dir} with valid specs and a @{manifest}.
+  Given a @{project-dir}(files: [], config: @{default-config})
+  and a @{manifest}(entries: []).
 
   #decl behavior resolve-new-entity-is-pending
     Given a spec file with entity "login-test" and an empty manifest.
@@ -343,9 +404,17 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-dependency-change-makes-stale
-    Given:
-    - surface "web-app" with changed content
-    - instrument "login" on @{web-app} — manifest has old dependency hash
+    Given spec files declaring:
+    ```
+    #decl surface web-app
+      The app (changed content).
+    #end
+
+    #decl instrument login on @{web-app}
+      Log in.
+    #end
+    ```
+    And a manifest with old dependency hash for "login".
 
     When @{run-resolve} is executed.
 
@@ -355,11 +424,24 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-transitive-dep-change-cascades
-    Given:
-    - surface "web-app", instrument "login" on @{web-app},
-      behavior "can-login" using @{login}
-    - all were materialized
-    - "web-app" content has changed
+    Given spec files declaring:
+    ```
+    #decl surface web-app
+      The app (changed content).
+    #end
+
+    #decl instrument login on @{web-app}
+      Log in.
+    #end
+
+    #decl feature auth on @{web-app}
+      #decl behavior can-login
+        Uses @{login}.
+      #end
+    #end
+    ```
+    And a manifest where all three were previously materialized,
+    but "web-app" content has since changed.
 
     When @{run-resolve} is executed.
 
@@ -380,7 +462,8 @@ code signals success vs structural failure.
 
   #decl behavior resolve-review-failed-shows-stale
     Given entity "login-test" was marked review-failed via
-    @{run-mark} with a note.
+    @{run-mark}(entity: "login-test", status: "review-failed",
+    note: "test uses fake hashes").
 
     When @{run-resolve} is executed.
 
@@ -391,7 +474,8 @@ code signals success vs structural failure.
 
   #decl behavior resolve-needs-elaboration-shows-pending
     Given entity "password-reset" was marked needs-elaboration
-    via @{run-mark} with a note.
+    via @{run-mark}(entity: "password-reset",
+    status: "needs-elaboration", note: "needs instrument").
 
     When @{run-resolve} is executed.
 
@@ -412,7 +496,8 @@ code signals success vs structural failure.
   come first (alphabetically), parents with any stale or pending
   children are pushed to the end (also alphabetically).
 
-  Given a @{project-dir} with valid specs and a @{manifest}.
+  Given a @{project-dir}(files: [], config: @{default-config})
+  and a @{manifest}(entries: []).
 
   #decl behavior resolve-clean-project
     Given all entities are current in the manifest.

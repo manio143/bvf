@@ -7,38 +7,41 @@ materialization agent to register artifacts.
 
 #decl feature cli-mark on @{cli-tool}
 
-  A @{project-dir} with specs and a @{manifest} exists.
+  A @{project-dir}(files: [], config: @{default-config}) with specs
+  and a @{manifest}(entries: []).
 
   #decl behavior mark-needs-elaboration
     Given entity "password-reset" exists in specs.
 
-    When @{run-mark} is executed with entity "password-reset",
-    status "needs-elaboration", and note "needs instrument
-    defining reset steps".
+    When @{run-mark}(entity: "password-reset",
+    status: "needs-elaboration",
+    note: "needs instrument defining reset steps") is executed.
 
     Then the manifest records "password-reset" with status "pending",
     reason "needs-elaboration", and the note. Subsequent
-    @{run-resolve} will show this entity as ⏳ with the note.
+    @{run-resolve}() will show this entity as ⏳ with the note.
     Exit code is 0.
   #end
 
   #decl behavior mark-review-failed
     Given entity "login-test" is current in the manifest.
 
-    When @{run-mark} is executed with entity "login-test",
-    status "review-failed", and note "test uses fake hashes".
+    When @{run-mark}(entity: "login-test",
+    status: "review-failed",
+    note: "test uses fake hashes") is executed.
 
     Then the manifest records "login-test" with status "stale",
     reason "review-failed", and the note. Subsequent
-    @{run-resolve} will show this entity as ✗ with the note.
+    @{run-resolve}() will show this entity as ✗ with the note.
     Exit code is 0.
   #end
 
   #decl behavior mark-current-with-artifact
     Given entity "login-test" exists in specs.
 
-    When @{run-mark} is executed with entity "login-test",
-    status "current", and artifact "tests/login.test.ts".
+    When @{run-mark}(entity: "login-test",
+    status: "current",
+    artifact: "tests/login.test.ts") is executed.
 
     Then the manifest records "login-test" with:
     - specHash matching the entity's current content hash
@@ -46,15 +49,15 @@ materialization agent to register artifacts.
     - artifact path "tests/login.test.ts"
     - no status override (status is computed from hashes)
 
-    Subsequent @{run-resolve} will show "login-test" as ✓ current.
+    Subsequent @{run-resolve}() will show "login-test" as ✓ current.
     Exit code is 0.
   #end
 
   #decl behavior mark-current-requires-artifact
     Given entity "login-test" exists in specs.
 
-    When @{run-mark} is executed with entity "login-test",
-    status "current", but no `--artifact` flag.
+    When @{run-mark}(entity: "login-test",
+    status: "current") is executed without an `--artifact` flag.
 
     Then stderr contains an error: marking as current requires
     an artifact path.
@@ -66,8 +69,9 @@ materialization agent to register artifacts.
     artifact "tests/login.test.ts". Then its spec content changed,
     making it stale.
 
-    When @{run-mark} is executed again with entity "login-test",
-    status "current", artifact "tests/login.test.ts".
+    When @{run-mark}(entity: "login-test",
+    status: "current",
+    artifact: "tests/login.test.ts") is executed.
 
     Then the manifest is updated with new specHash and
     dependencyHash. The entity becomes ✓ current again.
@@ -77,7 +81,8 @@ materialization agent to register artifacts.
   #decl behavior mark-nonexistent-entity
     Given no entity named "nonexistent" in specs.
 
-    When @{run-mark} is executed with entity "nonexistent".
+    When @{run-mark}(entity: "nonexistent",
+    status: "needs-elaboration") is executed.
 
     Then stderr says entity "nonexistent" not found.
     Exit code is 1.

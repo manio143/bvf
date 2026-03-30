@@ -15,25 +15,26 @@ with it.
 #end
 
 
-#decl instrument run-resolve(dir, flags?) on @{cli-tool}
-  Execute `bvf resolve` in {dir}.
+#decl instrument run-resolve(flags?) on @{cli-tool}
+  Execute `bvf resolve` in the current project directory.
   Optional {flags} like `--diff`.
   Returns stdout, stderr, and exit code.
 #end
 
-#decl instrument run-list(dir, type?, flags?) on @{cli-tool}
-  Execute `bvf list [type]` in {dir}.
+#decl instrument run-list(type?, flags?) on @{cli-tool}
+  Execute `bvf list [type]` in the current project directory.
   Optional {flags} like `--parent <name>`.
   Returns stdout, stderr, and exit code.
 #end
 
-#decl instrument run-init(dir) on @{cli-tool}
-  Execute `bvf init` in {dir}.
+#decl instrument run-init on @{cli-tool}
+  Execute `bvf init` in the current project directory.
   Returns stdout, stderr, and exit code.
 #end
 
-#decl instrument run-mark(dir, entity, status, artifact?, note?) on @{cli-tool}
-  Execute `bvf mark <entity> <status> [--artifact "<path>"] [--note "<note>"]` in {dir}.
+#decl instrument run-mark(entity, status, artifact?, note?) on @{cli-tool}
+  Execute `bvf mark <entity> <status> [--artifact "<path>"] [--note "<note>"]`
+  in the current project directory.
   Returns stdout, stderr, and exit code.
 #end
 
@@ -55,4 +56,18 @@ Reusable project setups for testing.
   A pre-populated `.bvf-state/manifest.json` with the given
   {entries}. Used to establish materialization state as a
   precondition before running CLI commands.
+#end
+
+#decl fixture default-config
+  A `bvf.config` with the standard BVF taxonomy:
+  ```
+  #config
+    types: surface, fixture, instrument, behavior, feature
+    containment:
+      feature: behavior
+    file-extension: .bvf
+    state-dir: .bvf-state
+  #end
+  ```
+  Used as a shorthand so features don't repeat the config literal.
 #end

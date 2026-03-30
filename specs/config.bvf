@@ -15,7 +15,6 @@ defines its own vocabulary. The framework enforces structural rules
   The `types` key defines which entity type names are valid.
   The `containment` key defines which types can nest inside which.
 
-  A @{project-dir} with a `bvf.config` file.
 
   #decl behavior config-defines-types
     Given a config:
@@ -168,7 +167,6 @@ defines its own vocabulary. The framework enforces structural rules
 
   Non-taxonomy settings: file extension, state directory, defaults.
 
-  A @{project-dir} with a `bvf.config` file.
 
   #decl behavior config-custom-file-extension
     Given a config with `file-extension: .spec`.
@@ -222,7 +220,6 @@ defines its own vocabulary. The framework enforces structural rules
 
   Config errors caught early with clear messages.
 
-  A @{project-dir} exists.
 
   #decl behavior config-rejects-missing-types
     Given a `bvf.config` that omits the `types` key.
@@ -329,7 +326,6 @@ defines its own vocabulary. The framework enforces structural rules
   grouping container in the output. Leaf types (types that only
   appear as children, never as parents) are counted in the summary.
 
-  A @{project-dir} exists.
 
   #decl behavior resolve-groups-by-configured-containers
     Given a config:
