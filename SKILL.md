@@ -113,6 +113,11 @@ gets exactly the files it needs. For example:
 - **CONTRADICTION** → present both sides to the human, ask for
   clarification
 
+**After fixing NEEDS_ELABORATION or CONTRADICTION issues:**
+Re-run soundness review on the affected specs. Elaborations may
+introduce new ambiguities or contradict existing behaviors.
+Only proceed to materialization when ALL behaviors pass.
+
 ### Phase 3: Test Materialization
 
 Materialize specs into test code FIRST. Tests are written against
