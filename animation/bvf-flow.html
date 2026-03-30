@@ -18,28 +18,35 @@
   }
 
   .container {
-    width: 900px;
-    height: 580px;
+    width: 980px;
+    height: 640px;
     position: relative;
   }
 
   h1 {
     text-align: center;
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     font-weight: 300;
     letter-spacing: 0.3em;
     color: #7b8cde;
-    margin-bottom: 30px;
+    margin-bottom: 6px;
     text-transform: uppercase;
   }
   h1 span { font-weight: 700; color: #a0b4ff; }
 
-  /* Pipeline stages */
+  .subtitle {
+    text-align: center;
+    font-size: 0.68rem;
+    color: #445;
+    margin-bottom: 22px;
+    letter-spacing: 0.05em;
+  }
+
   .pipeline {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 8px;
+    gap: 4px;
     position: relative;
   }
 
@@ -50,20 +57,17 @@
     transform: translateY(30px);
     transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  .stage.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  .stage.visible { opacity: 1; transform: translateY(0); }
 
   .stage-icon {
-    width: 72px;
-    height: 72px;
-    margin: 0 auto 12px;
-    border-radius: 18px;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 10px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     position: relative;
     transition: all 0.4s ease;
   }
@@ -74,30 +78,30 @@
 
   .stage-icon.spec { background: linear-gradient(135deg, #1a2744, #243a6a); border: 2px solid #3a5a9f; }
   .stage-icon.soundness { background: linear-gradient(135deg, #1a3a2a, #1f5a3a); border: 2px solid #3a9f5a; }
-  .stage-icon.materialize { background: linear-gradient(135deg, #3a2a1a, #6a4a1f); border: 2px solid #9f7a3a; }
+  .stage-icon.tests { background: linear-gradient(135deg, #3a2a1a, #6a4a1f); border: 2px solid #9f7a3a; }
   .stage-icon.alignment { background: linear-gradient(135deg, #2a1a3a, #4a1f6a); border: 2px solid #7a3a9f; }
-  .stage-icon.status { background: linear-gradient(135deg, #1a2a3a, #1f4a6a); border: 2px solid #3a7a9f; }
+  .stage-icon.implement { background: linear-gradient(135deg, #1a3a3a, #1f5a5a); border: 2px solid #3a9f9f; }
+  .stage-icon.resolve { background: linear-gradient(135deg, #1a2a3a, #1f4a6a); border: 2px solid #3a7a9f; }
 
   .stage-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     color: #8899bb;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
   .stage-desc {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: #556677;
     line-height: 1.4;
-    max-width: 130px;
+    max-width: 120px;
     margin: 0 auto;
   }
 
-  /* Arrows between stages */
   .arrow {
     position: absolute;
-    top: 36px;
+    top: 30px;
     height: 2px;
     background: #1a2540;
     z-index: 0;
@@ -121,14 +125,13 @@
   }
   .arrow.lit::after { color: #7b8cde; }
 
-  /* Detail panel */
   .detail-panel {
-    margin-top: 36px;
+    margin-top: 28px;
     background: #0d1220;
     border: 1px solid #1a2540;
     border-radius: 14px;
-    padding: 20px 24px;
-    min-height: 260px;
+    padding: 18px 22px;
+    min-height: 280px;
     position: relative;
     overflow: hidden;
   }
@@ -138,15 +141,12 @@
     transform: translateX(20px);
     transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     position: absolute;
-    top: 20px; left: 24px; right: 24px; bottom: 20px;
+    top: 18px; left: 22px; right: 22px; bottom: 18px;
   }
-  .detail-content.visible {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  .detail-content.visible { opacity: 1; transform: translateX(0); }
 
   .detail-title {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
     margin-bottom: 12px;
     display: flex;
@@ -158,12 +158,11 @@
     background: #080c16;
     border: 1px solid #162040;
     border-radius: 8px;
-    padding: 14px 16px;
+    padding: 12px 14px;
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     line-height: 1.7;
     overflow: hidden;
-    position: relative;
   }
 
   .code-line {
@@ -172,10 +171,7 @@
     transition: all 0.3s ease;
     white-space: pre;
   }
-  .code-line.visible {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  .code-line.visible { opacity: 1; transform: translateX(0); }
 
   .kw { color: #c792ea; }
   .str { color: #c3e88d; }
@@ -186,45 +182,41 @@
   .ok { color: #c3e88d; }
   .pend { color: #ffcb6b; }
   .ent { color: #82aaff; }
+  .num { color: #f78c6c; }
 
-  /* Review badges */
   .review-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px;
+    padding: 7px 12px;
     border-radius: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     background: #0a0f1a;
     border: 1px solid #162040;
     opacity: 0;
     transform: translateY(10px);
     transition: all 0.4s ease;
   }
-  .review-item.visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  .review-item.visible { opacity: 1; transform: translateY(0); }
   .review-item .badge {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
   }
   .badge.pass { background: #1a3a2a; color: #4ae68a; }
   .badge.fail { background: #3a1a1a; color: #ff5370; }
   .badge.wait { background: #3a2a1a; color: #ffcb6b; }
-  .review-item .label { font-size: 0.78rem; color: #8899bb; }
-  .review-item .detail { font-size: 0.68rem; color: #556677; margin-top: 2px; }
+  .review-item .label { font-size: 0.75rem; color: #8899bb; }
+  .review-item .detail { font-size: 0.65rem; color: #556677; margin-top: 2px; }
 
-  /* Status output */
   .status-tree {
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     line-height: 2;
   }
   .status-line {
@@ -233,12 +225,11 @@
   }
   .status-line.visible { opacity: 1; }
 
-  /* Progress dots */
   .progress {
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin-top: 20px;
+    margin-top: 16px;
   }
   .dot {
     width: 8px;
@@ -251,14 +242,12 @@
   .dot.active { background: #7b8cde; transform: scale(1.3); }
   .dot:hover { background: #4a5a8a; }
 
-  /* Pulse animation on active icon */
   @keyframes pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(120, 140, 255, 0.3); }
     50% { box-shadow: 0 0 20px 8px rgba(120, 140, 255, 0.15); }
   }
   .stage.active .stage-icon { animation: pulse 2s infinite; }
 
-  /* Typing cursor */
   @keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
@@ -273,7 +262,6 @@
     vertical-align: middle;
   }
 
-  /* Loop indicator */
   .loop-hint {
     position: absolute;
     bottom: 8px;
@@ -283,70 +271,121 @@
     letter-spacing: 0.05em;
   }
 
-  .subtitle {
-    text-align: center;
-    font-size: 0.7rem;
-    color: #445;
-    margin-top: -22px;
-    margin-bottom: 24px;
-    letter-spacing: 0.05em;
+  /* Test result bar */
+  .test-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 10px 0;
+    background: #0a0f1a;
+    border: 1px solid #162040;
   }
+  .test-bar .pass-bar {
+    background: linear-gradient(135deg, #1a5a2a, #2a8a4a);
+    transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 600; color: #c3e88d;
+    width: 0%;
+  }
+  .test-bar .fail-bar {
+    background: linear-gradient(135deg, #5a1a1a, #8a2a2a);
+    transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 600; color: #ff5370;
+    width: 0%;
+  }
+
+  .impl-round {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    background: #0a0f1a;
+    border: 1px solid #162040;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.4s ease;
+  }
+  .impl-round.visible { opacity: 1; transform: translateY(0); }
+  .impl-round .round-label { font-size: 0.7rem; color: #8899bb; min-width: 80px; }
+  .impl-round .round-desc { font-size: 0.65rem; color: #556677; flex: 1; }
+  .impl-round .round-count { font-size: 0.75rem; font-weight: 600; font-family: monospace; }
 </style>
 </head>
 <body>
 <div class="container">
   <h1><span>BVF</span> — Behavioral Verification Framework</h1>
-  <div class="subtitle">spec-driven development with agent review phases</div>
+  <div class="subtitle">config-driven entity taxonomy · spec-first TDD · agent review pipeline</div>
 
   <div class="pipeline" id="pipeline">
     <div class="stage" id="s0">
       <div class="stage-icon spec">📝</div>
       <div class="stage-label">Spec</div>
-      <div class="stage-desc">Write behaviors in .bvf files</div>
+      <div class="stage-desc">Define behaviors in .bvf files</div>
     </div>
     <div class="stage" id="s1">
       <div class="stage-icon soundness">🔍</div>
       <div class="stage-label">Soundness</div>
-      <div class="stage-desc">Review spec clarity & completeness</div>
+      <div class="stage-desc">Review clarity & completeness</div>
     </div>
     <div class="stage" id="s2">
-      <div class="stage-icon materialize">⚙️</div>
-      <div class="stage-label">Materialize</div>
-      <div class="stage-desc">Generate tests from spec</div>
+      <div class="stage-icon tests">🧪</div>
+      <div class="stage-label">Tests</div>
+      <div class="stage-desc">Materialize e2e tests from spec</div>
     </div>
     <div class="stage" id="s3">
       <div class="stage-icon alignment">🎯</div>
       <div class="stage-label">Alignment</div>
-      <div class="stage-desc">Review tests match spec intent</div>
+      <div class="stage-desc">Verify tests match spec intent</div>
     </div>
     <div class="stage" id="s4">
-      <div class="stage-icon status">📊</div>
+      <div class="stage-icon implement">🔧</div>
+      <div class="stage-label">Implement</div>
+      <div class="stage-desc">Make failing tests pass</div>
+    </div>
+    <div class="stage" id="s5">
+      <div class="stage-icon resolve">📊</div>
       <div class="stage-label">Resolve</div>
       <div class="stage-desc">Track status & detect drift</div>
     </div>
   </div>
 
   <div class="detail-panel" id="detailPanel">
-    <!-- Stage 0: Spec writing -->
+    <!-- Stage 0: Spec writing with config + generic containment -->
     <div class="detail-content" id="d0">
-      <div class="detail-title"><span style="color:#3a5a9f">📝</span> Writing a Behavior Spec</div>
-      <div class="code-block" id="code0">
-        <div class="code-line"><span class="kw">#decl feature</span> <span class="ent">auth-feature</span></div>
-        <div class="code-line">  <span class="cmt">Authentication — the gateway to everything.</span></div>
-        <div class="code-line">  <span class="cmt">Get this wrong and nothing else matters.</span></div>
-        <div class="code-line"></div>
-        <div class="code-line">  <span class="kw">#behavior</span> <span class="ent">login-validates-credentials</span></div>
-        <div class="code-line">    <span class="str">Given</span> a registered user with valid credentials.</div>
-        <div class="code-line">    <span class="str">When</span> they submit the login form.</div>
-        <div class="code-line">    <span class="str">Then</span> a session is created and they see the dashboard.</div>
-        <div class="code-line">  <span class="kw">#end</span></div>
-        <div class="code-line"></div>
-        <div class="code-line">  <span class="kw">#behavior</span> <span class="ent">login-rejects-bad-password</span></div>
-        <div class="code-line">    <span class="str">Given</span> a registered user with an <span class="err">incorrect</span> password.</div>
-        <div class="code-line">    <span class="str">When</span> they submit the login form.</div>
-        <div class="code-line">    <span class="str">Then</span> authentication fails with a generic error.</div>
-        <div class="code-line">  <span class="kw">#end</span></div>
-        <div class="code-line"><span class="kw">#end</span></div>
+      <div class="detail-title"><span style="color:#3a5a9f">📝</span> Config-Driven Specs</div>
+      <div style="display:flex; gap:12px;">
+        <div class="code-block" style="flex:0.45;" id="code0a">
+          <div class="code-line"><span class="cmt">/* bvf.config */</span></div>
+          <div class="code-line"><span class="kw">#config</span></div>
+          <div class="code-line">  <span class="ent">types</span>: <span class="str">surface, instrument,</span></div>
+          <div class="code-line">         <span class="str">feature, behavior</span></div>
+          <div class="code-line">  <span class="ent">containment</span>:</div>
+          <div class="code-line">    <span class="str">feature</span>: <span class="str">behavior</span></div>
+          <div class="code-line">  <span class="ent">file-extension</span>: <span class="str">.bvf</span></div>
+          <div class="code-line"><span class="kw">#end</span></div>
+        </div>
+        <div class="code-block" style="flex:0.55;" id="code0b">
+          <div class="code-line"><span class="kw">#decl feature</span> <span class="ent">auth</span> on <span class="ref">@{web-app}</span></div>
+          <div class="code-line">  <span class="kw">#context</span></div>
+          <div class="code-line">    App running at <span class="ref">@{base-url}</span>.</div>
+          <div class="code-line">  <span class="kw">#end</span></div>
+          <div class="code-line"></div>
+          <div class="code-line">  <span class="kw">#decl behavior</span> <span class="ent">login-ok</span></div>
+          <div class="code-line">    <span class="str">Given</span> valid credentials.</div>
+          <div class="code-line">    <span class="str">When</span> submitting the login form.</div>
+          <div class="code-line">    <span class="str">Then</span> session created, redirect to /dashboard.</div>
+          <div class="code-line">  <span class="kw">#end</span></div>
+          <div class="code-line"></div>
+          <div class="code-line">  <span class="kw">#decl behavior</span> <span class="ent">login-bad-pw</span></div>
+          <div class="code-line">    <span class="str">Given</span> <span class="err">incorrect</span> password.</div>
+          <div class="code-line">    <span class="str">Then</span> HTTP 401 with error message.</div>
+          <div class="code-line">  <span class="kw">#end</span></div>
+          <div class="code-line"><span class="kw">#end</span></div>
+        </div>
       </div>
     </div>
 
@@ -357,121 +396,157 @@
         <div class="review-item">
           <div class="badge pass">✓</div>
           <div>
-            <div class="label">login-validates-credentials</div>
-            <div class="detail">Clear Given/When/Then, testable assertions</div>
-          </div>
-        </div>
-        <div class="review-item">
-          <div class="badge wait">?</div>
-          <div>
-            <div class="label">login-rejects-bad-password</div>
-            <div class="detail">"generic error" — what error? HTTP 401? Flash message? Needs elaboration.</div>
+            <div class="label">login-ok</div>
+            <div class="detail">Clear Given/When/Then, testable assertions, references resolved</div>
           </div>
         </div>
         <div class="review-item">
           <div class="badge pass">✓</div>
           <div>
-            <div class="label">Feature structure</div>
-            <div class="detail">Dependencies resolved, no circular refs</div>
+            <div class="label">login-bad-pw</div>
+            <div class="detail">HTTP 401 + error message — concrete, assertable</div>
           </div>
         </div>
-        <div class="review-item" style="background:#0f1520; border-color:#3a2a1a;">
-          <div class="badge wait" style="font-size:0.7rem;">→</div>
+        <div class="review-item">
+          <div class="badge pass">✓</div>
           <div>
-            <div class="label" style="color:#ffcb6b;">Action: mark needs-elaboration</div>
-            <div class="detail">bvf mark login-rejects-bad-password needs-elaboration --note "clarify error response"</div>
+            <div class="label">Containment rules</div>
+            <div class="detail">Config allows feature→behavior nesting. References resolve.</div>
+          </div>
+        </div>
+        <div class="review-item">
+          <div class="badge pass">✓</div>
+          <div>
+            <div class="label" style="color:#4ae68a;">ALL PASS — 71 behaviors reviewed</div>
+            <div class="detail">0 contradictions, 0 ambiguities. Ready for materialization.</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Stage 2: Materialization -->
+    <!-- Stage 2: Test materialization -->
     <div class="detail-content" id="d2">
-      <div class="detail-title"><span style="color:#9f7a3a">⚙️</span> Materializing Tests</div>
+      <div class="detail-title"><span style="color:#9f7a3a">🧪</span> Tests Written From Specs (Expected to Fail)</div>
       <div class="code-block" id="code2">
-        <div class="code-line"><span class="kw">it</span>(<span class="str">'login-validates-credentials'</span>, <span class="kw">async</span> () => {</div>
-        <div class="code-line">  <span class="cmt">// Given: registered user with valid creds</span></div>
-        <div class="code-line">  <span class="kw">const</span> user = <span class="kw">await</span> createUser({</div>
-        <div class="code-line">    email: <span class="str">'test@example.com'</span>,</div>
-        <div class="code-line">    password: <span class="str">'correct-horse-battery'</span></div>
+        <div class="code-line"><span class="kw">it</span>(<span class="str">'login-ok'</span>, <span class="kw">async</span> () => {</div>
+        <div class="code-line">  <span class="cmt">// Given: project with auth feature + behaviors</span></div>
+        <div class="code-line">  setupProject(tmpDir, {</div>
+        <div class="code-line">    <span class="str">'auth.bvf'</span>: <span class="str">`#decl feature auth on @{web-app}...</span></div>
         <div class="code-line">  });</div>
         <div class="code-line"></div>
-        <div class="code-line">  <span class="cmt">// When: submit login form</span></div>
-        <div class="code-line">  <span class="kw">const</span> result = <span class="kw">await</span> login(user.email, user.password);</div>
+        <div class="code-line">  <span class="cmt">// When: run resolve</span></div>
+        <div class="code-line">  <span class="kw">const</span> result = <span class="kw">await</span> runCli(<span class="str">'resolve'</span>, tmpDir);</div>
         <div class="code-line"></div>
-        <div class="code-line">  <span class="cmt">// Then: session created, sees dashboard</span></div>
-        <div class="code-line">  expect(result.session).<span class="ok">toBeDefined</span>();</div>
-        <div class="code-line">  expect(result.redirect).<span class="ok">toBe</span>(<span class="str">'/dashboard'</span>);</div>
+        <div class="code-line">  <span class="cmt">// Then: behavior appears in output</span></div>
+        <div class="code-line">  expect(result.stdout).<span class="ok">toContain</span>(<span class="str">'login-ok'</span>);</div>
+        <div class="code-line">  expect(result.exitCode).<span class="ok">toBe</span>(<span class="num">0</span>);</div>
         <div class="code-line">});</div>
+      </div>
+      <div style="margin-top:10px; font-size:0.7rem; color:#ffcb6b;">
+        ⚡ 70 tests materialized · tests define correctness · failures become the implementation todo list
       </div>
     </div>
 
     <!-- Stage 3: Alignment review -->
     <div class="detail-content" id="d3">
-      <div class="detail-title"><span style="color:#7a3a9f">🎯</span> Alignment Review — Do tests match spec?</div>
+      <div class="detail-title"><span style="color:#7a3a9f">🎯</span> Alignment Review — Do Tests Match Specs?</div>
       <div id="alignmentItems">
         <div class="review-item">
           <div class="badge pass">✓</div>
           <div>
             <div class="label">Preconditions</div>
-            <div class="detail">Real user created, not mocked — matches "registered user"</div>
+            <div class="detail">Real project setup, real config with containment rules — no fakes</div>
           </div>
         </div>
         <div class="review-item">
           <div class="badge pass">✓</div>
           <div>
             <div class="label">Assertions</div>
-            <div class="detail">Session + redirect verified — covers both "Then" clauses</div>
+            <div class="detail">Each Then clause maps to a concrete assertion</div>
           </div>
         </div>
         <div class="review-item">
           <div class="badge fail">✗</div>
           <div>
-            <div class="label">Scope</div>
-            <div class="detail">Test also checks response time — over-assertion, not in spec</div>
+            <div class="label">Status tracking (4 tests)</div>
+            <div class="detail">Used fake hashes instead of real CLI-computed ones. Fix: run resolve twice.</div>
           </div>
         </div>
-        <div class="review-item" style="background:#0f1520; border-color:#3a1a1a;">
-          <div class="badge fail" style="font-size:0.7rem;">→</div>
+        <div class="review-item" style="background:#0f1520; border-color:#1a3a2a;">
+          <div class="badge pass" style="font-size:0.7rem;">→</div>
           <div>
-            <div class="label" style="color:#ff5370;">Action: mark review-failed</div>
-            <div class="detail">bvf mark login-validates-credentials review-failed --note "over-assertion: response time"</div>
+            <div class="label" style="color:#4ae68a;">Fixed: 70/70 tests aligned</div>
+            <div class="detail">Pattern: let CLI compute hashes, then modify files, re-run to observe staleness</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Stage 4: Resolve status -->
+    <!-- Stage 4: Implementation (NEW) -->
     <div class="detail-content" id="d4">
-      <div class="detail-title"><span style="color:#3a7a9f">📊</span> bvf resolve</div>
-      <div class="status-tree" id="statusTree">
-        <div class="status-line">Resolution Status:</div>
-        <div class="status-line"></div>
-        <div class="status-line"><span class="pend">⏳</span> <span class="ent">auth-feature</span> <span class="cmt">(feature)</span></div>
-        <div class="status-line">  <span class="err">✗</span> login-validates-credentials <span class="cmt">review-failed</span></div>
-        <div class="status-line">    <span class="cmt" style="font-size:0.65rem;">    over-assertion: response time</span></div>
-        <div class="status-line">  <span class="pend">⏳</span> login-rejects-bad-password <span class="cmt">needs-elaboration</span></div>
-        <div class="status-line">    <span class="cmt" style="font-size:0.65rem;">    clarify error response</span></div>
-        <div class="status-line"></div>
-        <div class="status-line">Summary:</div>
-        <div class="status-line">  Current: <span class="ok">0</span>  Stale: <span class="err">1</span>  Pending: <span class="pend">1</span></div>
-        <div class="status-line"></div>
-        <div class="status-line"><span class="cmt">Run materialization to generate/update test files.</span></div>
+      <div class="detail-title"><span style="color:#3a9f9f">🔧</span> Implementation — Make Tests Pass</div>
+      <div id="implItems">
+        <div class="impl-round">
+          <div class="round-label" style="color:#ffcb6b;">Round 1</div>
+          <div class="round-desc">Generic containment, fence awareness, config parser rewrite</div>
+          <div class="round-count"><span class="ok">47</span>/<span class="num">64</span></div>
+        </div>
+        <div class="impl-round">
+          <div class="round-label" style="color:#89ddff;">Round 2</div>
+          <div class="round-desc">#for error messages, nesting validation, duplicate context</div>
+          <div class="round-count"><span class="ok">53</span>/<span class="num">64</span></div>
+        </div>
+        <div class="impl-round">
+          <div class="round-label" style="color:#c792ea;">Round 3</div>
+          <div class="round-desc">#for expansion, mark command, --diff, optional params</div>
+          <div class="round-count"><span class="ok">61</span>/<span class="num">64</span></div>
+        </div>
+        <div class="impl-round">
+          <div class="round-label" style="color:#4ae68a;">Round 4</div>
+          <div class="round-desc">Custom state-dir, unknown keys, no-colon detection</div>
+          <div class="round-count"><span class="ok">64</span>/<span class="num">64</span> ✅</div>
+        </div>
+      </div>
+      <div class="test-bar" id="testBar">
+        <div class="pass-bar" id="passBar">64 pass</div>
+        <div class="fail-bar" id="failBar"></div>
       </div>
     </div>
-    <div class="loop-hint" id="loopHint" style="opacity:0">↻ spec changes trigger re-review</div>
+
+    <!-- Stage 5: Resolve status -->
+    <div class="detail-content" id="d5">
+      <div class="detail-title"><span style="color:#3a7a9f">📊</span> bvf resolve</div>
+      <div class="status-tree" id="statusTree">
+        <div class="status-line"><span class="cmt">$ bvf resolve</span></div>
+        <div class="status-line"></div>
+        <div class="status-line"><span class="ent">auth</span> <span class="cmt">(feature)</span></div>
+        <div class="status-line">  <span class="ok">✓</span> login-ok</div>
+        <div class="status-line">  <span class="ok">✓</span> login-bad-pw</div>
+        <div class="status-line"></div>
+        <div class="status-line"><span class="ent">config-taxonomy</span> <span class="cmt">(feature)</span></div>
+        <div class="status-line">  <span class="ok">✓</span> config-defines-types</div>
+        <div class="status-line">  <span class="ok">✓</span> config-defines-containment</div>
+        <div class="status-line">  <span class="pend">⏳</span> config-deep-nesting <span class="cmt">pending:new</span></div>
+        <div class="status-line"></div>
+        <div class="status-line">Summary: <span class="ok">✓ 4</span>  <span class="err">✗ 0</span>  <span class="pend">⏳ 1</span></div>
+        <div class="status-line"></div>
+        <div class="status-line"><span class="cmt">$ bvf resolve --diff</span></div>
+        <div class="status-line"><span class="pend">pending  behavior  config-deep-nesting  specs/config.bvf:42</span></div>
+      </div>
+    </div>
+
+    <div class="loop-hint" id="loopHint" style="opacity:0">↻ spec changes trigger re-review · the spec is always right</div>
   </div>
 
   <div class="progress" id="progress"></div>
 </div>
 
 <script>
-const STAGES = 5;
-const STAGE_DURATION = 4500;
+const STAGES = 6;
+const STAGE_DURATION = 5000;
 let current = -1;
 let timer;
 
-// Create progress dots
 const progressEl = document.getElementById('progress');
 for (let i = 0; i < STAGES; i++) {
   const dot = document.createElement('div');
@@ -480,16 +555,14 @@ for (let i = 0; i < STAGES; i++) {
   progressEl.appendChild(dot);
 }
 
-// Create arrow elements
 const pipeline = document.getElementById('pipeline');
 const stages = pipeline.querySelectorAll('.stage');
 for (let i = 0; i < STAGES - 1; i++) {
   const arrow = document.createElement('div');
   arrow.className = 'arrow';
   arrow.id = `arrow${i}`;
-  // Position arrows between stages
-  const stageWidth = 900 / STAGES;
-  const left = stageWidth * (i + 0.65);
+  const stageWidth = 980 / STAGES;
+  const left = stageWidth * (i + 0.6);
   arrow.style.left = left + 'px';
   arrow.style.width = (stageWidth * 0.45) + 'px';
   const fill = document.createElement('div');
@@ -512,6 +585,17 @@ function showReviewItems(containerId, delayBase = 500) {
   });
 }
 
+function showImplRounds(delayBase = 700) {
+  const items = document.querySelectorAll('#implItems .impl-round');
+  items.forEach((item, i) => {
+    setTimeout(() => item.classList.add('visible'), delayBase * i);
+  });
+  // Animate test bar after rounds
+  setTimeout(() => {
+    document.getElementById('passBar').style.width = '100%';
+  }, delayBase * items.length + 300);
+}
+
 function showStatusLines(delayBase = 250) {
   const lines = document.querySelectorAll('#statusTree .status-line');
   lines.forEach((line, i) => {
@@ -523,63 +607,57 @@ function resetAllDetails() {
   for (let i = 0; i < STAGES; i++) {
     document.getElementById(`d${i}`).classList.remove('visible');
   }
-  // Reset code lines
   document.querySelectorAll('.code-line').forEach(l => l.classList.remove('visible'));
   document.querySelectorAll('.review-item').forEach(l => l.classList.remove('visible'));
+  document.querySelectorAll('.impl-round').forEach(l => l.classList.remove('visible'));
   document.querySelectorAll('.status-line').forEach(l => l.classList.remove('visible'));
+  document.getElementById('passBar').style.width = '0%';
+  document.getElementById('failBar').style.width = '0%';
 }
 
 function goTo(idx) {
   if (idx === current) return;
   current = idx;
 
-  // Update stages
   stages.forEach((s, i) => {
     s.classList.toggle('visible', i <= idx);
     s.classList.toggle('active', i === idx);
   });
 
-  // Update arrows
   for (let i = 0; i < STAGES - 1; i++) {
-    const arrow = document.getElementById(`arrow${i}`);
-    arrow.classList.toggle('lit', i < idx);
+    document.getElementById(`arrow${i}`).classList.toggle('lit', i < idx);
   }
 
-  // Update dots
   progressEl.querySelectorAll('.dot').forEach((d, i) => {
     d.classList.toggle('active', i === idx);
   });
 
-  // Update detail
   resetAllDetails();
   setTimeout(() => {
     document.getElementById(`d${idx}`).classList.add('visible');
-    if (idx === 0) showCodeLines('code0', 140);
+    if (idx === 0) { showCodeLines('code0a', 120); showCodeLines('code0b', 100); }
     if (idx === 1) showReviewItems('soundnessItems', 600);
     if (idx === 2) showCodeLines('code2', 130);
     if (idx === 3) showReviewItems('alignmentItems', 600);
-    if (idx === 4) {
-      showStatusLines(280);
+    if (idx === 4) showImplRounds(700);
+    if (idx === 5) {
+      showStatusLines(250);
       setTimeout(() => {
         document.getElementById('loopHint').style.opacity = '1';
-      }, 3000);
+      }, 3500);
     }
   }, 100);
 
-  // Reset timer
   clearInterval(timer);
   timer = setInterval(advance, STAGE_DURATION);
 }
 
 function advance() {
   const next = (current + 1) % STAGES;
-  if (next === 0) {
-    document.getElementById('loopHint').style.opacity = '0';
-  }
+  if (next === 0) document.getElementById('loopHint').style.opacity = '0';
   goTo(next);
 }
 
-// Start
 setTimeout(() => goTo(0), 400);
 timer = setInterval(advance, STAGE_DURATION);
 </script>
