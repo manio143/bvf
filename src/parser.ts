@@ -16,6 +16,14 @@ export function parseBvfFile(content: string, config?: BvfConfig): ParseResult {
   while (i < lines.length) {
     const line = lines[i].trim();
     
+    // Check for #for at top level - this is an error
+    if (line.startsWith('#for')) {
+      errors.push(new Error(`#for cannot be used outside a container entity (line ${i + 1})`));
+      // Skip to next #decl or end of #for block
+      i = findNext(lines, i + 1, ['#decl', '#end']);
+      continue;
+    }
+    
     // Skip empty lines and prose
     if (!line || !line.startsWith('#decl')) {
       i++;
@@ -77,7 +85,8 @@ function parseEntityFromLines(
   lines: string[], 
   startIndex: number, 
   parentType: string | null,
-  config?: BvfConfig
+  config?: BvfConfig,
+  isTemplate?: boolean
 ): 
   { ok: boolean; value?: Entity; errors?: Error[]; nextLine: number } {
   
@@ -112,7 +121,7 @@ function parseEntityFromLines(
       if (!allowed.includes(type)) {
         return {
           ok: false,
-          errors: [new Error(`type "${type}" cannot be nested inside "${parentType}" (line ${startIndex + 1})`)],
+          errors: [new Error(`invalid nesting: type "${type}" cannot be nested inside "${parentType}" (line ${startIndex + 1})`)],
           nextLine: startIndex + 1
         };
       }
@@ -125,6 +134,12 @@ function parseEntityFromLines(
     const paramTokens = paramsStr.split(',').map(p => p.trim());
     for (const token of paramTokens) {
       if (!token) continue;
+      
+      // If we're in a template, allow {var} syntax for template variables
+      if (isTemplate && token.match(/^\{(\w+)\}$/)) {
+        // This is a template variable reference, skip param validation
+        continue;
+      }
       
       // Check for optional syntax: param?
       const isOptional = token.endsWith('?');
@@ -203,7 +218,7 @@ function parseEntityFromLines(
     // Check for #context
     if (line === '#context') {
       if (contextLines.length > 0) {
-        errors.push(new Error(`only one #context block allowed per container (line ${i + 1})`));
+        errors.push(new Error(`multiple #context blocks not allowed - only one #context block allowed per container (line ${i + 1})`));
       }
       inContext = true;
       i++;
@@ -211,8 +226,26 @@ function parseEntityFromLines(
     }
     
     // Check for #for
-    const forMatch = line.match(/^#for\s+(.+?)\s+in\s+\[(.+)\]$/);
-    if (forMatch) {
+    if (line.startsWith('#for')) {
+      // #for is allowed inside container entities (which have children)
+      // We're currently parsing an entity, so #for should be fine here
+      // The validation should be about the syntax, not the location
+      
+      // Try to match proper #for syntax with "in" keyword
+      const forMatch = line.match(/^#for\s+(.+?)\s+in\s+\[(.+)\]$/);
+      if (!forMatch) {
+        // Check if it's missing "in" keyword
+        if (!line.includes(' in ')) {
+          errors.push(new Error(`#for requires "in" keyword (line ${i + 1})`));
+        } else if (!line.match(/\[.+\]/)) {
+          errors.push(new Error(`#for requires array syntax [...] (line ${i + 1})`));
+        } else {
+          errors.push(new Error(`invalid #for syntax (line ${i + 1})`));
+        }
+        i++;
+        continue;
+      }
+      
       const varsStr = forMatch[1];
       const valuesStr = forMatch[2];
       
@@ -221,7 +254,7 @@ function parseEntityFromLines(
       try {
         forValues = parseForValues(valuesStr, forVars.length);
       } catch (e: any) {
-        errors.push(new Error(`invalid #for array syntax (line ${i + 1}): ${e.message}`));
+        errors.push(new Error(`#for requires valid array syntax (line ${i + 1}): ${e.message}`));
       }
       
       inFor = true;
@@ -232,8 +265,8 @@ function parseEntityFromLines(
     // Check for nested #decl
     if (line.startsWith('#decl')) {
       if (inFor) {
-        // Parse child entity as part of #for expansion
-        const childResult = parseEntityFromLines(lines, i, type, config);
+        // Parse child entity as part of #for expansion (mark as template)
+        const childResult = parseEntityFromLines(lines, i, type, config, true);
         if (!childResult.ok) {
           errors.push(...(childResult.errors || []));
           i = childResult.nextLine;
@@ -243,7 +276,7 @@ function parseEntityFromLines(
         i = childResult.nextLine;
       } else {
         // Parse child entity normally
-        const childResult = parseEntityFromLines(lines, i, type, config);
+        const childResult = parseEntityFromLines(lines, i, type, config, false);
         if (!childResult.ok) {
           errors.push(...(childResult.errors || []));
           i = childResult.nextLine;
@@ -332,8 +365,16 @@ function expandForBlock(
  */
 function expandEntity(template: Entity, vars: string[], values: any[]): Entity {
   const substitutions = new Map<string, string>();
+  
+  // Quote string values only for single-variable loops
+  // For multi-variable loops (tuples), use values as-is
+  const shouldQuoteStrings = vars.length === 1;
+  
   for (let i = 0; i < vars.length; i++) {
-    substitutions.set(vars[i], String(values[i]));
+    const value = (shouldQuoteStrings && typeof values[i] === 'string') 
+      ? `"${values[i]}"` 
+      : String(values[i]);
+    substitutions.set(vars[i], value);
   }
   
   const expandText = (text: string) => {
@@ -356,9 +397,12 @@ function expandEntity(template: Entity, vars: string[], values: any[]): Entity {
  * Parse #for values array - supports both single values and tuples
  */
 function parseForValues(valuesStr: string, expectedVarCount: number): any[][] {
+  // Convert Python-style tuples (parentheses) to JSON arrays (square brackets)
+  const jsonStr = valuesStr.replace(/\(/g, '[').replace(/\)/g, ']');
+  
   // Try to parse as JSON array
   try {
-    const parsed = JSON.parse(`[${valuesStr}]`);
+    const parsed = JSON.parse(`[${jsonStr}]`);
     
     if (expectedVarCount === 1) {
       // Single variable - each element is a value
