@@ -100,7 +100,9 @@ code signals success vs structural failure.
 
     When @{run-resolve} is executed.
 
-    Then stderr contains an error about multiple `#context` blocks.
+    Then stderr contains an error about multiple `#context` blocks
+    in the containing entity. This is a parse-time error — the
+    entity is not included in the resolve output.
     Exit code is 1.
   #end
 
@@ -255,11 +257,20 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-shows-for-tuple-expansion
-    Given a feature with `#for field, value in [("email", ""), ("pw", "x")]`.
+    Given a feature with tuple expansion:
+    ```
+    #decl feature validation on @{some-surface}
+      #for field, value in [("email", ""), ("pw", "x")]
+      #decl behavior rejects-empty-{field}
+        When {value} is submitted for {field}. Then validation fails.
+      #end
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
-    Then two expanded child entities appear.
+    Then two expanded child entities appear:
+    "rejects-empty-email" and "rejects-empty-pw".
     Exit code is 0.
   #end
 
@@ -273,12 +284,14 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-ignores-decl-inside-fences
-    Given a spec file containing `#decl` examples inside markdown
-    fenced code blocks (triple backticks).
+    Given a spec file containing `#decl` examples inside
+    triple-backtick fenced code blocks (with or without
+    language tags like ```bvf).
 
     Spec files often contain examples showing BVF syntax. The parser
     must not treat these as real declarations — they are documentation,
-    not structure.
+    not structure. Only triple-backtick fences are recognized
+    (not 4-space indented code blocks).
 
     When @{run-resolve} is executed.
 
@@ -461,8 +474,8 @@ code signals success vs structural failure.
 
     Format: `<status> <type> <name> <relative-path>:<line>`
 
-    This shows root causes alongside symptoms. If an instrument
-    changed and caused 3 behaviors to become stale, all 4 appear.
+    All non-current entities appear regardless of whether they
+    changed directly or became stale through dependencies.
     The human-readable tree output is suppressed — `--diff` is
     designed for piping into scripts or agent tooling.
     Exit code is 0.

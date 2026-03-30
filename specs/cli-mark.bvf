@@ -18,7 +18,8 @@ Used by soundness and alignment review phases.
     defining reset steps".
 
     Then the manifest records "password-reset" with status "pending",
-    reason "needs-elaboration", and the note.
+    reason "needs-elaboration", and the note. Subsequent
+    @{run-resolve} will show this entity as ⏳ with the note.
     Exit code is 0.
   #end
 
@@ -29,7 +30,8 @@ Used by soundness and alignment review phases.
     status "review-failed", and note "test uses fake hashes".
 
     Then the manifest records "login-test" with status "stale",
-    reason "review-failed", and the note.
+    reason "review-failed", and the note. Subsequent
+    @{run-resolve} will show this entity as ✗ with the note.
     Exit code is 0.
   #end
 
