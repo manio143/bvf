@@ -41,6 +41,10 @@ export function parseConfig(content: string): ConfigResult {
   let typesKeySeen = false;
   let fileExtension = '.bvf';
   let stateDir = '.bvf-state';
+  let containment = new Map<string, string[]>();
+  let inContainmentSection = false;
+  let currentContainmentKey: string | null = null;
+  let containmentLines: string[] = [];
   
   for (const line of lines) {
     const trimmed = line.trim();
@@ -49,12 +53,26 @@ export function parseConfig(content: string): ConfigResult {
       continue;
     }
     
-    // Check if line starts a key:value pair
+    // Check if line starts a key (could be top-level or containment)
     const keyMatch = trimmed.match(/^(\S+?):\s*(.*)$/);
-    if (keyMatch) {
-      const [, key, valueStr] = keyMatch;
-      
-      // Finish collecting previous multiline value
+    if (!keyMatch) {
+      // Not a key:value line - must be continuation
+      if (collectingTypes) {
+        typeLines.push(trimmed);
+      } else if (currentContainmentKey) {
+        containmentLines.push(trimmed);
+      }
+      continue;
+    }
+    
+    const [, key, valueStr] = keyMatch;
+    
+    // Check if this is a known top-level key
+    const topLevelKeys = ['types', 'containment', 'file-extension', 'state-dir'];
+    const isTopLevelKey = topLevelKeys.includes(key);
+    
+    if (isTopLevelKey) {
+      // This is a top-level key - finish any ongoing collections
       if (collectingTypes && typeLines.length > 0) {
         types = typeLines.join(',')
           .split(',')
@@ -63,11 +81,21 @@ export function parseConfig(content: string): ConfigResult {
         typeLines = [];
         collectingTypes = false;
       } else if (collectingTypes && typeLines.length === 0 && typesKeySeen) {
-        // types key seen but no values collected
         types = [];
         collectingTypes = false;
       }
       
+      if (currentContainmentKey && containmentLines.length > 0) {
+        const children = containmentLines.join(',')
+          .split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
+        containment.set(currentContainmentKey, children);
+        containmentLines = [];
+        currentContainmentKey = null;
+      }
+      
+      // Handle the top-level key
       switch (key) {
         case 'types':
           typesKeySeen = true;
@@ -75,22 +103,49 @@ export function parseConfig(content: string): ConfigResult {
             typeLines.push(valueStr);
           }
           collectingTypes = true;
+          inContainmentSection = false;
+          break;
+        case 'containment':
+          inContainmentSection = true;
+          collectingTypes = false;
+          if (valueStr && valueStr.trim()) {
+            return { ok: false, errors: [new Error('containment must be a section with nested rules')] };
+          }
           break;
         case 'file-extension':
+          if (!valueStr.trim()) {
+            return { ok: false, errors: [new Error('file-extension requires a value')] };
+          }
           fileExtension = valueStr.trim();
           collectingTypes = false;
+          inContainmentSection = false;
           break;
         case 'state-dir':
           stateDir = valueStr.trim();
           collectingTypes = false;
+          inContainmentSection = false;
           break;
-        default:
-          // Ignore unknown keys
-          collectingTypes = false;
       }
-    } else if (collectingTypes) {
-      // Continuation line for types
-      typeLines.push(trimmed);
+    } else if (inContainmentSection) {
+      // This is a containment rule like "feature: behavior"
+      // Save previous containment entry if any
+      if (currentContainmentKey && containmentLines.length > 0) {
+        const children = containmentLines.join(',')
+          .split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0);
+        containment.set(currentContainmentKey, children);
+        containmentLines = [];
+      }
+      
+      currentContainmentKey = key;
+      if (valueStr) {
+        containmentLines.push(valueStr);
+      }
+    } else {
+      // Unknown key outside containment section - ignore it
+      collectingTypes = false;
+      inContainmentSection = false;
     }
   }
   
@@ -106,6 +161,15 @@ export function parseConfig(content: string): ConfigResult {
     }
   }
   
+  // Finish collecting containment if still ongoing
+  if (currentContainmentKey && containmentLines.length > 0) {
+    const children = containmentLines.join(',')
+      .split(',')
+      .map(t => t.trim())
+      .filter(t => t.length > 0);
+    containment.set(currentContainmentKey, children);
+  }
+  
   // Validate required fields
   if (!types) {
     return { ok: false, errors: [new Error('types field is required in config')] };
@@ -115,10 +179,30 @@ export function parseConfig(content: string): ConfigResult {
     return { ok: false, errors: [new Error('types cannot be empty')] };
   }
   
+  // Validate containment references
+  const typeSet = new Set(types);
+  for (const [parent, children] of containment) {
+    if (!typeSet.has(parent)) {
+      return {
+        ok: false,
+        errors: [new Error(`containment references unknown type "${parent}"`)]
+      };
+    }
+    for (const child of children) {
+      if (!typeSet.has(child)) {
+        return {
+          ok: false,
+          errors: [new Error(`containment references unknown type "${child}"`)]
+        };
+      }
+    }
+  }
+  
   return {
     ok: true,
     value: {
       types,
+      containment: containment.size > 0 ? containment : undefined,
       fileExtension,
       stateDir
     }
@@ -151,8 +235,12 @@ export function loadConfig(dirPath: string): ConfigResult {
  * Default BVF configuration
  */
 export function defaultConfig(): BvfConfig {
+  const containment = new Map<string, string[]>();
+  containment.set('feature', ['behavior']);
+  
   return {
     types: ['surface', 'fixture', 'instrument', 'behavior', 'feature'],
+    containment,
     fileExtension: '.bvf',
     stateDir: '.bvf-state'
   };

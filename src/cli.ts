@@ -73,7 +73,7 @@ async function cmdResolve(cmdArgs: string[]) {
   
   for (const file of bvfFiles) {
     const content = readFileSync(file, 'utf-8');
-    const result = parseBvfFile(content);
+    const result = parseBvfFile(content, config);
     
     if (!result.ok) {
       parseErrors.push(...(result.errors || []));
@@ -353,12 +353,12 @@ async function cmdList(cmdArgs: string[]) {
   
   // Parse arguments
   let typeFilter: string | null = null;
-  let featureFilter: string | null = null;
+  let parentFilter: string | null = null;
   
   for (let i = 0; i < cmdArgs.length; i++) {
-    if (cmdArgs[i] === '--feature' && i + 1 < cmdArgs.length) {
-      featureFilter = cmdArgs[i + 1];
-      i++; // Skip the feature name
+    if ((cmdArgs[i] === '--parent' || cmdArgs[i] === '--feature') && i + 1 < cmdArgs.length) {
+      parentFilter = cmdArgs[i + 1];
+      i++; // Skip the parent name
     } else if (!cmdArgs[i].startsWith('--')) {
       typeFilter = cmdArgs[i];
     }
@@ -388,7 +388,7 @@ async function cmdList(cmdArgs: string[]) {
   
   for (const file of bvfFiles) {
     const content = readFileSync(file, 'utf-8');
-    const result = parseBvfFile(content);
+    const result = parseBvfFile(content, config);
     
     if (result.ok) {
       // Add source file to entities
@@ -399,16 +399,31 @@ async function cmdList(cmdArgs: string[]) {
     }
   }
   
-  let entitiesToShow = allEntities;
+  // Flatten children (behaviors) to top level for listing
+  const flattenedEntities: any[] = [];
+  for (const entity of allEntities) {
+    flattenedEntities.push(entity);
+    if (entity.behaviors) {
+      for (const behavior of entity.behaviors) {
+        flattenedEntities.push({
+          ...behavior,
+          type: 'behavior',
+          sourceFile: entity.sourceFile
+        });
+      }
+    }
+  }
   
-  // Filter by feature - show behaviors within that feature
-  if (featureFilter) {
-    const feature = allEntities.find(e => e.type === 'feature' && e.name === featureFilter);
-    if (feature && feature.behaviors) {
-      entitiesToShow = feature.behaviors.map((b: any) => ({
+  let entitiesToShow = flattenedEntities;
+  
+  // Filter by parent - show children within that parent entity
+  if (parentFilter) {
+    const parent = allEntities.find(e => e.name === parentFilter);
+    if (parent && parent.behaviors) {
+      entitiesToShow = parent.behaviors.map((b: any) => ({
         ...b,
         type: 'behavior', // Ensure behaviors have type set
-        sourceFile: feature.sourceFile
+        sourceFile: parent.sourceFile
       }));
     } else {
       entitiesToShow = [];
@@ -416,7 +431,7 @@ async function cmdList(cmdArgs: string[]) {
   }
   
   // Filter by type
-  if (typeFilter && !featureFilter) {
+  if (typeFilter && !parentFilter) {
     entitiesToShow = entitiesToShow.filter(e => e.type === typeFilter);
     
     if (entitiesToShow.length === 0) {
@@ -470,9 +485,20 @@ async function cmdInit() {
   
   // Create bvf.config
   const config = defaultConfig();
-  const configContent = `#config
+  
+  let configContent = `#config
   types: ${config.types.join(', ')}
-  file-extension: ${config.fileExtension}
+`;
+  
+  // Add containment section if present
+  if (config.containment && config.containment.size > 0) {
+    configContent += `  containment:\n`;
+    for (const [parent, children] of config.containment) {
+      configContent += `    ${parent}: ${children.join(', ')}\n`;
+    }
+  }
+  
+  configContent += `  file-extension: ${config.fileExtension}
   state-dir: ${config.stateDir}
 #end
 `;
@@ -579,7 +605,7 @@ async function cmdMark(cmdArgs: string[]) {
   
   for (const file of bvfFiles) {
     const content = readFileSync(file, 'utf-8');
-    const result = parseBvfFile(content);
+    const result = parseBvfFile(content, config);
     
     if (result.ok) {
       allEntities.push(...(result.value || []));

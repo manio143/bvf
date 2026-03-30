@@ -1,6 +1,6 @@
 // Public API exports for BVF
 
-export { parseBvfFile, parseEntity } from './parser.js';
+export { parseBvfFile } from './parser.js';
 export { parseConfig, loadConfig, defaultConfig } from './config.js';
 export { resolveReferences, buildDependencyGraph } from './resolver.js';
 export {

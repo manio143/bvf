@@ -50,6 +50,7 @@ export interface ResolveResult {
 
 export interface BvfConfig {
   types: string[];
+  containment?: Map<string, string[]>;
   fileExtension: string;
   stateDir: string;
 }
