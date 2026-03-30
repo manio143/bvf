@@ -274,6 +274,9 @@ async function cmdResolve(cmdArgs: string[]) {
     console.log('\nRun materialization to generate/update test files.');
   }
   
+  // Save manifest (ensures it exists and reflects current state)
+  saveManifest(stateDir, manifest);
+  
   if (errorCount > 0) {
     process.exit(1);
   }

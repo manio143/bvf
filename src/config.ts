@@ -56,11 +56,14 @@ export function parseConfig(content: string): ConfigResult {
     // Check if line starts a key (could be top-level or containment)
     const keyMatch = trimmed.match(/^(\S+?):\s*(.*)$/);
     if (!keyMatch) {
-      // Not a key:value line - must be continuation
+      // Not a key:value line - could be continuation or syntax error
       if (collectingTypes) {
         typeLines.push(trimmed);
       } else if (currentContainmentKey) {
         containmentLines.push(trimmed);
+      } else {
+        // Line has no colon and is not a continuation - syntax error
+        return { ok: false, errors: [new Error(`syntax error: expected "key: value" format (line has no colon)`)] };
       }
       continue;
     }
@@ -71,31 +74,30 @@ export function parseConfig(content: string): ConfigResult {
     const topLevelKeys = ['types', 'containment', 'file-extension', 'state-dir'];
     const isTopLevelKey = topLevelKeys.includes(key);
     
+    // Finish any ongoing collections when we see a new key (top-level or unknown)
+    if (collectingTypes && typeLines.length > 0) {
+      types = typeLines.join(',')
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      typeLines = [];
+      collectingTypes = false;
+    } else if (collectingTypes && typeLines.length === 0 && typesKeySeen) {
+      types = [];
+      collectingTypes = false;
+    }
+    
+    if (currentContainmentKey && containmentLines.length > 0) {
+      const children = containmentLines.join(',')
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      containment.set(currentContainmentKey, children);
+      containmentLines = [];
+      currentContainmentKey = null;
+    }
+    
     if (isTopLevelKey) {
-      // This is a top-level key - finish any ongoing collections
-      if (collectingTypes && typeLines.length > 0) {
-        types = typeLines.join(',')
-          .split(',')
-          .map(t => t.trim())
-          .filter(t => t.length > 0);
-        typeLines = [];
-        collectingTypes = false;
-      } else if (collectingTypes && typeLines.length === 0 && typesKeySeen) {
-        types = [];
-        collectingTypes = false;
-      }
-      
-      if (currentContainmentKey && containmentLines.length > 0) {
-        const children = containmentLines.join(',')
-          .split(',')
-          .map(t => t.trim())
-          .filter(t => t.length > 0);
-        containment.set(currentContainmentKey, children);
-        containmentLines = [];
-        currentContainmentKey = null;
-      }
-      
-      // Handle the top-level key
       switch (key) {
         case 'types':
           typesKeySeen = true;
@@ -128,29 +130,12 @@ export function parseConfig(content: string): ConfigResult {
       }
     } else if (inContainmentSection) {
       // This is a containment rule like "feature: behavior"
-      // Save previous containment entry if any
-      if (currentContainmentKey && containmentLines.length > 0) {
-        const children = containmentLines.join(',')
-          .split(',')
-          .map(t => t.trim())
-          .filter(t => t.length > 0);
-        containment.set(currentContainmentKey, children);
-        containmentLines = [];
-      }
-      
       currentContainmentKey = key;
       if (valueStr) {
         containmentLines.push(valueStr);
       }
     } else {
-      // Unknown key outside containment section
-      // Check if line has a colon - if not, it's a syntax error
-      if (!trimmed.includes(':')) {
-        return { ok: false, errors: [new Error(`syntax error: expected "key: value" format (line has no colon)`)] };
-      }
-      // Otherwise, silently ignore unknown keys
-      collectingTypes = false;
-      inContainmentSection = false;
+      // Unknown key outside containment section - silently ignore
     }
   }
   
