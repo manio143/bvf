@@ -53,6 +53,10 @@ export function saveManifest(stateDir: string, manifest: Manifest): void {
  * Compute hash of entity spec content
  */
 export function computeSpecHash(entity: Entity | ResolvedEntity): string {
+  if (!entity) {
+    return createHash('sha256').digest('hex');
+  }
+  
   const hash = createHash('sha256');
   
   // Hash type, name, params, and body
@@ -90,7 +94,7 @@ export function computeDependencyHash(
   const hash = createHash('sha256');
   
   // Get transitive dependencies
-  const deps = 'transitiveDependencies' in entity 
+  const deps = (entity && 'transitiveDependencies' in entity)
     ? entity.transitiveDependencies 
     : [];
   
@@ -125,6 +129,16 @@ export function getEntityStatus(
     };
   }
   
+  // Check for explicitly set status (from mark command)
+  if (entry.status) {
+    return {
+      name: entity.name,
+      status: entry.status,
+      reason: entry.reason,
+      note: entry.note
+    };
+  }
+  
   // Check if spec content changed
   const currentSpecHash = computeSpecHash(entity);
   if (currentSpecHash !== entry.specHash) {
@@ -137,54 +151,58 @@ export function getEntityStatus(
   
   // Check if dependencies changed
   if (currentHashes) {
-    const currentDepHash = computeDependencyHash(entity, currentHashes);
-    if (currentDepHash !== entry.dependencyHash) {
-      // Find which direct dependency changed (or its transitive deps)
-      const directDeps = 'dependencies' in entity ? entity.dependencies : [];
-      const transitiveDeps = 'transitiveDependencies' in entity ? entity.transitiveDependencies : [];
-      
-      // Check direct dependencies first
-      for (const depName of directDeps) {
-        const currentHash = currentHashes.get(depName);
-        const oldEntry = manifest.entries.get(depName);
+    const transitiveDeps = 'transitiveDependencies' in entity ? entity.transitiveDependencies : [];
+    
+    // Only check dependency hash if entity actually has dependencies
+    if (transitiveDeps && transitiveDeps.length > 0) {
+      const currentDepHash = computeDependencyHash(entity, currentHashes);
+      if (currentDepHash !== entry.dependencyHash) {
+        // Find which direct dependency changed (or its transitive deps)
+        const directDeps = 'dependencies' in entity ? entity.dependencies : [];
         
-        if (oldEntry && currentHash && currentHash !== oldEntry.specHash) {
-          return {
-            name: entity.name,
-            status: 'stale',
-            reason: `Dependency ${depName} has changed`
-          };
+        // Check direct dependencies first
+        for (const depName of directDeps) {
+          const currentHash = currentHashes.get(depName);
+          const oldEntry = manifest.entries.get(depName);
+          
+          if (oldEntry && currentHash && currentHash !== oldEntry.specHash) {
+            return {
+              name: entity.name,
+              status: 'stale',
+              reason: `Dependency ${depName} has changed`
+            };
+          }
         }
-      }
-      
-      // If no direct dep changed, check transitive
-      for (const depName of transitiveDeps) {
-        if (directDeps.includes(depName)) continue; // Already checked
         
-        const currentHash = currentHashes.get(depName);
-        const oldEntry = manifest.entries.get(depName);
-        
-        if (oldEntry && currentHash && currentHash !== oldEntry.specHash) {
-          // Find which direct dep leads to this transitive dep
-          for (const directDep of directDeps) {
-            const directDepEntity = manifest.entries.get(directDep);
-            if (directDepEntity) {
-              // This is a simplified check - just report the direct dep
-              return {
-                name: entity.name,
-                status: 'stale',
-                reason: `Dependency ${directDep} has changed`
-              };
+        // If no direct dep changed, check transitive
+        for (const depName of transitiveDeps) {
+          if (directDeps.includes(depName)) continue; // Already checked
+          
+          const currentHash = currentHashes.get(depName);
+          const oldEntry = manifest.entries.get(depName);
+          
+          if (oldEntry && currentHash && currentHash !== oldEntry.specHash) {
+            // Find which direct dep leads to this transitive dep
+            for (const directDep of directDeps) {
+              const directDepEntity = manifest.entries.get(directDep);
+              if (directDepEntity) {
+                // This is a simplified check - just report the direct dep
+                return {
+                  name: entity.name,
+                  status: 'stale',
+                  reason: `Dependency ${directDep} has changed`
+                };
+              }
             }
           }
         }
+        
+        return {
+          name: entity.name,
+          status: 'stale',
+          reason: 'One or more dependencies have changed'
+        };
       }
-      
-      return {
-        name: entity.name,
-        status: 'stale',
-        reason: 'One or more dependencies have changed'
-      };
     }
   }
   

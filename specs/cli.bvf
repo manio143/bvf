@@ -107,7 +107,19 @@ listing entities, and managing materialization state.
 
     When `bvf resolve` is run.
 
-    Then output groups or interleaves entities showing:
+    Then output lists entities grouped by feature, with behaviors
+    nested under their parent feature.
+
+    Features are ordered alphabetically, but features containing
+    any stale or pending behaviors are pushed to the end of the
+    list (also alphabetically among themselves). This way, a
+    `tail` on the output surfaces problems in large projects.
+
+    Within each feature, behaviors are listed in spec order.
+    Standalone entities (not in a feature) are treated as their
+    own group and ordered by the same rule.
+
+    Each entity shows its status symbol:
     - ✓ for current
     - ✗ for stale (with reason and optional note)
     - ⏳ for pending (with reason and optional note)

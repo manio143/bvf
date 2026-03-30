@@ -66,6 +66,9 @@ export interface ManifestEntry {
   dependencyHash: string;
   artifact?: string;
   materializedAt?: string;
+  status?: 'pending' | 'stale';
+  reason?: string;
+  note?: string;
 }
 
 export interface Manifest {
@@ -76,6 +79,7 @@ export interface EntityStatus {
   name: string;
   status: 'pending' | 'current' | 'stale' | 'orphaned';
   reason?: string;
+  note?: string;
 }
 
 export interface DependencyGraph {

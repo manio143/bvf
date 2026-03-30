@@ -109,11 +109,36 @@ export function resolveReferences(
   }
   
   // Build resolved entities with dependencies
-  const resolved: ResolvedEntity[] = entities.map(entity => ({
-    ...entity,
-    dependencies: graph.getDirectDependencies(entity.name),
-    transitiveDependencies: graph.getTransitiveDependencies(entity.name)
-  }));
+  const resolved: ResolvedEntity[] = [];
+  
+  for (const entity of entities) {
+    const resolvedEntity: ResolvedEntity = {
+      ...entity,
+      dependencies: graph.getDirectDependencies(entity.name),
+      transitiveDependencies: graph.getTransitiveDependencies(entity.name)
+    };
+    resolved.push(resolvedEntity);
+    
+    // Extract behaviors from features as separate entities
+    if (entity.type === 'feature' && entity.behaviors) {
+      for (const behavior of entity.behaviors) {
+        const behaviorEntity: ResolvedEntity = {
+          type: 'behavior',
+          name: behavior.name,
+          params: behavior.params || [],
+          clauses: {},
+          body: behavior.body || '',
+          references: [],
+          paramUsages: [],
+          context: behavior.context,
+          sourceFile: entity.sourceFile,
+          dependencies: [],
+          transitiveDependencies: []
+        };
+        resolved.push(behaviorEntity);
+      }
+    }
+  }
   
   return { ok: true, value: resolved };
 }
