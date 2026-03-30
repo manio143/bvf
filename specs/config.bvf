@@ -117,6 +117,34 @@ defines its own vocabulary. The framework enforces structural rules
     Exit code is 1.
   #end
 
+  #decl behavior config-accepts-hyphenated-type-names
+    Given a config:
+    ```
+    #config
+      types: epic, story, acceptance-criterion
+      containment:
+        epic: story
+        story: acceptance-criterion
+    #end
+    ```
+
+    And a spec file:
+    ```
+    #decl epic onboarding
+      #decl story new-user
+        #decl acceptance-criterion shows-welcome-screen
+          The welcome screen is displayed.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then no errors. Type names may contain hyphens.
+    The entities are parsed and displayed correctly.
+  #end
+
   #decl behavior config-containment-allows-multiple-children
     Given a config:
     ```
@@ -294,6 +322,89 @@ defines its own vocabulary. The framework enforces structural rules
     Then stderr contains an error: containment references
     unknown type "feature".
     Exit code is 1.
+  #end
+
+#end
+
+
+#decl feature config-generic-display on @{cli-tool}
+
+  The resolve output must use the config's containment rules to
+  determine grouping and summary counts — not hardcoded type names.
+  Any type that has children in the containment config acts as a
+  grouping container in the output. Leaf types (types that only
+  appear as children, never as parents) are counted in the summary.
+
+  #context
+    A @{project-dir} exists.
+  #end
+
+  #decl behavior resolve-groups-by-configured-containers
+    Given a config:
+    ```
+    #config
+      types: service, endpoint, scenario
+      containment:
+        service: endpoint
+        endpoint: scenario
+    #end
+    ```
+
+    And a spec file:
+    ```
+    #decl service payments
+      #decl endpoint create-charge
+        #decl scenario charge-succeeds
+          Charge is created.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stdout shows `payments (service)` as a group header
+    containing `create-charge (endpoint)` containing
+    `charge-succeeds (scenario)`. The display reflects the
+    actual containment hierarchy, not a hardcoded feature/behavior
+    assumption.
+  #end
+
+  #decl behavior resolve-counts-leaf-types-in-summary
+    Given a config with types `service, endpoint, scenario`
+    and containment `service: endpoint`, `endpoint: scenario`.
+    And a spec with a service containing an endpoint containing
+    a scenario.
+
+    When @{run-resolve} is executed.
+
+    Then the summary counts only leaf-type entities (those that
+    appear only as children in containment, never as parents).
+    In this case, `scenario` is the leaf type.
+    Container types (`service`, `endpoint`) are not counted.
+    Summary shows `Pending: 1` (one scenario).
+  #end
+
+  #decl behavior resolve-counts-standalone-types-in-summary
+    Given a config:
+    ```
+    #config
+      types: service, endpoint, scenario, fixture
+      containment:
+        service: endpoint
+        endpoint: scenario
+    #end
+    ```
+
+    And spec files with a service (containing endpoint and scenario)
+    and a standalone `#decl fixture test-db`.
+
+    When @{run-resolve} is executed.
+
+    Then `fixture` is not a child type in any containment rule
+    and not a parent type either. It is a standalone type and
+    IS counted in the summary. Summary includes both the
+    scenario and the fixture.
   #end
 
 #end
