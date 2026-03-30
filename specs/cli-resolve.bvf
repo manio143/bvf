@@ -148,12 +148,44 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-malformed-config
-    Given a `bvf.config` without proper `key: value` format.
+  #behavior resolve-catches-malformed-config-no-colon
+    Given a `bvf.config` with a line missing the colon separator:
+    ```
+    #config
+      types surface, fixture
+    #end
+    ```
 
     When @{run-resolve} is executed.
 
     Then stderr contains an error about malformed config syntax.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-malformed-config-no-value
+    Given a `bvf.config` with a key but no value after colon:
+    ```
+    #config
+      file-extension:
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about missing value.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-malformed-config-bare-text
+    Given a `bvf.config` with bare text that isn't inside
+    a `#config` block:
+    ```
+    types: surface, fixture
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about missing `#config` block.
     Exit code is 1.
   #end
 
@@ -546,11 +578,16 @@ code signals success vs structural failure.
   #end
 
   #behavior resolve-with-diff
-    Given a stale entity whose spec content changed.
+    Given a project with stale entities whose specs changed.
 
     When @{run-resolve} is executed with `--diff`.
 
-    Then the output includes what changed in the stale entity.
+    Then for each stale or pending entity, the output includes:
+    - The entity name
+    - The relative file path where the entity is declared
+    This enables an agent to use `git diff` on those paths or
+    read the relevant sections to understand the scope of changes.
+    Exit code is 0.
   #end
 
 #end
