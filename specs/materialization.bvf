@@ -21,7 +21,7 @@ materializations are stale due to spec changes.
 
     When resolve is run.
 
-    Then "login-test" has status "pending".
+    Then "login-test" has status "pending" with reason "new".
   #end
 
   #behavior unchanged-entity-stays-current
@@ -80,6 +80,58 @@ materializations are stale due to spec changes.
 
     Then the manifest shows "login-test" as "current" with
     the artifact path and current spec/dependency hashes.
+  #end
+
+  #behavior review-failure-makes-entity-stale
+    Given entity "login-test" was materialized and is currently "current".
+
+    A "current" entity can regress to "stale" not just from spec
+    changes but from a review finding that the materialization was
+    wrong. This is distinct from content/dependency staleness —
+    the spec didn't change, but the test was never right.
+
+    When a post-materialization alignment review finds that the
+    materialized test does not faithfully verify the spec.
+
+    Then "login-test" has status "stale" with reason "review-failed"
+    and a note describing what the review found
+    (e.g. "test uses fake hashes instead of computed ones").
+  #end
+
+  #behavior entity-marked-needs-elaboration
+    Given entity "password-reset" is a high-level behavior with
+    no concrete instrument specs to support materialization.
+
+    This is not a defect in the spec — it's an incomplete spec tree.
+    The behavior itself may be perfectly sound, but the supporting
+    layers don't exist yet. Marking it "pending:needs-elaboration"
+    distinguishes it from "pending:new" (which *can* be materialized,
+    it just hasn't been yet).
+
+    When a pre-materialization soundness review determines
+    the behavior cannot be materialized without further spec work.
+
+    Then "password-reset" has status "pending" with reason
+    "needs-elaboration" and a note describing what is needed
+    (e.g. "needs instrument defining password reset steps").
+  #end
+
+  #behavior status-model
+    Every entity in the manifest has one of these statuses.
+
+    The design splits into two buckets: things that *were* good
+    and became stale (regressions), and things that *aren't ready
+    yet* (pending work). This maps naturally to how humans think
+    about work queues — "what broke?" vs "what's not done?"
+
+    - **current**: materialized, passes review
+    - **stale**: was current, needs rematerialization
+      - reason: "content-changed" | "dependency-changed" | "review-failed"
+      - optional note with context
+    - **pending**: not yet materialized or not yet materializable
+      - reason: "new" | "needs-elaboration"
+      - optional note with context
+    - **orphaned**: manifest entry exists but spec was removed
   #end
 
   #behavior removed-entity-is-detected

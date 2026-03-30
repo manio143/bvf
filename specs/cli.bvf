@@ -20,7 +20,7 @@ listing entities, and managing materialization state.
 
     Then output lists all entities with ✓ status.
     Exit code is 0.
-    Summary shows "Errors: 0" and "Stale: 0".
+    Summary shows "Errors: 0", "Stale: 0", "Pending: 0".
   #end
 
   #behavior resolve-with-stale-entities
@@ -28,9 +28,24 @@ listing entities, and managing materialization state.
 
     When `bvf resolve` is run.
 
-    Then stale entities are marked with ✗ and reason shown.
+    Then stale entities are marked with ✗ and reason shown
+    (content-changed, dependency-changed, or review-failed).
+    If a note exists, it is displayed below the status line.
     Exit code is 0 (stale is informational, not an error).
     Summary shows stale count.
+  #end
+
+  #behavior resolve-with-pending-entities
+    Given a project with entities that have never been materialized
+    or that need elaboration.
+
+    When `bvf resolve` is run.
+
+    Then pending entities are marked with ⏳ and reason shown
+    (new or needs-elaboration).
+    If a note exists, it is displayed below the status line.
+    Exit code is 0.
+    Summary shows pending count.
   #end
 
   #behavior resolve-with-errors
@@ -49,6 +64,18 @@ listing entities, and managing materialization state.
 
     Then the output includes what changed in each stale entity
     (lines added/removed/modified).
+  #end
+
+  #behavior resolve-mixed-statuses
+    Given a project with current, stale, and pending entities.
+
+    When `bvf resolve` is run.
+
+    Then output groups or interleaves entities showing:
+    - ✓ for current
+    - ✗ for stale (with reason and optional note)
+    - ⏳ for pending (with reason and optional note)
+    Summary shows counts for each category.
   #end
 
 #end
@@ -123,6 +150,45 @@ listing entities, and managing materialization state.
 
     Then an error says "BVF project already initialized."
     Exit code is 1. No files are modified.
+  #end
+
+#end
+
+
+#decl feature cli-mark on @{cli-tool}
+
+  The `bvf mark` command sets the status of entities in the manifest.
+  Used by review phases to record their outcomes.
+
+  #context
+    A project directory with a manifest exists.
+  #end
+
+  #behavior mark-needs-elaboration
+    Given entity "password-reset" exists in specs.
+
+    When `bvf mark password-reset needs-elaboration --note "needs instrument defining reset steps"` is run.
+
+    Then the manifest records "password-reset" as pending
+    with reason "needs-elaboration" and the given note.
+    Exit code is 0.
+  #end
+
+  #behavior mark-review-failed
+    Given entity "login-test" is current in the manifest.
+
+    When `bvf mark login-test review-failed --note "test uses fake hashes"` is run.
+
+    Then the manifest records "login-test" as stale
+    with reason "review-failed" and the given note.
+    Exit code is 0.
+  #end
+
+  #behavior mark-nonexistent-entity
+    When `bvf mark nonexistent review-failed` is run.
+
+    Then an error says entity "nonexistent" not found.
+    Exit code is 1.
   #end
 
 #end
