@@ -113,7 +113,11 @@ gets exactly the files it needs. For example:
 - **CONTRADICTION** → present both sides to the human, ask for
   clarification
 
-### Phase 3: Materialization
+### Phase 3: Test Materialization
+
+Materialize specs into test code FIRST. Tests are written against
+the spec, not against existing implementation. They should fail
+initially — that's the point.
 
 Spawn a worker agent to materialize specs into test code:
 
@@ -125,19 +129,14 @@ Materialize the following BVF specs into test code:
 Read SKILL.md "Part 2: Worker Agents" for materialization guidance.
 
 Output: test files at [target path]
+
+NOTE: Tests should be written purely from specs. They WILL fail
+if the implementation doesn't exist yet — that's expected and correct.
+Do NOT look at implementation code to make tests pass. The tests
+define what "correct" means, derived from the spec.
 ```
 
-For implementation code (not just tests), spawn a separate worker:
-
-```
-Implement the behavior described in these BVF specs:
-- [spec file path(s)]
-
-The tests at [test path] define the verification criteria.
-Make the tests pass without modifying them.
-```
-
-### Phase 4: Alignment Review (Post-Materialization)
+### Phase 4: Alignment Review (Post-Test-Materialization)
 
 Spawn a **different worker** than the one that materialized.
 Independence matters — the author shouldn't review their own work.
@@ -159,6 +158,30 @@ Report: PASS or FAIL with specific issues.
 2. Spawn a new materialization worker with the review note as context
 3. After rematerialization, spawn another review worker
 4. Repeat until PASS
+
+### Phase 5: Implementation
+
+Only after tests are materialized AND pass alignment review,
+spawn an implementation worker. The tests are now the acceptance
+criteria — the worker's job is to make them pass.
+
+```
+Implement the behavior described in these BVF specs:
+- [spec file path(s)]
+- [test file path(s)] — these are your acceptance criteria
+- [existing source files to modify]
+
+The tests define what "correct" means. Make them pass.
+Do NOT modify the tests. If a test seems wrong, report back.
+```
+
+The implementation worker uses test failures to guide their work.
+Red → Green → Refactor. This is textbook TDD.
+
+**When tests still fail after implementation:**
+- Check if the failure is an implementation bug (fix it)
+- Check if the failure reveals a test/spec mismatch (report back)
+- Do NOT modify tests without going through the review cycle
 
 ## Scoping Sub-Agent Tasks
 
