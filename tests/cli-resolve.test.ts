@@ -246,17 +246,38 @@ describe('resolve-config-errors', () => {
     expect(result.stderr.toLowerCase()).toContain('empty');
   });
 
-  it('resolve-catches-malformed-config', async () => {
+  it('resolve-catches-malformed-config-no-colon', async () => {
     mkdirSync(join(tmpDir, 'specs'), { recursive: true });
     writeFileSync(join(tmpDir, 'bvf.config'), `#config
-  this is not valid key value format
+  types surface, fixture
 #end`);
 
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(1);
-    // Config parser reports missing types
-    expect(result.stderr.toLowerCase()).toContain('types');
+    expect(result.stderr.toLowerCase()).toMatch(/malformed|syntax|colon/);
+  });
+
+  it('resolve-catches-malformed-config-no-value', async () => {
+    mkdirSync(join(tmpDir, 'specs'), { recursive: true });
+    writeFileSync(join(tmpDir, 'bvf.config'), `#config
+  file-extension:
+#end`);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr.toLowerCase()).toMatch(/missing|value|empty/);
+  });
+
+  it('resolve-catches-malformed-config-bare-text', async () => {
+    mkdirSync(join(tmpDir, 'specs'), { recursive: true });
+    writeFileSync(join(tmpDir, 'bvf.config'), `types: surface, fixture`);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr.toLowerCase()).toMatch(/#config|missing|block/);
   });
 
   it('resolve-catches-unclosed-config', async () => {
@@ -649,6 +670,52 @@ And more prose.
     expect(result.stdout).toContain('app');
     expect(result.stdout).toContain('data');
     expect(result.stdout).not.toContain('Markdown heading');
+  });
+
+  it('resolve-ignores-decl-inside-fences', async () => {
+    setupProject(tmpDir, {
+      'fenced.bvf': `#decl surface real-entity
+  A real surface.
+#end
+
+Here is an example of BVF syntax:
+\`\`\`
+#decl surface fake-entity
+  This is inside a fenced code block.
+#end
+\`\`\`
+
+#decl fixture also-real
+  Also a real entity.
+#end
+`
+    });
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('real-entity');
+    expect(result.stdout).toContain('also-real');
+    expect(result.stdout).not.toContain('fake-entity');
+  });
+
+  it('resolve-accepts-optional-param-syntax', async () => {
+    setupProject(tmpDir, {
+      'optional.bvf': `#decl surface my-app
+  An app.
+#end
+
+#decl instrument run-cmd(dir, type?, flags?) on @{my-app}
+  Run a command.
+#end
+`
+    });
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('run-cmd');
+    expect(result.stderr).toBe('');
   });
 });
 
@@ -1063,25 +1130,46 @@ describe('resolve-output-format', () => {
 
   it('resolve-with-diff', async () => {
     setupProject(tmpDir, {
-      'stale.bvf': `#decl behavior test
-  Updated content here.
+      'entities.bvf': `#decl surface app
+  Updated surface content.
+#end
+
+#decl feature my-feature on @{app}
+  #behavior dep-test
+    Uses @{app}.
+  #end
 #end
 `
     });
 
+    // Surface has old hash → stale, behavior depends on it → also stale
     createManifest(tmpDir, {
-      'test': {
-        name: 'test',
+      'app': {
+        name: 'app',
         specHash: 'old-hash',
         dependencyHash: 'old-hash'
+      },
+      'dep-test': {
+        name: 'dep-test',
+        specHash: 'old-hash',
+        dependencyHash: 'old-dep-hash'
       }
     });
 
     const result = await runCli('resolve --diff', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Diff');
-    expect(result.stdout).toContain('Updated content');
+    // Machine-parseable format: one line per non-current entity
+    const lines = result.stdout.trim().split('\n').filter(l => l.trim());
+    // Should list root cause (surface) and affected (behavior)
+    const hasApp = lines.some(l => l.includes('app') && l.includes('entities.bvf'));
+    const hasDepTest = lines.some(l => l.includes('dep-test') && l.includes('entities.bvf'));
+    expect(hasApp).toBe(true);
+    expect(hasDepTest).toBe(true);
+    // Each line should have: status, type, name, path
+    for (const line of lines) {
+      expect(line).toMatch(/^(stale|pending|orphaned)\s+\w+\s+\S+\s+\S+/);
+    }
   });
 });
 
