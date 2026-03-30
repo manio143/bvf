@@ -1,0 +1,73 @@
+# Payment Service API
+
+#decl service payment-service
+  Handles payment processing, refunds, and transaction history.
+
+  #decl endpoint create-charge
+    POST /api/charges — creates a new charge.
+
+    #decl contract create-charge-request-schema
+      Request body:
+      - `amount` (integer, required) — amount in cents
+      - `currency` (string, required) — ISO 4217 code
+      - `source` (string, required) — payment token
+      - `description` (string, optional)
+
+      Response 201:
+      - `id` (string) — charge ID
+      - `status` (string) — "pending" | "succeeded" | "failed"
+      - `amount` (integer)
+    #end
+
+    #decl scenario charge-succeeds-with-valid-token
+      Given a valid payment token from the tokenization service.
+      When POST /api/charges with amount=5000, currency="EUR",
+      source="{valid-token}".
+      Then status 201, body.status = "succeeded".
+    #end
+
+    #decl scenario charge-fails-with-expired-token
+      Given an expired payment token.
+      When POST /api/charges with the expired token.
+      Then status 402, body.error.code = "token_expired".
+    #end
+
+  #end
+
+  #decl endpoint refund-charge
+    POST /api/charges/{id}/refund — refunds a charge.
+
+    #decl contract refund-request-schema
+      Request body:
+      - `amount` (integer, optional) — partial refund amount
+      
+      If omitted, full refund is issued.
+
+      Response 200:
+      - `id` (string) — refund ID
+      - `charge` (string) — original charge ID
+      - `status` (string) — "pending" | "succeeded"
+    #end
+
+    #decl scenario full-refund-succeeds
+      Given a succeeded charge with id "ch_123".
+      When POST /api/charges/ch_123/refund with no body.
+      Then status 200, refund for full amount is created.
+    #end
+
+    #decl scenario partial-refund-succeeds
+      Given a succeeded charge for 5000 cents.
+      When POST /api/charges/{id}/refund with amount=2000.
+      Then status 200, refund for 2000 cents is created.
+      Original charge status becomes "partially_refunded".
+    #end
+
+    #decl scenario refund-fails-on-already-refunded
+      Given a charge that was already fully refunded.
+      When POST /api/charges/{id}/refund.
+      Then status 400, body.error.code = "already_refunded".
+    #end
+
+  #end
+
+#end

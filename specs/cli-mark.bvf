@@ -1,14 +1,13 @@
 # CLI Mark
 
-The `bvf mark` command records review outcomes in the manifest.
-Used by soundness and alignment review phases.
+The `bvf mark` command records status changes in the manifest.
+Used by review phases (soundness, alignment) and by the
+materialization agent to register artifacts.
 
 
 #decl feature cli-mark on @{cli-tool}
 
-  #context
-    A @{project-dir} with specs and a @{manifest} exists.
-  #end
+  A @{project-dir} with specs and a @{manifest} exists.
 
   #decl behavior mark-needs-elaboration
     Given entity "password-reset" exists in specs.
@@ -32,6 +31,46 @@ Used by soundness and alignment review phases.
     Then the manifest records "login-test" with status "stale",
     reason "review-failed", and the note. Subsequent
     @{run-resolve} will show this entity as ✗ with the note.
+    Exit code is 0.
+  #end
+
+  #decl behavior mark-current-with-artifact
+    Given entity "login-test" exists in specs.
+
+    When @{run-mark} is executed with entity "login-test",
+    status "current", and artifact "tests/login.test.ts".
+
+    Then the manifest records "login-test" with:
+    - specHash matching the entity's current content hash
+    - dependencyHash matching the entity's current dependency hash
+    - artifact path "tests/login.test.ts"
+    - no status override (status is computed from hashes)
+
+    Subsequent @{run-resolve} will show "login-test" as ✓ current.
+    Exit code is 0.
+  #end
+
+  #decl behavior mark-current-requires-artifact
+    Given entity "login-test" exists in specs.
+
+    When @{run-mark} is executed with entity "login-test",
+    status "current", but no `--artifact` flag.
+
+    Then stderr contains an error: marking as current requires
+    an artifact path.
+    Exit code is 1.
+  #end
+
+  #decl behavior mark-current-updates-stale-entity
+    Given entity "login-test" was previously marked current with
+    artifact "tests/login.test.ts". Then its spec content changed,
+    making it stale.
+
+    When @{run-mark} is executed again with entity "login-test",
+    status "current", artifact "tests/login.test.ts".
+
+    Then the manifest is updated with new specHash and
+    dependencyHash. The entity becomes ✓ current again.
     Exit code is 0.
   #end
 

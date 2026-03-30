@@ -5,9 +5,7 @@ The `bvf list` command lists entities filtered by type or parent.
 
 #decl feature cli-list on @{cli-tool}
 
-  #context
-    A @{project-dir} with spec files exists.
-  #end
+  A @{project-dir} with spec files exists.
 
   #decl behavior list-all-entities
     Given a project with 5 entities across 2 files.

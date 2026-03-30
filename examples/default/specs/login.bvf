@@ -1,0 +1,39 @@
+# Login Feature
+
+#decl surface web-app
+  The main web application under test.
+#end
+
+#decl fixture logged-out-user
+  A user who is not authenticated.
+#end
+
+#decl instrument browser-login
+  Navigate to /login, fill credentials, submit.
+#end
+
+#decl feature login on @{web-app}
+
+  #context
+    A @{logged-out-user} with valid credentials.
+  #end
+
+  #decl behavior login-with-valid-credentials
+    Given a @{logged-out-user}.
+    When the user submits valid credentials via @{browser-login}.
+    Then the user is redirected to the dashboard.
+  #end
+
+  #decl behavior login-with-invalid-password
+    Given a @{logged-out-user}.
+    When the user submits an incorrect password via @{browser-login}.
+    Then an error message "Invalid credentials" is displayed.
+  #end
+
+  #decl behavior login-remembers-session
+    Given a @{logged-out-user}.
+    When the user logs in with "remember me" checked via @{browser-login}.
+    Then closing and reopening the browser preserves the session.
+  #end
+
+#end

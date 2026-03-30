@@ -5,9 +5,7 @@ The `bvf init` command bootstraps a new BVF project.
 
 #decl feature cli-init on @{cli-tool}
 
-  #context
-    A directory exists (may or may not already have BVF files).
-  #end
+  A directory exists (may or may not already have BVF files).
 
   #decl behavior init-creates-project
     Given an empty directory.

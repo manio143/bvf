@@ -32,8 +32,8 @@ with it.
   Returns stdout, stderr, and exit code.
 #end
 
-#decl instrument run-mark(dir, entity, status, note?) on @{cli-tool}
-  Execute `bvf mark <entity> <status> [--note "<note>"]` in {dir}.
+#decl instrument run-mark(dir, entity, status, artifact?, note?) on @{cli-tool}
+  Execute `bvf mark <entity> <status> [--artifact "<path>"] [--note "<note>"]` in {dir}.
   Returns stdout, stderr, and exit code.
 #end
 

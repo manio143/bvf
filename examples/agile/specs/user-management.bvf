@@ -1,0 +1,52 @@
+# User Management Epic
+
+#decl epic user-management
+  Everything related to user registration, authentication,
+  and profile management.
+
+  #decl story user-registration
+    As a visitor, I want to create an account so that I can
+    access the platform.
+
+    #decl task implement-registration-form
+      Build the registration form with email, password,
+      and confirmation fields.
+    #end
+
+    #decl task implement-email-verification
+      Send a verification email after registration.
+      User must verify before accessing features.
+    #end
+
+    #decl acceptance-criterion registration-validates-email
+      Given a visitor on the registration page.
+      When they submit an invalid email format.
+      Then the form shows "Please enter a valid email".
+    #end
+
+    #decl acceptance-criterion registration-requires-strong-password
+      Given a visitor on the registration page.
+      When they submit a password shorter than 8 characters.
+      Then the form shows "Password must be at least 8 characters".
+    #end
+
+  #end
+
+  #decl story user-login
+    As a registered user, I want to log in so that I can
+    access my account.
+
+    #decl task implement-login-endpoint
+      POST /api/auth/login accepting email + password,
+      returning a JWT token.
+    #end
+
+    #decl acceptance-criterion login-returns-jwt
+      Given a registered user with valid credentials.
+      When they POST to /api/auth/login.
+      Then response contains a valid JWT token.
+    #end
+
+  #end
+
+#end

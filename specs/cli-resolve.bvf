@@ -15,9 +15,7 @@ code signals success vs structural failure.
   When spec files contain syntax errors, resolve catches them
   at parse time and reports them clearly.
 
-  #context
-    A @{project-dir} exists with a valid `bvf.config`.
-  #end
+  Given a @{project-dir} with a valid `bvf.config`.
 
   #decl behavior resolve-catches-unclosed-decl
     Given a spec file containing:
@@ -95,17 +93,6 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #decl behavior resolve-catches-duplicate-context
-    Given a feature with two `#context ... #end` blocks.
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about multiple `#context` blocks
-    in the containing entity. This is a parse-time error — the
-    entity is not included in the resolve output.
-    Exit code is 1.
-  #end
-
 #end
 
 
@@ -113,9 +100,7 @@ code signals success vs structural failure.
 
   Reference validation errors surface through resolve.
 
-  #context
-    A @{project-dir} with a valid `bvf.config` exists.
-  #end
+  Given a @{project-dir} with a valid `bvf.config`.
 
   #decl behavior resolve-catches-unresolved-reference
     Given a spec file where an entity references @{nonexistent}.
@@ -215,9 +200,7 @@ code signals success vs structural failure.
   This is validated indirectly — if entities parse correctly,
   they appear in resolve output with correct names and types.
 
-  #context
-    A @{project-dir} with valid specs.
-  #end
+  Given a @{project-dir} with valid specs.
 
   #decl behavior resolve-shows-simple-entities
     Given a spec file with a surface and a fixture declaration.
@@ -230,7 +213,7 @@ code signals success vs structural failure.
 
   #decl behavior resolve-shows-container-with-children
     Given a config with `containment: feature: behavior`.
-    And a feature containing two behaviors and a `#context`.
+    And a feature containing two behaviors.
 
     When @{run-resolve} is executed.
 
@@ -327,9 +310,7 @@ code signals success vs structural failure.
   Resolve reads the manifest, computes hashes, and reports
   which entities are current, stale, pending, or orphaned.
 
-  #context
-    A @{project-dir} with valid specs and a @{manifest}.
-  #end
+  Given a @{project-dir} with valid specs and a @{manifest}.
 
   #decl behavior resolve-new-entity-is-pending
     Given a spec file with entity "login-test" and an empty manifest.
@@ -431,9 +412,7 @@ code signals success vs structural failure.
   come first (alphabetically), parents with any stale or pending
   children are pushed to the end (also alphabetically).
 
-  #context
-    A @{project-dir} with valid specs and a @{manifest}.
-  #end
+  Given a @{project-dir} with valid specs and a @{manifest}.
 
   #decl behavior resolve-clean-project
     Given all entities are current in the manifest.
