@@ -14,9 +14,7 @@
 
 #decl feature login on @{web-app}
 
-  #context
-    A @{logged-out-user} with valid credentials.
-  #end
+  A @{logged-out-user} with valid credentials.
 
   #decl behavior login-with-valid-credentials
     Given a @{logged-out-user}.
