@@ -143,7 +143,12 @@ export function parseConfig(content: string): ConfigResult {
         containmentLines.push(valueStr);
       }
     } else {
-      // Unknown key outside containment section - ignore it
+      // Unknown key outside containment section
+      // Check if line has a colon - if not, it's a syntax error
+      if (!trimmed.includes(':')) {
+        return { ok: false, errors: [new Error(`syntax error: expected "key: value" format (line has no colon)`)] };
+      }
+      // Otherwise, silently ignore unknown keys
       collectingTypes = false;
       inContainmentSection = false;
     }

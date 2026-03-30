@@ -80,9 +80,15 @@ async function cmdResolve(cmdArgs: string[]) {
       continue;
     }
     
-    // Add source file to entities
+    // Add source file to entities AND their children
     for (const entity of result.value || []) {
       entity.sourceFile = file;
+      // Also propagate to behaviors
+      if (entity.behaviors) {
+        for (const behavior of entity.behaviors) {
+          behavior.sourceFile = file;
+        }
+      }
     }
     
     allEntities.push(...(result.value || []));
@@ -145,8 +151,10 @@ async function cmdResolve(cmdArgs: string[]) {
     const status = getEntityStatus(entity, manifest, currentHashes);
     entityStatuses.set(entity.name, status);
     
-    // Only count non-feature entities in summary
-    if (entity.type !== 'feature') {
+    // Only count materializable entities (behavior, instrument) in summary
+    // Exclude container/context types (feature, surface, fixture)
+    const materializableTypes = ['behavior', 'instrument'];
+    if (materializableTypes.includes(entity.type)) {
       switch (status.status) {
         case 'pending':
           pendingCount++;
@@ -260,7 +268,7 @@ async function cmdResolve(cmdArgs: string[]) {
   console.log(`  Pending: ${pendingCount}`);
   console.log(`  Stale: ${staleCount}`);
   console.log(`  Errors: ${errorCount}`);
-  console.log(`  Total: ${resolved.length}`);
+  console.log(`  Total: ${currentCount + pendingCount + staleCount}`);
   
   if (staleCount > 0 || pendingCount > 0) {
     console.log('\nRun materialization to generate/update test files.');
@@ -292,42 +300,66 @@ function printFeatureGroup(feature: any, entities: any[], statuses: Map<string, 
 }
 
 function printEntity(entity: any, status: any, manifest: any, showDiff: boolean, indent: number = 0) {
-  const indentStr = ' '.repeat(indent);
-  
-  let symbol = '';
-  let color = '';
-  
-  switch (status.status) {
-    case 'pending':
-      symbol = '⏳';
-      color = '\x1b[33m'; // yellow
-      break;
-    case 'current':
-      symbol = '✓';
-      color = '\x1b[32m'; // green
-      break;
-    case 'stale':
-      symbol = '✗';
-      color = '\x1b[31m'; // red
-      break;
-  }
-  
-  const reset = '\x1b[0m';
-  const statusLine = `${indentStr}${color}${symbol}${reset} ${entity.name} (${entity.type})`;
-  
-  console.log(statusLine);
-  
-  if (status.reason) {
-    console.log(`${indentStr}    ${status.reason}`);
-  }
-  
-  if (status.note) {
-    console.log(`${indentStr}    ${status.note}`);
-  }
-  
-  // Show diff if requested and entity is stale
-  if (showDiff && status.status === 'stale') {
-    showEntityDiff(entity, manifest, indent);
+  if (showDiff) {
+    // Machine-parseable format: status type name file:line
+    const statusStr = status.status;
+    const typeStr = entity.type;
+    const nameStr = entity.name;
+    
+    // Get file and line number
+    let locationStr = '';
+    if (entity.sourceFile) {
+      // Try to extract relative path from sourceFile
+      const parts = entity.sourceFile.split('/');
+      const specsIndex = parts.lastIndexOf('specs');
+      if (specsIndex >= 0) {
+        const relativePath = parts.slice(specsIndex).join('/');
+        // Line number would need to be tracked during parsing
+        // For now, use :0 as placeholder
+        locationStr = `${relativePath}:${entity.line || 0}`;
+      }
+    }
+    
+    console.log(`${statusStr} ${typeStr} ${nameStr} ${locationStr}`.trim());
+  } else {
+    // Human-friendly format with colors and symbols
+    const indentStr = ' '.repeat(indent);
+    
+    let symbol = '';
+    let color = '';
+    
+    switch (status.status) {
+      case 'pending':
+        symbol = '⏳';
+        color = '\x1b[33m'; // yellow
+        break;
+      case 'current':
+        symbol = '✓';
+        color = '\x1b[32m'; // green
+        break;
+      case 'stale':
+        symbol = '✗';
+        color = '\x1b[31m'; // red
+        break;
+    }
+    
+    const reset = '\x1b[0m';
+    const statusLine = `${indentStr}${color}${symbol}${reset} ${entity.name} (${entity.type})`;
+    
+    console.log(statusLine);
+    
+    if (status.reason) {
+      console.log(`${indentStr}    ${status.reason}`);
+    }
+    
+    if (status.note) {
+      console.log(`${indentStr}    ${status.note}`);
+    }
+    
+    // Show diff if requested and entity is stale
+    if (status.status === 'stale') {
+      showEntityDiff(entity, manifest, indent);
+    }
   }
 }
 
@@ -442,35 +474,17 @@ async function cmdList(cmdArgs: string[]) {
   
   console.log('Entities:\n');
   
-  // Group by type
-  const byType = new Map<string, any[]>();
+  // Simple list format showing type for each entity
   for (const entity of entitiesToShow) {
-    if (!byType.has(entity.type)) {
-      byType.set(entity.type, []);
-    }
-    byType.get(entity.type)!.push(entity);
+    const paramStr = entity.params?.length > 0 
+      ? `(${entity.params.map((p: any) => p.name).join(', ')})` 
+      : '';
+    
+    // Show type with each entity
+    console.log(`  ${entity.type} ${entity.name}${paramStr}`);
   }
   
-  for (const [type, entities] of byType) {
-    console.log(`${type}:`);
-    for (const entity of entities) {
-      const paramStr = entity.params?.length > 0 
-        ? `(${entity.params.map((p: any) => p.name).join(', ')})` 
-        : '';
-      
-      // Show source file if available
-      let sourceInfo = '';
-      if (entity.sourceFile) {
-        const relativePath = entity.sourceFile.replace(specsDir + '/', '');
-        sourceInfo = `  ${relativePath}`;
-      }
-      
-      console.log(`  ${entity.name}${paramStr}${sourceInfo}`);
-    }
-    console.log('');
-  }
-  
-  console.log(`Total: ${entitiesToShow.length} entities`);
+  console.log(`\nTotal: ${entitiesToShow.length} entities`);
 }
 
 async function cmdInit() {
@@ -612,8 +626,22 @@ async function cmdMark(cmdArgs: string[]) {
     }
   }
   
+  // Flatten behaviors to make them searchable by name
+  const flattenedEntities: any[] = [];
+  for (const entity of allEntities) {
+    flattenedEntities.push(entity);
+    if (entity.behaviors) {
+      for (const behavior of entity.behaviors) {
+        flattenedEntities.push({
+          ...behavior,
+          type: 'behavior'
+        });
+      }
+    }
+  }
+  
   // Check if entity exists
-  const entity = allEntities.find(e => e.name === entityName);
+  const entity = flattenedEntities.find(e => e.name === entityName);
   if (!entity) {
     console.error(`Error: Entity '${entityName}' not found in specs`);
     process.exit(1);
@@ -656,6 +684,8 @@ async function cmdMark(cmdArgs: string[]) {
   if (note) {
     console.log(`Note: ${note}`);
   }
+  
+  process.exit(0);
 }
 
 function findBvfFiles(dir: string, extension: string): string[] {

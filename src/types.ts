@@ -13,9 +13,12 @@ export interface Reference {
 
 export interface Behavior {
   name: string;
+  type?: string;
   params: Param[];
   body: string;
   context?: string;
+  sourceFile?: string;
+  line?: number;
 }
 
 export interface Entity {
@@ -29,6 +32,7 @@ export interface Entity {
   behaviors?: Behavior[];
   context?: string;
   sourceFile?: string;
+  line?: number;
 }
 
 export interface ParseResult {

@@ -38,6 +38,9 @@ export function resolveReferences(
   
   // Validate references
   for (const entity of entities) {
+    // Check which references are from clauses (context declarations)
+    const clauseRefNames = new Set(Object.values(entity.clauses).map(c => c.name));
+    
     for (const ref of entity.references) {
       const target = entityMap.get(ref.name);
       
@@ -50,7 +53,12 @@ export function resolveReferences(
       }
       
       // Check if bare reference to entity with required params
-      if (!ref.args && target.params.some(p => p.required)) {
+      // Allow bare references if:
+      // - All params have defaults, OR
+      // - This is a clause reference (on/using - just declaring dependency)
+      const isClauseRef = clauseRefNames.has(ref.name);
+      const hasRequiredParams = target.params.some(p => p.required);
+      if (!ref.args && hasRequiredParams && !isClauseRef) {
         errors.push(
           new Error(
             `${entity.name} references ${ref.name} without arguments, ` +

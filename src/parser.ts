@@ -94,16 +94,37 @@ function parseEntityFromLines(
   const declLine = lines[startIndex].trim();
   
   // Parse the declaration line
-  const declMatch = declLine.match(/^#decl\s+(\w+)\s+([\w-]+)(?:\(([^)]*)\))?\s*(.*?)$/);
-  if (!declMatch) {
-    return {
-      ok: false,
-      errors: [new Error(`invalid #decl syntax (line ${startIndex + 1})`)],
-      nextLine: startIndex + 1
-    };
-  }
+  let type: string, name: string, paramsStr: string | undefined, clausesStr: string;
   
-  const [, type, name, paramsStr, clausesStr] = declMatch;
+  if (isTemplate) {
+    // For templates inside #for, name can include {placeholders} with parentheses
+    // Params must be preceded by whitespace to be recognized
+    // Pattern: #decl type name({x}) (param1, param2) on @{...}
+    const templateMatch = declLine.match(/^#decl\s+(\w+)\s+(.+?)(?:\s+\(([^)]*)\))?(?:\s+(on|using)\s+(.*))?$/);
+    if (!templateMatch) {
+      return {
+        ok: false,
+        errors: [new Error(`invalid #decl syntax in template (line ${startIndex + 1})`)],
+        nextLine: startIndex + 1
+      };
+    }
+    
+    [, type, name, paramsStr, , clausesStr] = templateMatch;
+    name = name.trim();
+    clausesStr = clausesStr || '';
+  } else {
+    // For normal entities, use strict parsing
+    const declMatch = declLine.match(/^#decl\s+(\w+)\s+([\w-]+)(?:\(([^)]*)\))?\s*(.*?)$/);
+    if (!declMatch) {
+      return {
+        ok: false,
+        errors: [new Error(`invalid #decl syntax (line ${startIndex + 1})`)],
+        nextLine: startIndex + 1
+      };
+    }
+    
+    [, type, name, paramsStr, clausesStr] = declMatch;
+  }
   
   // Validate type against config
   if (config) {
@@ -325,7 +346,8 @@ function parseEntityFromLines(
     references,
     paramUsages,
     context,
-    behaviors: children.length > 0 ? convertChildrenToBehaviors(children) : undefined
+    behaviors: children.length > 0 ? convertChildrenToBehaviors(children) : undefined,
+    line: startIndex + 1
   };
   
   return { ok: true, value: entity, nextLine: endIndex + 1 };
@@ -337,9 +359,11 @@ function parseEntityFromLines(
 function convertChildrenToBehaviors(children: Entity[]): any[] {
   return children.map(child => ({
     name: child.name,
+    type: child.type,
     params: child.params,
     body: child.body,
-    context: child.context
+    context: child.context,
+    line: child.line
   }));
 }
 
@@ -385,11 +409,15 @@ function expandEntity(template: Entity, vars: string[], values: any[]): Entity {
     return result;
   };
   
+  const expandedName = expandText(template.name);
+  const expandedBody = expandText(template.body);
+  const expandedContext = template.context ? expandText(template.context) : undefined;
+  
   return {
     ...template,
-    name: expandText(template.name),
-    body: expandText(template.body),
-    context: template.context ? expandText(template.context) : undefined
+    name: expandedName,
+    body: expandedBody,
+    context: expandedContext
   };
 }
 
