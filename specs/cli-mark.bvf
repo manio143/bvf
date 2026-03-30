@@ -1,0 +1,45 @@
+# CLI Mark
+
+The `bvf mark` command records review outcomes in the manifest.
+Used by soundness and alignment review phases.
+
+
+#decl feature cli-mark on @{cli-tool}
+
+  #context
+    A @{project-dir} with specs and a @{manifest} exists.
+  #end
+
+  #behavior mark-needs-elaboration
+    Given entity "password-reset" exists in specs.
+
+    When @{run-mark} is executed with entity "password-reset",
+    status "needs-elaboration", and note "needs instrument
+    defining reset steps".
+
+    Then the manifest records "password-reset" with status "pending",
+    reason "needs-elaboration", and the note.
+    Exit code is 0.
+  #end
+
+  #behavior mark-review-failed
+    Given entity "login-test" is current in the manifest.
+
+    When @{run-mark} is executed with entity "login-test",
+    status "review-failed", and note "test uses fake hashes".
+
+    Then the manifest records "login-test" with status "stale",
+    reason "review-failed", and the note.
+    Exit code is 0.
+  #end
+
+  #behavior mark-nonexistent-entity
+    Given no entity named "nonexistent" in specs.
+
+    When @{run-mark} is executed with entity "nonexistent".
+
+    Then stderr says entity "nonexistent" not found.
+    Exit code is 1.
+  #end
+
+#end

@@ -1,0 +1,49 @@
+# CLI List
+
+The `bvf list` command lists entities filtered by type or feature.
+
+
+#decl feature cli-list on @{cli-tool}
+
+  #context
+    A @{project-dir} with spec files exists.
+  #end
+
+  #behavior list-all-entities
+    Given a project with 5 entities across 2 files.
+
+    When @{run-list} is executed with no type filter.
+
+    Then all 5 entities are listed with their type, name,
+    and source file location.
+    Exit code is 0.
+  #end
+
+  #behavior list-by-type
+    Given a project with 2 surfaces, 3 instruments, 4 behaviors.
+
+    When @{run-list} is executed with type "instrument".
+
+    Then only the 3 instruments are listed.
+    Exit code is 0.
+  #end
+
+  #behavior list-by-feature
+    Given a feature "auth" containing 3 behaviors.
+
+    When @{run-list} is executed with `--feature auth`.
+
+    Then only the 3 behaviors within "auth" are listed.
+    Exit code is 0.
+  #end
+
+  #behavior list-empty-result
+    Given a project with no fixtures.
+
+    When @{run-list} is executed with type "fixture".
+
+    Then output says "No entities of type 'fixture' found."
+    Exit code is 0.
+  #end
+
+#end

@@ -1,11 +1,8 @@
-# BVF Parser & Resolution Engine
+# Surfaces & Instruments
 
-This project implements the Behavioral Verification Framework (BVF) —
-a spec language for TDD/BDD-style behavioral declarations that AI agents
-use to drive implementation.
-
-The system parses `.bvf` files, builds a dependency graph from `@{references}`,
-tracks materialization state, and provides a CLI for managing specs.
+The BVF CLI is the single surface through which all behaviors
+are validated. Instruments define the specific ways to interact
+with it.
 
 
 #decl surface cli-tool
@@ -13,21 +10,49 @@ tracks materialization state, and provides a CLI for managing specs.
   It reads `.bvf` files from the current directory (recursively)
   and maintains state in a `.bvf-state/` directory.
 
-  The CLI is implemented in TypeScript, compiled to JavaScript,
-  and can be run via `node` or as a standalone binary.
-
-  For testing, invoke the CLI as `node dist/cli.js` or use
-  the exported API functions directly in unit tests.
+  For testing, invoke as `node dist/cli.js <command>` inside
+  a temporary project directory.
 #end
 
 
-#decl surface library-api
-  The core BVF engine exposed as a TypeScript/JavaScript library.
-  This is the programmatic API that the CLI wraps.
-
-  Functions are imported from the main package entry point.
-  All functions operate on in-memory data structures or
-  file system paths passed as arguments.
+#decl instrument run-resolve(dir, flags?) on @{cli-tool}
+  Execute `bvf resolve` in {dir}.
+  Optional {flags} like `--diff`.
+  Returns stdout, stderr, and exit code.
 #end
 
+#decl instrument run-list(dir, type?, flags?) on @{cli-tool}
+  Execute `bvf list [type]` in {dir}.
+  Optional {flags} like `--feature <name>`.
+  Returns stdout, stderr, and exit code.
+#end
+
+#decl instrument run-init(dir) on @{cli-tool}
+  Execute `bvf init` in {dir}.
+  Returns stdout, stderr, and exit code.
+#end
+
+#decl instrument run-mark(dir, entity, status, note?) on @{cli-tool}
+  Execute `bvf mark <entity> <status> [--note "<note>"]` in {dir}.
+  Returns stdout, stderr, and exit code.
+#end
+
+
+# Fixtures
+
+Reusable project setups for testing.
+
+
+#decl fixture project-dir(files, config?)
+  A temporary directory containing `.bvf` spec files as specified
+  by {files} (a map of filename to content). A `bvf.config` is
+  created with either {config} content or sensible defaults.
+  A `.bvf-state/` directory is created.
+  Cleaned up after the test.
+#end
+
+#decl fixture manifest(entries)
+  A pre-populated `.bvf-state/manifest.json` with the given
+  {entries}. Used to establish materialization state as a
+  precondition before running CLI commands.
 #end

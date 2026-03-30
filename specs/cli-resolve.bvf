@@ -1,0 +1,547 @@
+# CLI Resolve
+
+The `bvf resolve` command is the primary workhorse. It parses all
+spec files, validates references, builds the dependency graph,
+checks materialization hashes, and reports status.
+
+Every behavior that was previously specified against the internal
+library API is now observable through resolve's output — parse
+errors appear in stderr, status appears in stdout, and the exit
+code signals success vs structural failure.
+
+
+#decl feature resolve-parse-errors on @{cli-tool}
+
+  When spec files contain syntax errors, resolve catches them
+  at parse time and reports them clearly.
+
+  #context
+    A @{project-dir} exists with a valid `bvf.config`.
+  #end
+
+  #behavior resolve-catches-unclosed-decl
+    Given a spec file containing:
+    ```
+    #decl surface broken
+      This declaration is never closed.
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unclosed `#decl` block.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-nested-decl
+    Given a spec file containing:
+    ```
+    #decl surface outer
+      #decl surface inner
+        Nested declarations are not allowed.
+      #end
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about nested `#decl`.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-behavior-outside-feature
+    Given a spec file containing:
+    ```
+    #behavior orphaned-behavior
+      Not inside a feature.
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about `#behavior` outside
+    a `#decl feature` block.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-for-without-in
+    Given a spec file containing:
+    ```
+    #decl feature broken on @{some-surface}
+      #for email ["a@b.com"]
+      #behavior test({email})
+        Test.
+      #end
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about `#for` missing the `in` keyword.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-for-with-invalid-array
+    Given a spec file containing a `#for` with `in not-an-array`.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about invalid `#for` array literal.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-for-outside-feature
+    Given a spec file containing `#for` at the top level
+    (outside any `#decl feature`).
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about `#for` outside a feature.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-unclosed-for
+    Given a spec file containing a `#for` block inside a feature
+    that is never closed.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unclosed `#for` block.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-duplicate-context
+    Given a feature with two `#context ... #end` blocks.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about multiple `#context` blocks.
+    Exit code is 1.
+  #end
+
+#end
+
+
+#decl feature resolve-config-errors on @{cli-tool}
+
+  Config errors are caught before parsing even begins.
+  Clear error messages prevent downstream confusion.
+
+  #context
+    A @{project-dir} exists.
+  #end
+
+  #behavior resolve-catches-missing-types
+    Given a `bvf.config` that omits the `types` key entirely.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about "types" being required.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-empty-types
+    Given a `bvf.config` with `types:` followed by nothing.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about empty types list.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-malformed-config
+    Given a `bvf.config` without proper `key: value` format.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about malformed config syntax.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-unclosed-config
+    Given a `bvf.config` with `#config` but no `#end`.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unclosed `#config` block.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-duplicate-config-blocks
+    Given a `bvf.config` with two `#config ... #end` blocks.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about multiple `#config` blocks.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-unknown-entity-type
+    Given a `bvf.config` allowing types: surface, behavior.
+    And a spec file declares `#decl widget my-thing`.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unknown type "widget".
+    Exit code is 1.
+  #end
+
+  #behavior resolve-tolerates-unknown-config-keys
+    Given a `bvf.config` with valid required keys plus
+    `unknown-key: some-value`.
+
+    When @{run-resolve} is executed.
+
+    Then resolve succeeds. Unknown config keys are silently
+    ignored for forward-compatibility.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-trims-whitespace-from-types
+    Given a `bvf.config` with extra whitespace:
+    `types:  surface ,  fixture  , instrument`.
+
+    And spec files use these types.
+
+    When @{run-resolve} is executed.
+
+    Then types are parsed correctly — no errors about unknown types.
+    Exit code is 0.
+  #end
+
+#end
+
+
+#decl feature resolve-reference-errors on @{cli-tool}
+
+  Reference validation errors surface through resolve.
+
+  #context
+    A @{project-dir} with a valid `bvf.config` exists.
+  #end
+
+  #behavior resolve-catches-unresolved-reference
+    Given a spec file where an entity references @{nonexistent}.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unresolved reference
+    "@{nonexistent}" with the source file location.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-missing-required-param
+    Given:
+    - an instrument `login(email, password)` — both required
+    - a behavior referencing `@{login}(email: "a@b.com")` — missing password
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about missing required param "password".
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-unknown-param
+    Given:
+    - an instrument `login(email, password)`
+    - a behavior referencing `@{login}(username: "foo")`
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unknown param "username".
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-bare-ref-needing-params
+    Given:
+    - an instrument `login(email, password)` — both required
+    - a behavior body contains bare `@{login}` with no arguments
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about @{login} requiring params.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-catches-circular-dependency
+    Given:
+    - entity "a" references @{b}
+    - entity "b" references @{a}
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about circular dependency.
+    Exit code is 1.
+  #end
+
+  #behavior resolve-accepts-valid-references
+    Given a well-formed project with:
+    - surface "web-app"
+    - instrument "login"(email, password) on @{web-app}
+    - feature with behavior using @{login}(email: "a@b.com", password: "x")
+
+    When @{run-resolve} is executed.
+
+    Then no errors in stderr.
+    All entities appear in stdout with status symbols.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-accepts-optional-param-omission
+    Given:
+    - fixture `user(email, role = "member")`
+    - behavior using `@{user}(email: "a@b.com")` — role omitted
+
+    When @{run-resolve} is executed.
+
+    Then no errors. Optional param is silently defaulted.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-accepts-bare-ref-to-paramless-entity
+    Given:
+    - surface "web-app" with no params
+    - instrument body contains `@{web-app}`
+
+    When @{run-resolve} is executed.
+
+    Then no errors.
+    Exit code is 0.
+  #end
+
+#end
+
+
+#decl feature resolve-entity-parsing on @{cli-tool}
+
+  Resolve correctly processes various entity structures.
+  This is validated indirectly — if entities parse correctly,
+  they appear in resolve output with correct names and types.
+
+  #context
+    A @{project-dir} with valid specs.
+  #end
+
+  #behavior resolve-shows-simple-entities
+    Given a spec file with a surface and a fixture declaration.
+
+    When @{run-resolve} is executed.
+
+    Then both entities appear in stdout with their names.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-shows-feature-with-behaviors
+    Given a feature containing two behaviors and a `#context`.
+
+    When @{run-resolve} is executed.
+
+    Then the feature appears in stdout with its behaviors
+    nested underneath it.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-shows-for-expanded-behaviors
+    Given a feature with `#for email in ["a@b.com", "bad", ""]`:
+    ```
+    #decl feature validation on @{some-surface}
+      #for email in ["a@b.com", "bad", ""]
+      #behavior rejects-invalid({email})
+        When {email} is submitted. Then validation fails.
+      #end
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then three behaviors appear: one for each value in the list.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-shows-for-tuple-expansion
+    Given a feature with `#for field, value in [("email", ""), ("pw", "x")]`.
+
+    When @{run-resolve} is executed.
+
+    Then two expanded behaviors appear.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-ignores-prose-between-entities
+    Given a spec file with markdown prose between `#decl` blocks.
+
+    When @{run-resolve} is executed.
+
+    Then only the declared entities appear — prose is ignored.
+    Exit code is 0.
+  #end
+
+#end
+
+
+#decl feature resolve-status-tracking on @{cli-tool}
+
+  Resolve reads the manifest, computes hashes, and reports
+  which entities are current, stale, pending, or orphaned.
+
+  #context
+    A @{project-dir} with valid specs and a @{manifest}.
+  #end
+
+  #behavior resolve-new-entity-is-pending
+    Given a spec file with entity "login-test" and an empty manifest.
+
+    When @{run-resolve} is executed.
+
+    Then "login-test" shows with ⏳ status.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-unchanged-entity-is-current
+    Given entity "login-test" in specs and a manifest with matching
+    spec hash and dependency hash.
+
+    When @{run-resolve} is executed.
+
+    Then "login-test" shows with ✓ status.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-content-change-makes-stale
+    Given entity "login-test" in specs whose content differs from
+    the spec hash stored in the manifest.
+
+    When @{run-resolve} is executed.
+
+    Then "login-test" shows with ✗ status and reason
+    indicating content changed.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-dependency-change-makes-stale
+    Given:
+    - surface "web-app" with changed content
+    - instrument "login" on @{web-app} — manifest has old dependency hash
+
+    When @{run-resolve} is executed.
+
+    Then "login" shows with ✗ status and reason indicating
+    a dependency changed.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-transitive-dep-change-cascades
+    Given:
+    - surface "web-app", instrument "login" on @{web-app},
+      behavior "can-login" using @{login}
+    - all were materialized
+    - "web-app" content has changed
+
+    When @{run-resolve} is executed.
+
+    Then both "login" and "can-login" show as ✗ stale.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-orphaned-entity-detected
+    Given the manifest contains "old-test" but no spec file
+    declares an entity named "old-test".
+
+    When @{run-resolve} is executed.
+
+    Then "old-test" appears in an "Orphaned" section.
+    The manifest entry is removed.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-review-failed-shows-stale
+    Given entity "login-test" was marked review-failed via
+    @{run-mark} with a note.
+
+    When @{run-resolve} is executed.
+
+    Then "login-test" shows with ✗ status, reason "review-failed",
+    and the note displayed below.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-needs-elaboration-shows-pending
+    Given entity "password-reset" was marked needs-elaboration
+    via @{run-mark} with a note.
+
+    When @{run-resolve} is executed.
+
+    Then "password-reset" shows with ⏳ status, reason
+    "needs-elaboration", and the note displayed below.
+    Exit code is 0.
+  #end
+
+#end
+
+
+#decl feature resolve-output-format on @{cli-tool}
+
+  The resolve output groups entities by feature, orders them
+  for scanability, and provides a summary.
+
+  #context
+    A @{project-dir} with valid specs and a @{manifest}.
+  #end
+
+  #behavior resolve-clean-project
+    Given all entities are current in the manifest.
+
+    When @{run-resolve} is executed.
+
+    Then all entities show ✓ status.
+    Summary shows "Errors: 0", "Stale: 0", "Pending: 0".
+    Exit code is 0.
+  #end
+
+  #behavior resolve-mixed-statuses-ordered
+    Given a project with current, stale, and pending entities
+    across multiple features.
+
+    When @{run-resolve} is executed.
+
+    Then features with all-current behaviors appear first
+    (alphabetically). Features with any stale or pending
+    behaviors are pushed to the end (also alphabetically).
+    Within each feature, behaviors appear in spec order.
+    Summary shows counts per category.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-with-diff
+    Given a stale entity whose spec content changed.
+
+    When @{run-resolve} is executed with `--diff`.
+
+    Then the output includes what changed in the stale entity.
+  #end
+
+#end
+
+
+#decl feature resolve-exit-codes on @{cli-tool}
+
+  Exit code semantics. Stale or pending entities are informational.
+  Only structural errors produce non-zero exit codes.
+
+  #behavior resolve-exits-zero-on-success
+    Given a project where resolve finds stale and pending entities
+    but no structural errors.
+
+    When @{run-resolve} is executed.
+
+    Then exit code is 0. Stale/pending is informational.
+  #end
+
+  #behavior resolve-exits-one-on-error
+    Given a project with unresolved references or parse errors.
+
+    When @{run-resolve} is executed.
+
+    Then exit code is 1.
+  #end
+
+#end
