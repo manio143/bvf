@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.trash/
+.bvf-state/
+*.backup
+/tmp/
+
+# Generated reports
+TEST_MATERIALIZATION_REPORT.md
+TEST_STATUS_BY_FEATURE.md
+SPEC_TO_TEST_MAPPING.md
