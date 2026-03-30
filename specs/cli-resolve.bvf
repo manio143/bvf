@@ -582,11 +582,17 @@ code signals success vs structural failure.
 
     When @{run-resolve} is executed with `--diff`.
 
-    Then for each stale or pending entity, the output includes:
-    - The entity name
+    Then the output includes all entities that have changed
+    (not just behaviors — instruments, fixtures, surfaces too),
+    each with:
+    - The entity name and type
     - The relative file path where the entity is declared
-    This enables an agent to use `git diff` on those paths or
-    read the relevant sections to understand the scope of changes.
+
+    This shows root causes, not just symptoms. If an instrument
+    changed and caused 3 behaviors to become stale, the diff
+    lists the instrument change alongside the affected behaviors.
+    An agent can then use `git diff` on those paths or read
+    the relevant sections to understand the full scope of changes.
     Exit code is 0.
   #end
 
