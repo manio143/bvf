@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync } from 'fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync, statSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -58,23 +58,35 @@ describe('cli-resolve', () => {
     const stateDir = join(projectDir, '.bvf-state');
     mkdirSync(stateDir);
 
-    // Mark both as current
-    const manifest = {
-      'web-app': {
-        name: 'web-app',
-        specHash: 'current-hash-web-app',
-        dependencyHash: 'current-hash-web-app',
-        artifact: 'tests/web-app.spec.ts',
+    // Run resolve once to parse entities and compute real hashes,
+    // then build a manifest with those actual hashes so entities are "current"
+    const { parseBvfFile } = await import('../src/parser');
+    const { computeSpecHash, computeDependencyHash } = await import('../src/manifest');
+    const { resolveReferences } = await import('../src/resolver');
+    const { parseConfig } = await import('../src/config');
+
+    const specContent = readFileSync(join(specsDir, 'test.bvf'), 'utf-8');
+    const config = parseConfig(readFileSync(join(projectDir, 'bvf.config'), 'utf-8'));
+    const parsed = parseBvfFile(specContent);
+    const resolved = resolveReferences(parsed.value!, config.value!);
+
+    const entityHashes = new Map<string, string>();
+    for (const entity of resolved.value!) {
+      entityHashes.set(entity.name, computeSpecHash(entity));
+    }
+
+    const manifest: Record<string, any> = {};
+    for (const entity of resolved.value!) {
+      const specHash = computeSpecHash(entity);
+      const dependencyHash = computeDependencyHash(entity, entityHashes);
+      manifest[entity.name] = {
+        name: entity.name,
+        specHash,
+        dependencyHash,
+        artifact: `tests/${entity.name}.spec.ts`,
         materializedAt: new Date().toISOString()
-      },
-      'login': {
-        name: 'login',
-        specHash: 'current-hash-login',
-        dependencyHash: 'current-hash-login-dep',
-        artifact: 'tests/login.spec.ts',
-        materializedAt: new Date().toISOString()
-      }
-    };
+      };
+    }
 
     writeFileSync(join(stateDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
@@ -395,10 +407,8 @@ describe('cli-init', () => {
     expect(readFileSync(configPath, 'utf-8')).toContain('feature');
 
     // Check directories were created
-    const specsDir = readFileSync(specsPath);
-    const stateDir = readFileSync(statePath);
-    expect(specsDir).toBeDefined();
-    expect(stateDir).toBeDefined();
+    expect(statSync(specsPath).isDirectory()).toBe(true);
+    expect(statSync(statePath).isDirectory()).toBe(true);
   });
 
   it('init-refuses-existing-project', async () => {
