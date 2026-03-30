@@ -66,11 +66,36 @@ describe('cli-list', () => {
     const result = await runCli('list', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('app');
-    expect(result.stdout).toContain('data');
-    expect(result.stdout).toContain('tool');
-    expect(result.stdout).toContain('test-1');
-    expect(result.stdout).toContain('test-2');
+    
+    // Spec: "all 5 entities are listed with their type, name, and source file location"
+    // Output format groups by type, then shows name and file path on each line
+    // Example:
+    //   surface:
+    //     app  file1.bvf
+    //   fixture:
+    //     data  file1.bvf
+    
+    const entities = [
+      { name: 'app', type: 'surface', file: 'file1.bvf' },
+      { name: 'data', type: 'fixture', file: 'file1.bvf' },
+      { name: 'tool', type: 'instrument', file: 'file2.bvf' },
+      { name: 'test-1', type: 'behavior', file: 'file2.bvf' },
+      { name: 'test-2', type: 'behavior', file: 'file2.bvf' }
+    ];
+    
+    // Verify each entity name appears in output
+    for (const entity of entities) {
+      expect(result.stdout, `Entity "${entity.name}" should appear in output`).toContain(entity.name);
+      expect(result.stdout, `Entity "${entity.name}" source file "${entity.file}" should appear`).toContain(entity.file);
+    }
+    
+    // Verify type headers appear
+    expect(result.stdout).toContain('surface:');
+    expect(result.stdout).toContain('fixture:');
+    expect(result.stdout).toContain('instrument:');
+    expect(result.stdout).toContain('behavior:');
+    
+    // Verify correct total count
     expect(result.stdout).toContain('Total: 5');
   });
 

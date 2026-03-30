@@ -1,0 +1,299 @@
+# Configuration
+
+The config defines the project's entity taxonomy: which types exist,
+how they can nest, and where state lives. The framework is deliberately
+generic — it knows about types, containment, and references, but
+attaches no special meaning to any particular type name.
+
+This means "feature" and "behavior" are not built-in concepts. A project
+defines its own vocabulary. The framework enforces structural rules
+(containment, references, uniqueness) but not semantic rules.
+
+
+#decl feature config-taxonomy on @{cli-tool}
+
+  The `types` key defines which entity type names are valid.
+  The `containment` key defines which types can nest inside which.
+
+  #context
+    A @{project-dir} with a `bvf.config` file.
+  #end
+
+  #decl behavior config-defines-types
+    Given a config:
+    ```
+    #config
+      types: surface, fixture, instrument, behavior, feature
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then entities of these types are accepted. Any `#decl` using
+    a type not in this list produces an error.
+  #end
+
+  #decl behavior config-defines-containment
+    Given a config:
+    ```
+    #config
+      types: surface, fixture, instrument, behavior, feature
+      containment:
+        feature: behavior
+    #end
+    ```
+
+    This means: a `#decl feature` may contain nested `#decl behavior`
+    blocks. No other nesting is allowed. A `#decl behavior` inside
+    a `#decl instrument` would be an error.
+
+    When @{run-resolve} is executed on a project where a feature
+    contains behaviors.
+
+    Then no errors. The nesting is valid per config.
+  #end
+
+  #decl behavior config-rejects-invalid-nesting
+    Given a config with `containment: feature: behavior`.
+    And a spec file where an instrument contains a `#decl behavior`.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about invalid nesting:
+    type "behavior" cannot be nested inside type "instrument".
+    Exit code is 1.
+  #end
+
+  #decl behavior config-allows-multiple-containment-rules
+    Given a config:
+    ```
+    #config
+      types: epic, story, task, surface
+      containment:
+        epic: story
+        story: task
+    #end
+    ```
+
+    And a spec file with an epic containing a story containing a task.
+
+    When @{run-resolve} is executed.
+
+    Then no errors. Multi-level nesting is valid per config.
+  #end
+
+  #decl behavior config-no-containment-means-no-nesting
+    Given a config that defines types but omits the `containment` key.
+
+    And a spec file where one entity is nested inside another.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about nesting not being allowed.
+    Without containment rules, no nesting is permitted.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-containment-is-not-transitive
+    Given a config:
+    ```
+    #config
+      types: epic, story, task
+      containment:
+        epic: story
+        story: task
+    #end
+    ```
+
+    And a spec file where an epic directly contains a `#decl task`
+    (skipping the story level).
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error: type "task" cannot be nested
+    directly inside type "epic". Containment is one level deep —
+    epic→story is allowed, story→task is allowed, but epic→task
+    requires an intermediate story.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-containment-allows-multiple-children
+    Given a config:
+    ```
+    #config
+      types: feature, behavior, constraint
+      containment:
+        feature: behavior, constraint
+    #end
+    ```
+
+    And a spec file where a feature contains both behaviors and
+    constraints.
+
+    When @{run-resolve} is executed.
+
+    Then no errors. A parent type can allow multiple child types.
+  #end
+
+#end
+
+
+#decl feature config-settings on @{cli-tool}
+
+  Non-taxonomy settings: file extension, state directory, defaults.
+
+  #context
+    A @{project-dir} with a `bvf.config` file.
+  #end
+
+  #decl behavior config-custom-file-extension
+    Given a config with `file-extension: .spec`.
+
+    When @{run-resolve} is executed.
+
+    Then only `.spec` files are parsed (not `.bvf`).
+  #end
+
+  #decl behavior config-custom-state-dir
+    Given a config with `state-dir: .my-state`.
+
+    When @{run-resolve} is executed.
+
+    Then the manifest is read from/written to `.my-state/`.
+  #end
+
+  #decl behavior config-defaults
+    When no `bvf.config` exists and @{run-init} is executed.
+
+    Then the generated config uses defaults:
+    - types: surface, fixture, instrument, behavior, feature
+    - containment: feature: behavior
+    - file-extension: .bvf
+    - state-dir: .bvf-state
+  #end
+
+  #decl behavior config-ignores-unknown-keys
+    Given a config with valid required keys plus
+    `unknown-key: some-value`.
+
+    When @{run-resolve} is executed.
+
+    Then resolve succeeds. Unknown keys are silently ignored
+    for forward-compatibility.
+  #end
+
+  #decl behavior config-trims-whitespace-from-types
+    Given a config with extra whitespace:
+    `types:  surface ,  fixture  , instrument`.
+
+    When @{run-resolve} is executed.
+
+    Then types are parsed correctly — no errors.
+  #end
+
+#end
+
+
+#decl feature config-errors on @{cli-tool}
+
+  Config errors caught early with clear messages.
+
+  #context
+    A @{project-dir} exists.
+  #end
+
+  #decl behavior config-rejects-missing-types
+    Given a `bvf.config` that omits the `types` key.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error: "types" is required.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-empty-types
+    Given a `bvf.config` with `types:` followed by nothing.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error: types cannot be empty.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-no-colon
+    Given a `bvf.config`:
+    ```
+    #config
+      types surface, fixture
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about malformed syntax.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-empty-value
+    Given a `bvf.config`:
+    ```
+    #config
+      file-extension:
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about missing value.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-bare-text
+    Given a `bvf.config` with bare text not inside `#config`:
+    ```
+    types: surface, fixture
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about missing `#config` block.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-unclosed-config
+    Given a `bvf.config` with `#config` but no `#end`.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about unclosed `#config` block.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-duplicate-config
+    Given a `bvf.config` with two `#config ... #end` blocks.
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error about multiple `#config` blocks.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-rejects-unknown-type-in-containment
+    Given a config where `containment` references a type not
+    listed in `types`:
+    ```
+    #config
+      types: surface, behavior
+      containment:
+        feature: behavior
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error: containment references
+    unknown type "feature".
+    Exit code is 1.
+  #end
+
+#end

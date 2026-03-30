@@ -9,19 +9,22 @@ The `bvf init` command bootstraps a new BVF project.
     A directory exists (may or may not already have BVF files).
   #end
 
-  #behavior init-creates-project
+  #decl behavior init-creates-project
     Given an empty directory.
 
     When @{run-init} is executed.
 
-    Then a `bvf.config` file is created with default types
-    (surface, fixture, instrument, behavior, feature).
+    Then a `bvf.config` file is created with default settings:
+    - types: surface, fixture, instrument, behavior, feature
+    - containment: feature: behavior
+    - file-extension: .bvf
+    - state-dir: .bvf-state
     A `specs/` directory is created.
     A `.bvf-state/` directory is created.
     Exit code is 0.
   #end
 
-  #behavior init-refuses-existing-project
+  #decl behavior init-refuses-existing-project
     Given a directory that already contains a `bvf.config`.
 
     When @{run-init} is executed.

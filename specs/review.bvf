@@ -39,7 +39,7 @@ agent restarts and context loss.
     An agent is about to materialize one or more entities.
   #end
 
-  #behavior passes-sound-spec
+  #decl behavior passes-sound-spec
     Given a behavior spec with clear expected outcomes and
     sufficient instrument definitions to support it.
 
@@ -48,7 +48,7 @@ agent restarts and context loss.
     Then the spec passes review. Materialization can proceed.
   #end
 
-  #behavior detects-logical-contradiction
+  #decl behavior detects-logical-contradiction
     Given a spec that contains contradictory requirements
     (e.g. "exits with code 0" and "reports an error").
 
@@ -64,7 +64,7 @@ agent restarts and context loss.
     the human's domain. The agent advises, the human decides.
   #end
 
-  #behavior detects-needs-elaboration
+  #decl behavior detects-needs-elaboration
     Given a behavior spec that describes an outcome at a level
     too abstract to materialize — concrete steps are missing
     and no supporting instrument specs exist.
@@ -90,7 +90,7 @@ agent restarts and context loss.
     before being added to the spec tree.
   #end
 
-  #behavior preserves-intentional-abstraction
+  #decl behavior preserves-intentional-abstraction
     Given a behavior spec that is abstract but whose expected
     outcome is unambiguous (e.g. "exit code is 0", "output
     contains entity name").
@@ -108,7 +108,7 @@ agent restarts and context loss.
     to concretize.
   #end
 
-  #behavior feeds-back-to-human
+  #decl behavior feeds-back-to-human
     Given a soundness review that finds issues (contradictions,
     ambiguity, or missing elaboration).
 
@@ -158,7 +158,7 @@ agent restarts and context loss.
     The spec and materialized artifact are both available.
   #end
 
-  #behavior passes-faithful-test
+  #decl behavior passes-faithful-test
     Given a test that correctly establishes the spec's preconditions,
     exercises the described behavior, and asserts the expected outcomes.
 
@@ -167,7 +167,7 @@ agent restarts and context loss.
     Then the test passes review. The entity status remains "current".
   #end
 
-  #behavior detects-incorrect-precondition
+  #decl behavior detects-incorrect-precondition
     Given a test that uses fake or incorrect setup that does not
     actually establish the precondition described in the spec
     (e.g. hardcoded hashes instead of computed ones).
@@ -183,7 +183,7 @@ agent restarts and context loss.
     and a note describing the precondition mismatch.
   #end
 
-  #behavior detects-wrong-assertion-method
+  #decl behavior detects-wrong-assertion-method
     Given a test that uses an incorrect method to verify
     the expected outcome (e.g. readFileSync on a directory
     when checking directory existence).
@@ -199,7 +199,7 @@ agent restarts and context loss.
     and a note describing the assertion error.
   #end
 
-  #behavior detects-missing-assertions
+  #decl behavior detects-missing-assertions
     Given a test that establishes preconditions and exercises
     the behavior but does not assert all expected outcomes
     described in the spec.
@@ -215,7 +215,7 @@ agent restarts and context loss.
     and a note listing the unverified outcomes.
   #end
 
-  #behavior detects-over-assertion
+  #decl behavior detects-over-assertion
     Given a test that asserts behavior beyond what the spec
     describes (testing implementation details not in the spec).
 
@@ -231,7 +231,7 @@ agent restarts and context loss.
     The test should verify the spec, not more.
   #end
 
-  #behavior stale-mark-enables-recovery
+  #decl behavior stale-mark-enables-recovery
     Given an entity marked stale with reason "review-failed"
     and a descriptive note.
 
@@ -270,7 +270,7 @@ agent restarts and context loss.
     A BVF project with specs ready for materialization.
   #end
 
-  #behavior full-happy-path
+  #decl behavior full-happy-path
     Given a behavior spec that is sound and has sufficient
     supporting instrument specs.
 
@@ -281,7 +281,7 @@ agent restarts and context loss.
     4. Entity status: current
   #end
 
-  #behavior elaboration-path
+  #decl behavior elaboration-path
     Given a behavior spec that is too abstract to materialize.
 
     The workflow proceeds:
@@ -299,7 +299,7 @@ agent restarts and context loss.
     which is a more natural review surface than code review.
   #end
 
-  #behavior rematerialization-path
+  #decl behavior rematerialization-path
     Given a materialized entity that fails alignment review.
 
     The workflow proceeds:
@@ -314,7 +314,7 @@ agent restarts and context loss.
     it, rematerialization is just "try again and hope."
   #end
 
-  #behavior interrupted-workflow
+  #decl behavior interrupted-workflow
     Given a project where 5 behaviors are ready, 2 need elaboration.
 
     Real work is interruptible. A human might identify that 2 specs

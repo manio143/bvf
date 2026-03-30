@@ -1,6 +1,6 @@
 # CLI List
 
-The `bvf list` command lists entities filtered by type or feature.
+The `bvf list` command lists entities filtered by type or parent.
 
 
 #decl feature cli-list on @{cli-tool}
@@ -9,7 +9,7 @@ The `bvf list` command lists entities filtered by type or feature.
     A @{project-dir} with spec files exists.
   #end
 
-  #behavior list-all-entities
+  #decl behavior list-all-entities
     Given a project with 5 entities across 2 files.
 
     When @{run-list} is executed with no type filter.
@@ -19,7 +19,7 @@ The `bvf list` command lists entities filtered by type or feature.
     Exit code is 0.
   #end
 
-  #behavior list-by-type
+  #decl behavior list-by-type
     Given a project with 2 surfaces, 3 instruments, 4 behaviors.
 
     When @{run-list} is executed with type "instrument".
@@ -28,16 +28,16 @@ The `bvf list` command lists entities filtered by type or feature.
     Exit code is 0.
   #end
 
-  #behavior list-by-feature
-    Given a feature "auth" containing 3 behaviors.
+  #decl behavior list-by-parent
+    Given a parent entity "auth" containing 3 child entities.
 
-    When @{run-list} is executed with `--feature auth`.
+    When @{run-list} is executed with `--parent auth`.
 
-    Then only the 3 behaviors within "auth" are listed.
+    Then only the 3 children within "auth" are listed.
     Exit code is 0.
   #end
 
-  #behavior list-empty-result
+  #decl behavior list-empty-result
     Given a project with no fixtures.
 
     When @{run-list} is executed with type "fixture".

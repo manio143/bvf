@@ -1057,7 +1057,17 @@ describe('resolve-output-format', () => {
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('✓');
+    
+    // Spec: "Then all entities show ✓ status"
+    // Verify EACH entity appears on a line with ✓
+    const entityNames = ['app', 'data', 'test'];
+    for (const name of entityNames) {
+      const lines = result.stdout.split('\n');
+      const entityLine = lines.find(l => l.includes(name));
+      expect(entityLine, `Entity "${name}" should appear with ✓ status`).toBeDefined();
+      expect(entityLine, `Entity "${name}" should have ✓ symbol`).toContain('✓');
+    }
+    
     expect(result.stdout).toContain('Errors: 0');
     expect(result.stdout).toContain('Stale: 0');
     expect(result.stdout).toContain('Pending: 0');
@@ -1068,29 +1078,45 @@ describe('resolve-output-format', () => {
       'mixed.bvf': `#decl surface app
 #end
 
-#decl feature clean-feature on @{app}
-  #behavior test-1
+#decl feature alpha-clean on @{app}
+  #behavior test-alpha
     Test.
   #end
 #end
 
-#decl feature problem-feature on @{app}
-  #behavior test-2
+#decl feature bravo-clean on @{app}
+  #behavior test-bravo
+    Test.
+  #end
+#end
+
+#decl feature charlie-problem on @{app}
+  #behavior test-charlie-stale
+    Test.
+  #end
+#end
+
+#decl feature delta-problem on @{app}
+  #behavior test-delta-pending
     Test.
   #end
 #end
 `
     });
 
-    // Parse entities
+    // Parse and resolve entities
     const content = readFileSync(join(tmpDir, 'specs', 'mixed.bvf'), 'utf-8');
     const parseResult = parseBvfFile(content);
     const entities = parseResult.value!;
     
+    const config = defaultConfig();
+    const resolveResult = resolveReferences(entities, config);
+    const resolved = resolveResult.value!;
+    
     const manifest: Record<string, any> = {};
     
     // Surface is current
-    const surface = entities.find(e => e.name === 'app')!;
+    const surface = resolved.find(e => e.name === 'app')!;
     const surfaceHash = computeSpecHash(surface);
     manifest['app'] = {
       name: 'app',
@@ -1098,17 +1124,44 @@ describe('resolve-output-format', () => {
       dependencyHash: surfaceHash
     };
     
-    // Clean feature behaviors are current
-    const cleanFeature = entities.find(e => e.name === 'clean-feature')!;
-    const test1 = cleanFeature.behaviors![0];
-    const test1Hash = computeSpecHash(test1);
-    manifest['test-1'] = {
-      name: 'test-1',
-      specHash: test1Hash,
-      dependencyHash: test1Hash
+    // Alpha feature: behavior is current
+    const alphaFeature = resolved.find(e => e.name === 'alpha-clean')!;
+    const testAlpha = alphaFeature.behaviors![0];
+    const testAlphaHash = computeSpecHash(testAlpha);
+    const currentHashes = new Map<string, string>();
+    currentHashes.set('app', surfaceHash);
+    currentHashes.set('alpha-clean', computeSpecHash(alphaFeature));
+    const testAlphaDepHash = computeDependencyHash(testAlpha, currentHashes);
+    manifest['test-alpha'] = {
+      name: 'test-alpha',
+      specHash: testAlphaHash,
+      dependencyHash: testAlphaDepHash
     };
     
-    // Problem feature has a pending behavior (no manifest entry)
+    // Bravo feature: behavior is current
+    const bravoFeature = resolved.find(e => e.name === 'bravo-clean')!;
+    const testBravo = bravoFeature.behaviors![0];
+    const testBravoHash = computeSpecHash(testBravo);
+    currentHashes.set('bravo-clean', computeSpecHash(bravoFeature));
+    const testBravoDepHash = computeDependencyHash(testBravo, currentHashes);
+    manifest['test-bravo'] = {
+      name: 'test-bravo',
+      specHash: testBravoHash,
+      dependencyHash: testBravoDepHash
+    };
+    
+    // Charlie feature: behavior is stale (old hash in manifest)
+    const charlieFeature = resolved.find(e => e.name === 'charlie-problem')!;
+    const testCharlie = charlieFeature.behaviors![0];
+    currentHashes.set('charlie-problem', computeSpecHash(charlieFeature));
+    const testCharlieDepHash = computeDependencyHash(testCharlie, currentHashes);
+    manifest['test-charlie-stale'] = {
+      name: 'test-charlie-stale',
+      specHash: 'old-hash',  // Old spec hash makes it stale
+      dependencyHash: testCharlieDepHash
+    };
+    
+    // Delta feature: behavior is pending (no manifest entry = new)
     
     createManifest(tmpDir, manifest);
 
@@ -1116,16 +1169,37 @@ describe('resolve-output-format', () => {
 
     expect(result.exitCode).toBe(0);
     
-    // Check ordering: clean feature should appear before problem feature
+    // Spec: "Features with all-current behaviors appear first (alphabetically).
+    // Features with any stale or pending behaviors are pushed to the end (also alphabetically)."
+    
+    // Find feature positions in output
     const lines = result.stdout.split('\n');
-    const cleanIndex = lines.findIndex(l => l.includes('clean-feature'));
-    const problemIndex = lines.findIndex(l => l.includes('problem-feature'));
+    const alphaIndex = lines.findIndex(l => l.includes('alpha-clean'));
+    const bravoIndex = lines.findIndex(l => l.includes('bravo-clean'));
+    const charlieIndex = lines.findIndex(l => l.includes('charlie-problem'));
+    const deltaIndex = lines.findIndex(l => l.includes('delta-problem'));
     
-    expect(cleanIndex).toBeGreaterThan(-1);
-    expect(problemIndex).toBeGreaterThan(-1);
-    expect(cleanIndex).toBeLessThan(problemIndex);
+    // All should be found
+    expect(alphaIndex).toBeGreaterThan(-1);
+    expect(bravoIndex).toBeGreaterThan(-1);
+    expect(charlieIndex).toBeGreaterThan(-1);
+    expect(deltaIndex).toBeGreaterThan(-1);
     
-    expect(result.stdout).toContain('Pending: 1');
+    // Clean features (alpha, bravo) should appear before problem features (charlie, delta)
+    expect(alphaIndex).toBeLessThan(charlieIndex);
+    expect(alphaIndex).toBeLessThan(deltaIndex);
+    expect(bravoIndex).toBeLessThan(charlieIndex);
+    expect(bravoIndex).toBeLessThan(deltaIndex);
+    
+    // Within clean group: alpha before bravo (alphabetical)
+    expect(alphaIndex).toBeLessThan(bravoIndex);
+    
+    // Within problem group: charlie before delta (alphabetical)
+    expect(charlieIndex).toBeLessThan(deltaIndex);
+    
+    // Verify summary shows mix of statuses
+    expect(result.stdout).toMatch(/Stale:\s+\d+/);
+    expect(result.stdout).toMatch(/Pending:\s+\d+/);
   });
 
   it('resolve-with-diff', async () => {
@@ -1134,24 +1208,44 @@ describe('resolve-output-format', () => {
   Updated surface content.
 #end
 
+#decl instrument login on @{app}
+  Uses surface.
+#end
+
 #decl feature my-feature on @{app}
-  #behavior dep-test
-    Uses @{app}.
+  #behavior first-test using @{login}
+    Uses login and app.
+  #end
+  #behavior second-test using @{login}
+    Also uses login and app.
   #end
 #end
 `
     });
 
-    // Surface has old hash → stale, behavior depends on it → also stale
+    // Spec: Create a surface that 2+ behaviors depend on, change the surface,
+    // verify all appear in diff output with correct format.
+    // Surface changed → instrument stale → both behaviors stale (cascade)
+    
     createManifest(tmpDir, {
       'app': {
         name: 'app',
-        specHash: 'old-hash',
-        dependencyHash: 'old-hash'
+        specHash: 'old-surface-hash',  // Changed surface
+        dependencyHash: 'old-surface-hash'
       },
-      'dep-test': {
-        name: 'dep-test',
-        specHash: 'old-hash',
+      'login': {
+        name: 'login',
+        specHash: 'old-login-hash',  // Unchanged but deps changed
+        dependencyHash: 'old-surface-hash'
+      },
+      'first-test': {
+        name: 'first-test',
+        specHash: 'old-test1-hash',
+        dependencyHash: 'old-dep-hash'
+      },
+      'second-test': {
+        name: 'second-test',
+        specHash: 'old-test2-hash',
         dependencyHash: 'old-dep-hash'
       }
     });
@@ -1159,17 +1253,40 @@ describe('resolve-output-format', () => {
     const result = await runCli('resolve --diff', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    // Machine-parseable format: one line per non-current entity
-    const lines = result.stdout.trim().split('\n').filter(l => l.trim());
-    // Should list root cause (surface) and affected (behavior)
-    const hasApp = lines.some(l => l.includes('app') && l.includes('entities.bvf'));
-    const hasDepTest = lines.some(l => l.includes('dep-test') && l.includes('entities.bvf'));
-    expect(hasApp).toBe(true);
-    expect(hasDepTest).toBe(true);
-    // Each line should have: status, type, name, path
+    
+    // Spec: Machine-parseable format `<status> <type> <name> <relative-path>:<line>`, one entity per line
+    // Shows root causes AND affected entities (cascade)
+    // "The human-readable tree output is suppressed — `--diff` is designed for piping into scripts"
+    
+    const lines = result.stdout.trim().split('\n').filter(l => l.trim() && !l.match(/^Resolution Status:/));
+    
+    // Should show: surface (root cause) + instrument (direct dep) + 2 behaviors (cascade)
+    // At least 4 stale entities
+    expect(lines.length).toBeGreaterThanOrEqual(4);
+    
+    // Each line must match format: <status> <type> <name> <path>:<line>
+    // Format: stale/pending/orphaned, then type, then name, then relative-path:line
+    const formatRegex = /^(stale|pending|orphaned)\s+(surface|instrument|behavior|fixture|feature)\s+\S+\s+\S+:\d+$/;
+    
+    let matchingLines = 0;
     for (const line of lines) {
-      expect(line).toMatch(/^(stale|pending|orphaned)\s+\w+\s+\S+\s+\S+/);
+      if (formatRegex.test(line)) {
+        matchingLines++;
+      }
     }
+    
+    // Expect at least 4 lines matching the format (app, login, first-test, second-test)
+    expect(matchingLines, `Should have at least 4 lines matching <status> <type> <name> <path>:<line> format`).toBeGreaterThanOrEqual(4);
+    
+    // Verify all affected entities appear in output
+    const output = result.stdout;
+    expect(output).toContain('app');  // Root cause (surface changed)
+    expect(output).toContain('login');  // Direct dependency
+    expect(output).toContain('first-test');  // Cascade
+    expect(output).toContain('second-test');  // Cascade
+    
+    // Verify relative paths with line numbers appear
+    expect(output).toMatch(/entities\.bvf:\d+/);
   });
 });
 

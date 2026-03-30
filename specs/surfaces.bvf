@@ -23,7 +23,7 @@ with it.
 
 #decl instrument run-list(dir, type?, flags?) on @{cli-tool}
   Execute `bvf list [type]` in {dir}.
-  Optional {flags} like `--feature <name>`.
+  Optional {flags} like `--parent <name>`.
   Returns stdout, stderr, and exit code.
 #end
 
@@ -46,9 +46,9 @@ Reusable project setups for testing.
 #decl fixture project-dir(files, config?)
   A temporary directory containing `.bvf` spec files as specified
   by {files} (a map of filename to content). A `bvf.config` is
-  created with either {config} content or sensible defaults.
-  A `.bvf-state/` directory is created.
-  Cleaned up after the test.
+  created with either {config} content or sensible defaults
+  (including default containment rules). A `.bvf-state/` directory
+  is created. Cleaned up after the test.
 #end
 
 #decl fixture manifest(entries)

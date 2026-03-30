@@ -19,7 +19,7 @@ code signals success vs structural failure.
     A @{project-dir} exists with a valid `bvf.config`.
   #end
 
-  #behavior resolve-catches-unclosed-decl
+  #decl behavior resolve-catches-unclosed-decl
     Given a spec file containing:
     ```
     #decl surface broken
@@ -32,43 +32,29 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-nested-decl
-    Given a spec file containing:
+  #decl behavior resolve-catches-invalid-nesting
+    Given a config with `containment: feature: behavior`.
+    And a spec file where a surface contains a nested `#decl`:
     ```
     #decl surface outer
-      #decl surface inner
-        Nested declarations are not allowed.
+      #decl behavior inner
+        Not allowed — config only permits nesting under features.
       #end
     #end
     ```
 
     When @{run-resolve} is executed.
 
-    Then stderr contains an error about nested `#decl`.
+    Then stderr contains an error about invalid nesting.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-behavior-outside-feature
-    Given a spec file containing:
-    ```
-    #behavior orphaned-behavior
-      Not inside a feature.
-    #end
-    ```
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about `#behavior` outside
-    a `#decl feature` block.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-for-without-in
+  #decl behavior resolve-catches-for-without-in
     Given a spec file containing:
     ```
     #decl feature broken on @{some-surface}
       #for email ["a@b.com"]
-      #behavior test({email})
+      #decl behavior test({email})
         Test.
       #end
     #end
@@ -80,7 +66,7 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-for-with-invalid-array
+  #decl behavior resolve-catches-for-with-invalid-array
     Given a spec file containing a `#for` with `in not-an-array`.
 
     When @{run-resolve} is executed.
@@ -89,17 +75,17 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-for-outside-feature
+  #decl behavior resolve-catches-for-outside-container
     Given a spec file containing `#for` at the top level
-    (outside any `#decl feature`).
+    (outside any container entity).
 
     When @{run-resolve} is executed.
 
-    Then stderr contains an error about `#for` outside a feature.
+    Then stderr contains an error about `#for` outside a container.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-unclosed-for
+  #decl behavior resolve-catches-unclosed-for
     Given a spec file containing a `#for` block inside a feature
     that is never closed.
 
@@ -109,135 +95,13 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-duplicate-context
+  #decl behavior resolve-catches-duplicate-context
     Given a feature with two `#context ... #end` blocks.
 
     When @{run-resolve} is executed.
 
     Then stderr contains an error about multiple `#context` blocks.
     Exit code is 1.
-  #end
-
-#end
-
-
-#decl feature resolve-config-errors on @{cli-tool}
-
-  Config errors are caught before parsing even begins.
-  Clear error messages prevent downstream confusion.
-
-  #context
-    A @{project-dir} exists.
-  #end
-
-  #behavior resolve-catches-missing-types
-    Given a `bvf.config` that omits the `types` key entirely.
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about "types" being required.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-empty-types
-    Given a `bvf.config` with `types:` followed by nothing.
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about empty types list.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-malformed-config-no-colon
-    Given a `bvf.config` with a line missing the colon separator:
-    ```
-    #config
-      types surface, fixture
-    #end
-    ```
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about malformed config syntax.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-malformed-config-no-value
-    Given a `bvf.config` with a key but no value after colon:
-    ```
-    #config
-      file-extension:
-    #end
-    ```
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about missing value.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-malformed-config-bare-text
-    Given a `bvf.config` with bare text that isn't inside
-    a `#config` block:
-    ```
-    types: surface, fixture
-    ```
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about missing `#config` block.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-unclosed-config
-    Given a `bvf.config` with `#config` but no `#end`.
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about unclosed `#config` block.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-duplicate-config-blocks
-    Given a `bvf.config` with two `#config ... #end` blocks.
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about multiple `#config` blocks.
-    Exit code is 1.
-  #end
-
-  #behavior resolve-catches-unknown-entity-type
-    Given a `bvf.config` allowing types: surface, behavior.
-    And a spec file declares `#decl widget my-thing`.
-
-    When @{run-resolve} is executed.
-
-    Then stderr contains an error about unknown type "widget".
-    Exit code is 1.
-  #end
-
-  #behavior resolve-tolerates-unknown-config-keys
-    Given a `bvf.config` with valid required keys plus
-    `unknown-key: some-value`.
-
-    When @{run-resolve} is executed.
-
-    Then resolve succeeds. Unknown config keys are silently
-    ignored for forward-compatibility.
-    Exit code is 0.
-  #end
-
-  #behavior resolve-trims-whitespace-from-types
-    Given a `bvf.config` with extra whitespace:
-    `types:  surface ,  fixture  , instrument`.
-
-    And spec files use these types.
-
-    When @{run-resolve} is executed.
-
-    Then types are parsed correctly — no errors about unknown types.
-    Exit code is 0.
   #end
 
 #end
@@ -251,7 +115,7 @@ code signals success vs structural failure.
     A @{project-dir} with a valid `bvf.config` exists.
   #end
 
-  #behavior resolve-catches-unresolved-reference
+  #decl behavior resolve-catches-unresolved-reference
     Given a spec file where an entity references @{nonexistent}.
 
     When @{run-resolve} is executed.
@@ -261,7 +125,7 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-missing-required-param
+  #decl behavior resolve-catches-missing-required-param
     Given:
     - an instrument `login(email, password)` — both required
     - a behavior referencing `@{login}(email: "a@b.com")` — missing password
@@ -272,7 +136,7 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-unknown-param
+  #decl behavior resolve-catches-unknown-param
     Given:
     - an instrument `login(email, password)`
     - a behavior referencing `@{login}(username: "foo")`
@@ -283,7 +147,7 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-bare-ref-needing-params
+  #decl behavior resolve-catches-bare-ref-needing-params
     Given:
     - an instrument `login(email, password)` — both required
     - a behavior body contains bare `@{login}` with no arguments
@@ -294,7 +158,7 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-catches-circular-dependency
+  #decl behavior resolve-catches-circular-dependency
     Given:
     - entity "a" references @{b}
     - entity "b" references @{a}
@@ -305,7 +169,7 @@ code signals success vs structural failure.
     Exit code is 1.
   #end
 
-  #behavior resolve-accepts-valid-references
+  #decl behavior resolve-accepts-valid-references
     Given a well-formed project with:
     - surface "web-app"
     - instrument "login"(email, password) on @{web-app}
@@ -318,7 +182,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-accepts-optional-param-omission
+  #decl behavior resolve-accepts-optional-param-omission
     Given:
     - fixture `user(email, role = "member")`
     - behavior using `@{user}(email: "a@b.com")` — role omitted
@@ -329,7 +193,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-accepts-bare-ref-to-paramless-entity
+  #decl behavior resolve-accepts-bare-ref-to-paramless-entity
     Given:
     - surface "web-app" with no params
     - instrument body contains `@{web-app}`
@@ -353,7 +217,7 @@ code signals success vs structural failure.
     A @{project-dir} with valid specs.
   #end
 
-  #behavior resolve-shows-simple-entities
+  #decl behavior resolve-shows-simple-entities
     Given a spec file with a surface and a fixture declaration.
 
     When @{run-resolve} is executed.
@@ -362,22 +226,23 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-shows-feature-with-behaviors
-    Given a feature containing two behaviors and a `#context`.
+  #decl behavior resolve-shows-container-with-children
+    Given a config with `containment: feature: behavior`.
+    And a feature containing two behaviors and a `#context`.
 
     When @{run-resolve} is executed.
 
-    Then the feature appears in stdout with its behaviors
+    Then the feature appears in stdout with its child behaviors
     nested underneath it.
     Exit code is 0.
   #end
 
-  #behavior resolve-shows-for-expanded-behaviors
+  #decl behavior resolve-shows-for-expanded-entities
     Given a feature with `#for email in ["a@b.com", "bad", ""]`:
     ```
     #decl feature validation on @{some-surface}
       #for email in ["a@b.com", "bad", ""]
-      #behavior rejects-invalid({email})
+      #decl behavior rejects-invalid({email})
         When {email} is submitted. Then validation fails.
       #end
     #end
@@ -385,20 +250,20 @@ code signals success vs structural failure.
 
     When @{run-resolve} is executed.
 
-    Then three behaviors appear: one for each value in the list.
+    Then three child entities appear: one for each value in the list.
     Exit code is 0.
   #end
 
-  #behavior resolve-shows-for-tuple-expansion
+  #decl behavior resolve-shows-for-tuple-expansion
     Given a feature with `#for field, value in [("email", ""), ("pw", "x")]`.
 
     When @{run-resolve} is executed.
 
-    Then two expanded behaviors appear.
+    Then two expanded child entities appear.
     Exit code is 0.
   #end
 
-  #behavior resolve-ignores-prose-between-entities
+  #decl behavior resolve-ignores-prose-between-entities
     Given a spec file with markdown prose between `#decl` blocks.
 
     When @{run-resolve} is executed.
@@ -407,7 +272,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-ignores-decl-inside-fences
+  #decl behavior resolve-ignores-decl-inside-fences
     Given a spec file containing `#decl` examples inside markdown
     fenced code blocks (triple backticks).
 
@@ -422,7 +287,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-accepts-optional-param-syntax
+  #decl behavior resolve-accepts-optional-param-syntax
     Given a spec file declaring an instrument with optional params
     using the `?` suffix:
     ```
@@ -453,7 +318,7 @@ code signals success vs structural failure.
     A @{project-dir} with valid specs and a @{manifest}.
   #end
 
-  #behavior resolve-new-entity-is-pending
+  #decl behavior resolve-new-entity-is-pending
     Given a spec file with entity "login-test" and an empty manifest.
 
     When @{run-resolve} is executed.
@@ -462,7 +327,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-unchanged-entity-is-current
+  #decl behavior resolve-unchanged-entity-is-current
     Given entity "login-test" in specs and a manifest with matching
     spec hash and dependency hash.
 
@@ -472,7 +337,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-content-change-makes-stale
+  #decl behavior resolve-content-change-makes-stale
     Given entity "login-test" in specs whose content differs from
     the spec hash stored in the manifest.
 
@@ -483,7 +348,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-dependency-change-makes-stale
+  #decl behavior resolve-dependency-change-makes-stale
     Given:
     - surface "web-app" with changed content
     - instrument "login" on @{web-app} — manifest has old dependency hash
@@ -495,7 +360,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-transitive-dep-change-cascades
+  #decl behavior resolve-transitive-dep-change-cascades
     Given:
     - surface "web-app", instrument "login" on @{web-app},
       behavior "can-login" using @{login}
@@ -508,7 +373,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-orphaned-entity-detected
+  #decl behavior resolve-orphaned-entity-detected
     Given the manifest contains "old-test" but no spec file
     declares an entity named "old-test".
 
@@ -519,7 +384,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-review-failed-shows-stale
+  #decl behavior resolve-review-failed-shows-stale
     Given entity "login-test" was marked review-failed via
     @{run-mark} with a note.
 
@@ -530,7 +395,7 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-needs-elaboration-shows-pending
+  #decl behavior resolve-needs-elaboration-shows-pending
     Given entity "password-reset" was marked needs-elaboration
     via @{run-mark} with a note.
 
@@ -546,14 +411,18 @@ code signals success vs structural failure.
 
 #decl feature resolve-output-format on @{cli-tool}
 
-  The resolve output groups entities by feature, orders them
-  for scanability, and provides a summary.
+  The resolve output groups child entities by their parent,
+  orders them for scanability, and provides a summary.
+
+  The ordering rule is generic: parents with all-current children
+  come first (alphabetically), parents with any stale or pending
+  children are pushed to the end (also alphabetically).
 
   #context
     A @{project-dir} with valid specs and a @{manifest}.
   #end
 
-  #behavior resolve-clean-project
+  #decl behavior resolve-clean-project
     Given all entities are current in the manifest.
 
     When @{run-resolve} is executed.
@@ -563,21 +432,21 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #behavior resolve-mixed-statuses-ordered
+  #decl behavior resolve-mixed-statuses-ordered
     Given a project with current, stale, and pending entities
-    across multiple features.
+    across multiple parent entities.
 
     When @{run-resolve} is executed.
 
-    Then features with all-current behaviors appear first
-    (alphabetically). Features with any stale or pending
-    behaviors are pushed to the end (also alphabetically).
-    Within each feature, behaviors appear in spec order.
+    Then parents with all-current children appear first
+    (alphabetically). Parents with any stale or pending
+    children are pushed to the end (also alphabetically).
+    Within each parent, children appear in spec order.
     Summary shows counts per category.
     Exit code is 0.
   #end
 
-  #behavior resolve-with-diff
+  #decl behavior resolve-with-diff
     Given a project with stale entities whose specs changed.
 
     When @{run-resolve} is executed with `--diff`.
@@ -607,7 +476,7 @@ code signals success vs structural failure.
   Exit code semantics. Stale or pending entities are informational.
   Only structural errors produce non-zero exit codes.
 
-  #behavior resolve-exits-zero-on-success
+  #decl behavior resolve-exits-zero-on-success
     Given a project where resolve finds stale and pending entities
     but no structural errors.
 
@@ -616,7 +485,7 @@ code signals success vs structural failure.
     Then exit code is 0. Stale/pending is informational.
   #end
 
-  #behavior resolve-exits-one-on-error
+  #decl behavior resolve-exits-one-on-error
     Given a project with unresolved references or parse errors.
 
     When @{run-resolve} is executed.

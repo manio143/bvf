@@ -10,7 +10,7 @@ Used by soundness and alignment review phases.
     A @{project-dir} with specs and a @{manifest} exists.
   #end
 
-  #behavior mark-needs-elaboration
+  #decl behavior mark-needs-elaboration
     Given entity "password-reset" exists in specs.
 
     When @{run-mark} is executed with entity "password-reset",
@@ -22,7 +22,7 @@ Used by soundness and alignment review phases.
     Exit code is 0.
   #end
 
-  #behavior mark-review-failed
+  #decl behavior mark-review-failed
     Given entity "login-test" is current in the manifest.
 
     When @{run-mark} is executed with entity "login-test",
@@ -33,7 +33,7 @@ Used by soundness and alignment review phases.
     Exit code is 0.
   #end
 
-  #behavior mark-nonexistent-entity
+  #decl behavior mark-nonexistent-entity
     Given no entity named "nonexistent" in specs.
 
     When @{run-mark} is executed with entity "nonexistent".
