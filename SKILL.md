@@ -300,6 +300,10 @@ correct API/method to verify this specific kind of outcome?"
 - Each "Then" → one or more assertions using correct methods.
 - Don't assert more than the spec says (over-assertion).
 - Don't assert less than the spec says (missing assertions).
+- **Never write tests that aren't derived from specs.** Every test
+  must trace back to a `#behavior` block. If you think a test is
+  needed but no spec exists, report back to the orchestrator —
+  a spec must be written and approved first.
 
 ## Alignment Review Task
 
@@ -342,6 +346,106 @@ When asked to implement code that makes tests pass:
 - Make the tests pass without modifying them
 - If a test seems wrong (contradicts the spec), report back
   to the orchestrator — don't fix the test yourself
+
+## Implementation Review Task
+
+When asked to review implementation code against specs:
+
+This is separate from alignment review (which checks tests against
+specs). Here you're checking that the implementation *behaves*
+as the spec describes — not that it's tested, but that it's correct.
+
+**What to check:**
+- Does the code handle all cases described in the spec's "Then" clauses?
+- Does error handling match what the spec says should happen on invalid input?
+- Are edge cases from the spec covered (e.g. empty lists, missing keys)?
+- Does the code respect constraints mentioned in spec prose (e.g. "forward-compatible", "deterministic")?
+
+**What NOT to check:**
+- Code style, naming, or internal structure (not spec concerns)
+- Performance (unless the spec explicitly mentions it)
+- Things not in the spec (don't invent requirements)
+
+**Report format:**
+```
+Entity: <name>
+Status: PASS | FAIL
+Issues (if FAIL):
+  - [missing-behavior|wrong-behavior|edge-case]: <specific description>
+```
+
+## Advanced Materialization Guidance
+
+### Materializing `#for`-expanded behaviors
+
+Each expansion of a `#for` loop produces a distinct behavior with
+substituted values. Materialize each as its own test case:
+
+```typescript
+// From: #for email in ["not-an-email", "@missing", "spaces @x.com"]
+//       #behavior rejects-invalid-email({email})
+it('rejects-invalid-email("not-an-email")', () => { ... });
+it('rejects-invalid-email("@missing")', () => { ... });
+it('rejects-invalid-email("spaces @x.com")', () => { ... });
+```
+
+Alternatively, use parameterized test helpers (`it.each` in vitest/jest)
+when the test body is identical except for the substituted value:
+
+```typescript
+it.each(['not-an-email', '@missing', 'spaces @x.com'])(
+  'rejects-invalid-email("%s")', (email) => { ... }
+);
+```
+
+Both are acceptable. The key is that every expanded behavior maps
+to an executable test case.
+
+### Materializing `#context` with entity references
+
+When a feature's `#context` block references entities (`@{web-app}`),
+the shared setup must establish those referenced entities as real
+preconditions:
+
+```typescript
+describe('registration', () => {
+  let app: TestApp;  // from @{web-app}
+  
+  beforeEach(async () => {
+    // Actually create what @{web-app} describes — don't fake it
+    app = await startTestApp();
+  });
+  
+  afterEach(async () => {
+    await app.stop();
+  });
+  
+  it('valid-registration', () => { ... });
+  it('invalid-email', () => { ... });
+});
+```
+
+The same "no faking preconditions" rule applies: if the context says
+`@{web-app}` is running, the setup must actually start it (or use
+a real test double that behaves equivalently).
+
+### Handling out-of-scope references
+
+If your assigned spec files reference entities (`@{something}`) that
+are NOT in the files provided to you:
+
+1. Check if the referenced entity is in any file you have access to
+2. If not, report it:
+
+```
+MISSING_DEPENDENCY: @{something} referenced by behavior "my-test"
+  Not found in provided files. Orchestrator should include the
+  file containing @{something} in scope, or confirm it exists
+  in the project.
+```
+
+Do NOT guess what the entity contains. Do NOT skip the reference.
+Report it and let the orchestrator resolve the scope.
 
 ---
 

@@ -266,6 +266,76 @@ prose text between entity declarations.
     inside a #decl feature block.
   #end
 
+  #behavior rejects-for-without-in-keyword
+    Given content:
+    ```
+    #decl feature broken on @{web-app}
+      #for email ["a@b.com", "c@d.com"]
+      #behavior test({email})
+        Test {email}.
+      #end
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then a parse error indicates `#for` requires the `in` keyword
+    between variable name and value list.
+  #end
+
+  #behavior rejects-for-with-invalid-array
+    Given content:
+    ```
+    #decl feature broken on @{web-app}
+      #for email in not-an-array
+      #behavior test({email})
+        Test {email}.
+      #end
+    #end
+    ```
+
+    When the parser processes this content.
+
+    Then a parse error indicates `#for` requires a valid array
+    literal (square brackets with values).
+  #end
+
+  #behavior rejects-for-outside-feature
+    Given content:
+    ```
+    #for x in ["a", "b"]
+    #decl surface thing-{x}
+      A thing.
+    #end
+    ```
+
+    `#for` is a feature-internal construct for expanding
+    behaviors. Using it outside a feature is a structural error.
+
+    When the parser processes this content.
+
+    Then a parse error indicates that `#for` must be inside
+    a `#decl feature` block.
+  #end
+
+  #behavior rejects-unclosed-for
+    Given content:
+    ```
+    #decl feature broken on @{web-app}
+      #for email in ["a@b.com"]
+      #behavior test({email})
+        Test.
+      #end
+    ```
+
+    The `#for` block is never closed — the feature's `#end`
+    doesn't implicitly close it.
+
+    When the parser processes this content.
+
+    Then a parse error indicates unclosed `#for` block.
+  #end
+
 #end
 
 

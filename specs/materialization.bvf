@@ -142,6 +142,9 @@ materializations are stale due to spec changes.
 
     Then "old-test" is reported as "orphaned" — materialized
     artifact exists but spec was removed.
+    The orphaned entry is automatically removed from the manifest.
+    The materialized artifact file is NOT deleted (left for
+    the human to clean up — deleting code requires intent).
   #end
 
 #end

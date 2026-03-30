@@ -4,6 +4,42 @@ The `bvf` command-line tool provides commands for resolving specs,
 listing entities, and managing materialization state.
 
 
+#decl feature cli-exit-codes on @{cli-tool}
+
+  Exit code semantics for all CLI commands.
+
+  Exit codes are the machine-readable contract. Stale or pending
+  entities are informational — they tell you what needs work, not
+  that something is broken. Only structural errors (unresolved
+  references, invalid config, conflicting operations) produce
+  a non-zero exit code.
+
+  #behavior exit-zero-on-success-or-informational
+    Exit code 0 means the command completed successfully.
+    This includes informational results:
+    - resolve with stale entities (they're known, not errors)
+    - resolve with pending entities
+    - list with no matching entities
+    - successful init, mark
+
+    The human or CI system should inspect the output or summary
+    counts to decide if action is needed, not the exit code.
+  #end
+
+  #behavior exit-one-on-error
+    Exit code 1 means a structural problem was found:
+    - resolve found unresolved references
+    - init on an already-initialized project
+    - mark on a nonexistent entity
+    - invalid config or parse errors
+
+    These are problems that prevent the system from working,
+    not just things that need attention.
+  #end
+
+#end
+
+
 #decl feature cli-resolve on @{cli-tool}
 
   The `bvf resolve` command parses all spec files, validates
