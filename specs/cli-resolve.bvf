@@ -375,6 +375,40 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
+  #behavior resolve-ignores-decl-inside-fences
+    Given a spec file containing `#decl` examples inside markdown
+    fenced code blocks (triple backticks).
+
+    Spec files often contain examples showing BVF syntax. The parser
+    must not treat these as real declarations — they are documentation,
+    not structure.
+
+    When @{run-resolve} is executed.
+
+    Then only top-level declarations outside fences are parsed.
+    The fenced examples are treated as prose.
+    Exit code is 0.
+  #end
+
+  #behavior resolve-accepts-optional-param-syntax
+    Given a spec file declaring an instrument with optional params
+    using the `?` suffix:
+    ```
+    #decl instrument run-list(dir, type?, flags?) on @{cli-tool}
+      Execute bvf list.
+    #end
+    ```
+
+    The `?` suffix marks a parameter as optional with no default value.
+    This is shorthand — equivalent to `param = ""` but clearer in intent.
+
+    When @{run-resolve} is executed.
+
+    Then the instrument is parsed with "type" and "flags" as optional
+    parameters. No parse errors.
+    Exit code is 0.
+  #end
+
 #end
 
 
