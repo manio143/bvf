@@ -22,6 +22,8 @@ function setupProject(dir: string, files: Record<string, string>, config?: strin
   mkdirSync(join(dir, '.bvf-state'), { recursive: true });
   const defaultConfigContent = config || `#config
   types: surface, fixture, instrument, behavior, feature
+  containment:
+    feature: behavior
   file-extension: .bvf
   state-dir: .bvf-state
 #end`;
@@ -31,6 +33,11 @@ function setupProject(dir: string, files: Record<string, string>, config?: strin
     mkdirSync(join(filePath, '..'), { recursive: true });
     writeFileSync(filePath, content);
   }
+}
+
+function createManifest(dir: string, entries: Record<string, any>) {
+  const manifestPath = join(dir, '.bvf-state', 'manifest.json');
+  writeFileSync(manifestPath, JSON.stringify(entries, null, 2));
 }
 
 describe('cli-mark', () => {
@@ -46,68 +53,104 @@ describe('cli-mark', () => {
 
   it('mark-needs-elaboration', async () => {
     setupProject(tmpDir, {
-      'test.bvf': `#decl behavior password-reset
+      'test.bvf': `#decl surface my-surface
   Test.
+#end
+
+#decl feature auth on @{my-surface}
+  #decl behavior password-reset
+    Test reset flow.
+  #end
 #end
 `
     });
 
-    const result = await runCli('mark password-reset needs-elaboration --note "needs instrument defining reset steps"', tmpDir);
+    createManifest(tmpDir, {});
 
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('password-reset');
-    expect(result.stdout).toContain('pending');
-    expect(result.stdout).toContain('needs-elaboration');
-    expect(result.stdout).toContain('needs instrument defining reset steps');
-    
+    const markResult = await runCli('mark password-reset needs-elaboration --note "needs instrument defining reset steps"', tmpDir);
+
+    expect(markResult.exitCode).toBe(0);
+
     // Verify manifest was updated
     const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
-    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
-    
-    expect(manifest['password-reset']).toBeDefined();
-    expect(manifest['password-reset'].status).toBe('pending');
-    expect(manifest['password-reset'].reason).toBe('needs-elaboration');
-    expect(manifest['password-reset'].note).toContain('reset steps');
+    const manifestContent = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifestContent['password-reset']).toBeDefined();
+    expect(manifestContent['password-reset'].status).toBe('pending');
+    expect(manifestContent['password-reset'].reason).toBe('needs-elaboration');
+    expect(manifestContent['password-reset'].note).toBe('needs instrument defining reset steps');
+
+    // Verify resolve shows the status
+    const resolveResult = await runCli('resolve', tmpDir);
+    expect(resolveResult.exitCode).toBe(0);
+    expect(resolveResult.stdout).toContain('⏳');
+    expect(resolveResult.stdout).toContain('password-reset');
+    expect(resolveResult.stdout.toLowerCase()).toContain('elaboration');
+    expect(resolveResult.stdout).toContain('reset steps');
   });
 
   it('mark-review-failed', async () => {
     setupProject(tmpDir, {
-      'test.bvf': `#decl behavior login-test
+      'test.bvf': `#decl surface my-surface
   Test.
+#end
+
+#decl feature auth on @{my-surface}
+  #decl behavior login-test
+    Test login.
+  #end
 #end
 `
     });
 
-    const result = await runCli('mark login-test review-failed --note "test uses fake hashes"', tmpDir);
+    const crypto = require('crypto');
+    const hash = crypto.createHash('sha256').update('login-test').digest('hex').substring(0, 16);
+    const depHash = crypto.createHash('sha256').update('dep').digest('hex').substring(0, 16);
 
-    expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('login-test');
-    expect(result.stdout).toContain('stale');
-    expect(result.stdout).toContain('review-failed');
-    expect(result.stdout).toContain('fake hashes');
-    
+    createManifest(tmpDir, {
+      'login-test': {
+        type: 'behavior',
+        status: 'current',
+        specHash: hash,
+        dependencyHash: depHash,
+        materializedAt: Date.now()
+      }
+    });
+
+    const markResult = await runCli('mark login-test review-failed --note "test uses fake hashes"', tmpDir);
+
+    expect(markResult.exitCode).toBe(0);
+
     // Verify manifest was updated
     const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
-    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
-    
-    expect(manifest['login-test']).toBeDefined();
-    expect(manifest['login-test'].status).toBe('stale');
-    expect(manifest['login-test'].reason).toBe('review-failed');
-    expect(manifest['login-test'].note).toContain('fake hashes');
+    const manifestContent = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifestContent['login-test']).toBeDefined();
+    expect(manifestContent['login-test'].status).toBe('stale');
+    expect(manifestContent['login-test'].reason).toBe('review-failed');
+    expect(manifestContent['login-test'].note).toBe('test uses fake hashes');
+
+    // Verify resolve shows the status
+    const resolveResult = await runCli('resolve', tmpDir);
+    expect(resolveResult.exitCode).toBe(0);
+    expect(resolveResult.stdout).toContain('✗');
+    expect(resolveResult.stdout).toContain('login-test');
+    expect(resolveResult.stdout.toLowerCase()).toContain('review-failed');
+    expect(resolveResult.stdout).toContain('fake hashes');
   });
 
   it('mark-nonexistent-entity', async () => {
     setupProject(tmpDir, {
-      'test.bvf': `#decl behavior existing-test
+      'test.bvf': `#decl surface my-surface
   Test.
 #end
 `
     });
 
-    const result = await runCli('mark nonexistent needs-elaboration', tmpDir);
+    createManifest(tmpDir, {});
+
+    const result = await runCli('mark nonexistent review-failed --note "test note"', tmpDir);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('nonexistent');
+    expect(result.stderr.toLowerCase()).toContain('nonexistent');
     expect(result.stderr.toLowerCase()).toContain('not found');
   });
 });

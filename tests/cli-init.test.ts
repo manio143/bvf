@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
@@ -32,23 +32,31 @@ describe('cli-init', () => {
     const result = await runCli('init', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Created bvf.config');
-    expect(result.stdout).toContain('Created specs/');
-    expect(result.stdout).toContain('Created .bvf-state/');
-    
-    // Verify files were created
-    expect(existsSync(join(tmpDir, 'bvf.config'))).toBe(true);
-    expect(existsSync(join(tmpDir, 'specs'))).toBe(true);
-    expect(existsSync(join(tmpDir, '.bvf-state'))).toBe(true);
+
+    // Check bvf.config exists and has correct content
+    const configPath = join(tmpDir, 'bvf.config');
+    expect(existsSync(configPath)).toBe(true);
+    const configContent = readFileSync(configPath, 'utf-8');
+    expect(configContent).toContain('types: surface, fixture, instrument, behavior, feature');
+    expect(configContent).toContain('containment:');
+    expect(configContent).toContain('feature: behavior');
+    expect(configContent).toContain('file-extension: .bvf');
+    expect(configContent).toContain('state-dir: .bvf-state');
+
+    // Check specs/ directory exists
+    const specsPath = join(tmpDir, 'specs');
+    expect(existsSync(specsPath)).toBe(true);
+
+    // Check .bvf-state/ directory exists
+    const statePath = join(tmpDir, '.bvf-state');
+    expect(existsSync(statePath)).toBe(true);
   });
 
   it('init-refuses-existing-project', async () => {
-    // Create a bvf.config first
-    mkdirSync(tmpDir, { recursive: true });
-    writeFileSync(join(tmpDir, 'bvf.config'), `#config
+    // Create existing bvf.config
+    const configPath = join(tmpDir, 'bvf.config');
+    writeFileSync(configPath, `#config
   types: surface
-  file-extension: .bvf
-  state-dir: .bvf-state
 #end`);
 
     const result = await runCli('init', tmpDir);
