@@ -35,7 +35,8 @@ tests/              — materialized test code
 **CLI commands** (available to both orchestrator and workers):
 - `bvf resolve` — show current state of all entities
 - `bvf list [type] [--feature name]` — browse entities
-- `bvf mark <entity> <status> [--note "..."]` — record review outcomes
+- `bvf mark <entity> <status> [--note "..."] [--artifact "..."] [--force]` — record review outcomes
+  - Statuses: `spec-needs-elaboration`, `spec-reviewed`, `test-ready`, `test-reviewed`, `test-needs-fixing`
 
 ---
 
@@ -107,11 +108,9 @@ gets exactly the files it needs. For example:
 - Follow `@{entity-name}` references to include dependency specs
 
 **When the worker reports back:**
-- **PASS** → proceed to materialization
-- **NEEDS_ELABORATION** → present the worker's proposed instrument
-  specs to the human for approval. Do NOT add specs without approval.
-- **CONTRADICTION** → present both sides to the human, ask for
-  clarification
+- **PASS** → mark as spec-reviewed: `bvf mark <entity> spec-reviewed`
+- **NEEDS_ELABORATION** → mark with note: `bvf mark <entity> spec-needs-elaboration --note "..."`, then present proposed specs to human for approval
+- **CONTRADICTION** → present both sides to the human, ask for clarification
 
 **After fixing NEEDS_ELABORATION or CONTRADICTION issues:**
 Re-run soundness review on the affected specs. Elaborations may
@@ -124,7 +123,12 @@ Materialize specs into test code FIRST. Tests are written against
 the spec, not against existing implementation. They should fail
 initially — that's the point.
 
-Spawn a worker agent to materialize specs into test code:
+Mark reviewed specs as ready for materialization:
+```bash
+bvf mark <entity> spec-reviewed
+```
+
+Then spawn a worker agent to materialize specs into test code:
 
 ```
 Materialize the following BVF specs into test code:
@@ -159,10 +163,16 @@ Report: PASS or FAIL with specific issues.
 ```
 
 **When the worker reports FAIL:**
-1. Run `bvf mark <entity> review-failed --note "worker's description"`
+1. Run `bvf mark <entity> test-needs-fixing --note "worker's description"`
 2. Spawn a new materialization worker with the review note as context
 3. After rematerialization, spawn another review worker
 4. Repeat until PASS
+
+**When the worker reports PASS:**
+Mark tests as reviewed:
+```bash
+bvf mark <entity> test-reviewed
+```
 
 ### Phase 5: Implementation
 
@@ -230,11 +240,11 @@ The manifest is the work queue. No conversation history needed.
 
 ## Work Prioritization
 
-1. `stale:review-failed` — fix known broken tests first
-2. `stale:content-changed` / `dependency-changed` — update for spec changes
-3. `pending:new` — materialize new specs
-4. `pending:needs-elaboration` — needs human, skip or ask
-5. `orphaned` — clean up old artifacts
+1. `pending:needs-elaboration` — needs human approval, skip or ask
+2. `pending:reviewed` — ready for materialization
+3. `current:needs-review` — tests need alignment review
+4. `pending (reviewed)` with note — tests need fixing after failed review
+5. Stale entities — spec changed, need re-review
 
 ## Working with the Human
 
@@ -332,6 +342,12 @@ correct API/method to verify this specific kind of outcome?"
   must trace back to a `#behavior` block. If you think a test is
   needed but no spec exists, report back to the orchestrator —
   a spec must be written and approved first.
+
+**After successful materialization:**
+Mark tests as ready for alignment review:
+```bash
+bvf mark <entity> test-ready --artifact tests/my-test.test.ts
+```
 
 ## Alignment Review Task
 
@@ -481,16 +497,20 @@ Report it and let the orchestrator resolve the scope.
 
 | Symbol | Status | Meaning |
 |--------|--------|---------|
-| ✓ | current | Materialized and verified |
-| ✗ | stale | Was current, needs rematerialization |
-| ⏳ | pending:new | Never materialized |
-| ⏳ | pending:needs-elaboration | Blocked on missing specs |
-| ⚠️ | orphaned | Spec removed, artifact remains |
+| ⏳ | pending (needs-review) | New spec, needs soundness review |
+| ⏳ | pending (needs-elaboration) | Review found gaps, blocked |
+| ⏳ | pending (reviewed) | Spec approved, ready for materialization |
+| ⏳ | current (needs-review) | Test materialized, needs alignment review |
+| ✓ | current (reviewed) | Complete, test verified |
 
-**Stale reasons:**
-- `content-changed` — the spec text was edited
-- `dependency-changed` — a referenced entity changed
-- `review-failed` — test didn't match spec (note explains why)
+**Auto-transitions:**
+- Spec edit → auto-restart to (pending, needs-review)
+- Dependency change → cascade to (pending, needs-review)
+- Elaboration added → (pending, needs-review)
+
+**Staleness detection:**
+- `bvf resolve` auto-detects changes and updates manifest
+- `bvf mark <entity> spec-reviewed` requires `bvf resolve` first (or --force)
 
 # Common Mistakes
 

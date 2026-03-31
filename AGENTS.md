@@ -62,6 +62,29 @@ tests/
 #end
 ```
 
+## Workflow State Machine
+
+BVF uses a workflow state machine to track specs through review and materialization:
+
+**States:** `(status, reason)`
+- `(pending, needs-review)` — New spec, needs soundness review
+- `(pending, needs-elaboration)` — Review found gaps, blocked
+- `(pending, reviewed)` — Spec approved, ready for materialization
+- `(current, needs-review)` — Test materialized, needs alignment review
+- `(current, reviewed)` — Complete, test verified
+
+**Commands:**
+- `bvf mark <entity> spec-needs-elaboration --note "..."` → (pending, needs-elaboration)
+- `bvf mark <entity> spec-reviewed` → (pending, reviewed)
+- `bvf mark <entity> test-ready --artifact <path>` → (current, needs-review)
+- `bvf mark <entity> test-reviewed` → (current, reviewed)
+- `bvf mark <entity> test-needs-fixing --note "..."` → (pending, reviewed)
+
+**Auto-transitions:**
+- Spec edit → auto-restart to (pending, needs-review)
+- Dependency change → cascade to (pending, needs-review)
+- Elaboration complete → (pending, needs-review)
+
 ## Conventions
 - TypeScript strict mode
 - No classes unless clearly needed — prefer functions + interfaces
