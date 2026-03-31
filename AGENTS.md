@@ -30,9 +30,8 @@ tests/
 ## Language Spec (BVF DSL)
 
 ### Delimiters
-- `#decl type name [params] [clauses]:` ... `#end` — top-level entity
-- `#context` ... `#end` — shared preconditions inside a feature
-- `#behavior name [params]` ... `#end` — behavior inside a feature
+- `#decl <type> <name> [params] [clauses]` ... `#end` — top-level entity declaration
+- `#decl behavior <name> [params]` ... `#end` — behavior inside a feature
 - `#for var in [values]` ... `#end` — parameterized expansion inside a feature
 - `#config` ... `#end` — configuration block (in bvf.config)
 
@@ -47,11 +46,10 @@ tests/
 - `{param}` — own parameter usage in body text
 
 ### Features
-- `#decl feature` can contain `#context`, `#behavior`, and `#for` blocks
-- `#context` is optional, at most one per feature
-- `#behavior` only valid inside a feature
-- `#for` wraps one or more `#behavior` blocks
-- Feature context is inherited by all behaviors in the feature
+- `#decl feature` can contain nested `#decl behavior` blocks and `#for` expansion blocks
+- `#decl behavior` only valid inside a feature
+- `#for` wraps one or more `#decl behavior` blocks
+- Feature prose (between the feature declaration and first behavior) is inherited by all behaviors in the feature
 
 ### Config file (bvf.config)
 ```

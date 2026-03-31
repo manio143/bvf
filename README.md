@@ -58,22 +58,20 @@ npx bvf init
 #end
 ```
 
-### Features & Context
+### Features & Behaviors
 
 ```bvf
 #decl feature authentication on @{web-app}
 
-  #context
-    Given @{web-app} is running.
-    And database is clean.
-  #end
+  Given @{web-app} is running.
+  And database is clean.
 
-  #behavior login-succeeds
+  #decl behavior login-succeeds
     When user submits valid credentials.
     Then they receive a JWT token.
   #end
 
-  #behavior login-fails
+  #decl behavior login-fails
     When user submits invalid credentials.
     Then response status is 401.
   #end
@@ -87,7 +85,7 @@ npx bvf init
 #decl feature validation on @{api}
 
   #for email in ["not-an-email", "@missing-local", "spaces @x.com"]
-    #behavior rejects-invalid-email({email})
+    #decl behavior rejects-invalid-email({email})
       When POST /register with email = "{email}".
       Then response status is 400.
       And error says "invalid email format".

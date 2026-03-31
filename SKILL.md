@@ -272,11 +272,10 @@ Pay attention to:
 
 - **Prose between declarations** — this is design rationale, not filler.
   It explains *why* behaviors exist, what tensions they resolve, and
-  what tradeoffs were made.
+  what tradeoffs were made. Feature-level prose acts as shared context
+  inherited by all behaviors in the feature.
 - **References** (`@{entity-name}`) — understand what the entity
   depends on.
-- **Feature context** (`#context`) — shared preconditions inherited
-  by all behaviors in the feature.
 - **Parameters** — entities with params need tests that exercise
   multiple values, especially defaults and edge cases.
 
@@ -427,7 +426,7 @@ substituted values. Materialize each as its own test case:
 
 ```typescript
 // From: #for email in ["not-an-email", "@missing", "spaces @x.com"]
-//       #behavior rejects-invalid-email({email})
+//       #decl behavior rejects-invalid-email({email})
 it('rejects-invalid-email("not-an-email")', () => { ... });
 it('rejects-invalid-email("@missing")', () => { ... });
 it('rejects-invalid-email("spaces @x.com")', () => { ... });
@@ -445,11 +444,10 @@ it.each(['not-an-email', '@missing', 'spaces @x.com'])(
 Both are acceptable. The key is that every expanded behavior maps
 to an executable test case.
 
-### Materializing `#context` with entity references
+### Materializing feature-level prose with entity references
 
-When a feature's `#context` block references entities (`@{web-app}`),
-the shared setup must establish those referenced entities as real
-preconditions:
+When a feature's prose references entities (`@{web-app}`), the shared
+setup must establish those referenced entities as real preconditions:
 
 ```typescript
 describe('registration', () => {
@@ -469,8 +467,8 @@ describe('registration', () => {
 });
 ```
 
-The same "no faking preconditions" rule applies: if the context says
-`@{web-app}` is running, the setup must actually start it (or use
+The same "no faking preconditions" rule applies: if the feature prose
+says `@{web-app}` is running, the setup must actually start it (or use
 a real test double that behaves equivalently).
 
 ### Handling out-of-scope references
