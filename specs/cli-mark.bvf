@@ -168,6 +168,22 @@ to track spec and test validation state.
     review validation.
   #end
 
+  #decl behavior mark-rejects-invalid-state-transition
+    Given entity "auth-test" has no manifest entry (never reviewed).
+
+    When @{run-mark}(entity: "auth-test",
+    status: "test-ready", artifact: "tests/auth.test.ts") is executed.
+
+    Then mark detects the entity is not in state (pending, reviewed)
+    and rejects the transition with an error:
+    "Error: cannot mark as test-ready. Entity must be spec-reviewed first."
+    
+    Exit code is 1.
+    
+    This enforces the workflow: specs must pass soundness review
+    before materialization can be marked complete.
+  #end
+
 #end
 
 
