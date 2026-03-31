@@ -139,17 +139,21 @@ The group is **optional** — you can have features with a mix:
 
 ## Display Implications
 
-The resolve tree should show groups as indented headers:
+The resolve tree shows non-materializable types (like features and groups) **without status symbols**:
 
 ```
-✓ payments (feature)
-  ✓ charge-succeeds (behavior)
-  group: error-handling
-    ⏳ charge-fails-invalid-card (behavior)
-    ⏳ charge-fails-insufficient-funds (behavior)
+  payments (feature)
+    ✓ charge-succeeds (behavior)
+    error-handling (group)
+      ⏳ charge-fails-invalid-card (behavior)
+      ⏳ charge-fails-insufficient-funds (behavior)
 ```
 
-Groups don't get status symbols (they're not tracked). They're just visual organizers.
+**Key behavior:**
+- Non-materializable types appear in tree for context but have NO status symbol
+- Only materializable types (e.g., `behavior`) get ✓/✗/⏳ symbols
+- Containers (features, groups) provide structural hierarchy
+- Indentation shows nesting relationships
 
 ## Alternative: Use `#group` as Syntax Sugar
 
@@ -179,18 +183,46 @@ But this adds a new parser concept. The generic approach (just another type) is 
 
 If `materializable` is omitted, infer from containment (leaf + standalone). If present, use explicitly listed types only.
 
+## Performance
+
+**Resolve performance** (measured on BVF's own specs, 86 entities):
+- **Average**: 40ms per run
+- **First run**: 92ms (cold start)
+- **Subsequent runs**: 38-42ms (warmed up)
+- Scales linearly with entity count + file I/O
+
+This makes `resolve` suitable for tight feedback loops (mark → resolve → verify).
+
 ## New Behaviors to Spec
 
-1. `config-accepts-materializable-key` — parse and validate the key
-2. `config-materializable-must-be-subset-of-types` — error if unknown type listed
-3. `resolve-counts-only-materializable` — summary counts only materializable types
-4. `resolve-shows-non-materializable-without-status` — structural types in tree but no ✓/✗/⏳
-5. `config-materializable-defaults-to-inference` — when omitted, current leaf+standalone logic applies
-6. `resolve-groups-optional-nesting` — groups display children but aren't tracked themselves
+All behaviors have been implemented and verified ✅:
 
-## Questions for Marian
+1. ✅ `config-accepts-materializable-key` — parse and validate the key
+2. ✅ `config-materializable-must-be-subset-of-types` — error if unknown type listed
+3. ✅ `resolve-counts-only-materializable` — summary counts only materializable types
+4. ✅ `resolve-shows-non-materializable-in-tree` — structural types in tree but no ✓/✗/⏳
+5. ✅ `resolve-diff-excludes-non-materializable` — `--diff` excludes non-materializable entities
+6. ✅ `config-materializable-defaults-to-inference` — when omitted, current leaf+standalone logic applies
+7. ✅ `config-group-type-allows-optional-nesting` — groups enable optional organizational nesting
+8. ✅ `resolve-displays-group-as-header` — groups appear as indented headers without status symbols
 
-1. Is `materializable` the right name? Alternatives: `trackable`, `testable`, `leaf`, `workitems`
-2. Should non-materializable types still appear in `bvf list`? I'd say yes, with a flag to filter.
-3. Should `--diff` output include non-materializable types? I'd say no — `--diff` is for agent tooling that needs to know what to work on.
-4. Should `group` be a reserved type name or just a convention? I lean toward convention — the config handles it generically.
+**Implementation status:** 78/78 tests passing (Round 6 complete)
+
+## Design Decisions (Resolved)
+
+1. **Name**: `materializable` chosen over alternatives (trackable, testable, leaf, workitems)
+   - Clearest intent: "what gets materialized into tests/artifacts"
+   - Aligns with BVF's materialization phase terminology
+
+2. **`bvf list` behavior**: Non-materializable types included by default
+   - Provides full context for navigation
+   - Can be filtered with type-specific queries if needed
+
+3. **`--diff` filtering**: Non-materializable types excluded
+   - Agent tooling needs actionable items only
+   - Reduces noise in automated workflows
+
+4. **`group` naming**: Convention, not reserved keyword
+   - Any type can serve as optional grouping container
+   - Generic approach = more flexible (e.g., `category`, `module`, `subfeature`)
+

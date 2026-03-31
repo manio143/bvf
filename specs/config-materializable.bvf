@@ -188,14 +188,21 @@ versus structural (grouping, infrastructure, context).
 
     When @{run-resolve} is executed.
 
-    Then the tree output shows the group as an indented header
-    (without status symbol) with its children nested under it:
+    Then the tree output shows:
+    - Feature (container) without status symbol
+    - Group (non-materializable) without status symbol
+    - Behaviors with status symbols (⏳)
+    
+    Example output:
     ```
-    ⏳ payments (feature)
-      ⏳ charge-succeeds (behavior)
-      error-handling (group)
-        ⏳ charge-fails (behavior)
+      payments (feature)
+        ⏳ charge-succeeds (behavior)
+        error-handling (group)
+          ⏳ charge-fails (behavior)
     ```
+    
+    Only materializable types (behavior) get status symbols.
+    Containers and groups provide structural context.
   #end
 
 #end
