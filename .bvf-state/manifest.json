@@ -1,1 +1,604 @@
-{}
+{
+  "init-creates-project": {
+    "name": "init-creates-project",
+    "specHash": "b16d051cfcc2ff79ed94b33eb3659bdf751421dfcd034d79aeb45383c746eac4",
+    "dependencyHash": "1db52bbca1c63f0182e48608762f8086d2e487bf2206fdee1eec9e372255ed74",
+    "artifact": "test:init-creates-project",
+    "materializedAt": "2026-03-31T05:55:51.569Z"
+  },
+  "init-refuses-existing-project": {
+    "name": "init-refuses-existing-project",
+    "specHash": "0e1289d602a1d65636e6fa180bc2f4fd50211606f996355bfb879aa63e713597",
+    "dependencyHash": "1db52bbca1c63f0182e48608762f8086d2e487bf2206fdee1eec9e372255ed74",
+    "artifact": "test:init-refuses-existing-project",
+    "materializedAt": "2026-03-31T05:55:51.694Z"
+  },
+  "list-all-entities": {
+    "name": "list-all-entities",
+    "specHash": "50b12d947c181994d204057a23683dc4a55ad68818cc436caf88a5c6487167d2",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e",
+    "artifact": "test:list-all-entities",
+    "materializedAt": "2026-03-31T05:55:51.763Z"
+  },
+  "list-by-type": {
+    "name": "list-by-type",
+    "specHash": "7f4bedec2070057088e9596f1a36af3df08727f4ed14172a5f5450abe07c8a29",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e",
+    "artifact": "test:list-by-type",
+    "materializedAt": "2026-03-31T05:55:51.833Z"
+  },
+  "list-by-parent": {
+    "name": "list-by-parent",
+    "specHash": "975dc56456cee8d56718c1cf1680a4e9d5618bac4d43a06d143191c6d2a8d96c",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e",
+    "artifact": "test:list-by-parent",
+    "materializedAt": "2026-03-31T05:55:51.902Z"
+  },
+  "list-empty-result": {
+    "name": "list-empty-result",
+    "specHash": "a3974d3221d8c0078c3e088fd166c89d7de5994c2d1aa47cb2b6573780fb69ee",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e",
+    "artifact": "test:list-empty-result",
+    "materializedAt": "2026-03-31T05:55:51.972Z"
+  },
+  "mark-needs-elaboration": {
+    "name": "mark-needs-elaboration",
+    "specHash": "0506434a889635d05649924cef4c25a660aa5038ef7e5bb9a7d7f6cd38fbabeb",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:mark-needs-elaboration",
+    "materializedAt": "2026-03-31T05:55:52.043Z"
+  },
+  "mark-review-failed": {
+    "name": "mark-review-failed",
+    "specHash": "bd86f7fb5838cd01aa3469cacb6cddd21bbc8ad946b550588cc3256f4c1bb082",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:mark-review-failed",
+    "materializedAt": "2026-03-31T05:55:52.111Z"
+  },
+  "mark-current-with-artifact": {
+    "name": "mark-current-with-artifact",
+    "specHash": "a51e877fa36ea73dca8fb084287ba4509075edda48b31c3d491988bb9219d2de",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:mark-current-with-artifact",
+    "materializedAt": "2026-03-31T05:55:52.181Z"
+  },
+  "mark-current-requires-artifact": {
+    "name": "mark-current-requires-artifact",
+    "specHash": "3ddb6b1b00591ef660a7b3c1b1cda79bd47feb8ca1506c61e80cdd9fd596e074",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:mark-current-requires-artifact",
+    "materializedAt": "2026-03-31T05:55:52.251Z"
+  },
+  "mark-current-updates-stale-entity": {
+    "name": "mark-current-updates-stale-entity",
+    "specHash": "9b8cb136cb750633d12310bfc71b134647d92f8dc89e74ed1139aa69965f1ff1",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:mark-current-updates-stale-entity",
+    "materializedAt": "2026-03-31T05:55:52.320Z"
+  },
+  "mark-nonexistent-entity": {
+    "name": "mark-nonexistent-entity",
+    "specHash": "3eb71376aee0563363ea5d9f23c1da2ca8a82102433c089887a5698b5a588cd2",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:mark-nonexistent-entity",
+    "materializedAt": "2026-03-31T05:55:52.390Z"
+  },
+  "config-rejects-missing-types": {
+    "name": "config-rejects-missing-types",
+    "specHash": "96313da365439866f7b283193f834744f620f44314cf5aba43f3b1873cdcfe3d",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-missing-types",
+    "materializedAt": "2026-03-31T05:55:52.460Z"
+  },
+  "config-rejects-empty-types": {
+    "name": "config-rejects-empty-types",
+    "specHash": "843e3d9bc26f84d6280cba20776f71f80faa168cd5a4211a35205fa07b62b41d",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-empty-types",
+    "materializedAt": "2026-03-31T05:55:52.529Z"
+  },
+  "config-rejects-no-colon": {
+    "name": "config-rejects-no-colon",
+    "specHash": "8f0364070267cca334ac76ea06780007bd7ac80febce0f1291d0e65dc3c27570",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-no-colon",
+    "materializedAt": "2026-03-31T05:55:52.599Z"
+  },
+  "config-rejects-empty-value": {
+    "name": "config-rejects-empty-value",
+    "specHash": "364ab486a6b8ffa6f50ba73456eeb93ebeda077c90411ba61433042e9f5bf054",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-empty-value",
+    "materializedAt": "2026-03-31T05:55:52.668Z"
+  },
+  "config-rejects-bare-text": {
+    "name": "config-rejects-bare-text",
+    "specHash": "a14f358fc196d6cbfe98262a64570c12c8ff8047ecece82d5d46e49a2b35774f",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-bare-text",
+    "materializedAt": "2026-03-31T05:55:52.738Z"
+  },
+  "config-rejects-unclosed-config": {
+    "name": "config-rejects-unclosed-config",
+    "specHash": "4286a2ba2301bd6c05fa09c81736b4a8a2a20601088847b69bde38f5223ddef6",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-unclosed-config",
+    "materializedAt": "2026-03-31T05:55:52.808Z"
+  },
+  "config-rejects-duplicate-config": {
+    "name": "config-rejects-duplicate-config",
+    "specHash": "2b8bb38cc6d743f64ef3dd7dae8fa58e3d1ddf7d34694dfff181ce92295223ae",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-duplicate-config",
+    "materializedAt": "2026-03-31T05:55:52.879Z"
+  },
+  "config-rejects-unknown-type-in-containment": {
+    "name": "config-rejects-unknown-type-in-containment",
+    "specHash": "f6aafa3dadee150b14f78634b5e96b690abe368fc48e9f528b161fb8edc860a9",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-unknown-type-in-containment",
+    "materializedAt": "2026-03-31T05:55:52.949Z"
+  },
+  "resolve-groups-by-configured-containers": {
+    "name": "resolve-groups-by-configured-containers",
+    "specHash": "8e5acf1fcc5262630a34e69d5c5cee19f303c5250bff7378fcb4a2250f066dd5",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-groups-by-configured-containers",
+    "materializedAt": "2026-03-31T05:55:53.064Z"
+  },
+  "resolve-counts-leaf-types-in-summary": {
+    "name": "resolve-counts-leaf-types-in-summary",
+    "specHash": "12b1ca17159ce4b6944ad58664731302e7f0700575e05cf87c67dfd2093624c2",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-counts-leaf-types-in-summary",
+    "materializedAt": "2026-03-31T05:55:53.137Z"
+  },
+  "resolve-counts-standalone-types-in-summary": {
+    "name": "resolve-counts-standalone-types-in-summary",
+    "specHash": "8004f4eac92c4ee01826375443ee55bdcbff063d1697260f2a50e153900edbd9",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-counts-standalone-types-in-summary",
+    "materializedAt": "2026-03-31T05:55:53.209Z"
+  },
+  "config-accepts-materializable-key": {
+    "name": "config-accepts-materializable-key",
+    "specHash": "f45c183a746d0bf4a204d1f82c3ebda9f9df31d6ed2123a7d5865422540e5595",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-accepts-materializable-key",
+    "materializedAt": "2026-03-31T05:55:53.282Z"
+  },
+  "config-materializable-must-be-subset-of-types": {
+    "name": "config-materializable-must-be-subset-of-types",
+    "specHash": "3e1ebbc766ddd1b474593dcec2d363abb47073ccbb5af60ddeac0ecf8cf42c6e",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-materializable-must-be-subset-of-types",
+    "materializedAt": "2026-03-31T05:55:53.353Z"
+  },
+  "config-materializable-defaults-to-inference": {
+    "name": "config-materializable-defaults-to-inference",
+    "specHash": "a2b4788e6050b849c772ec72771fe44121b152b182274d3bd4e8019370131cfa",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-materializable-defaults-to-inference",
+    "materializedAt": "2026-03-31T05:55:53.424Z"
+  },
+  "resolve-counts-only-materializable": {
+    "name": "resolve-counts-only-materializable",
+    "specHash": "df2779ea86261afb6c604f7e3971cb3eadbe717457956c77e42e1cf112af9864",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-counts-only-materializable",
+    "materializedAt": "2026-03-31T05:55:53.495Z"
+  },
+  "resolve-shows-non-materializable-in-tree": {
+    "name": "resolve-shows-non-materializable-in-tree",
+    "specHash": "3e10b7d1ebf4b33b20814ec27a1d0f00842261f685b06590a245d4fdbc404563",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-shows-non-materializable-in-tree",
+    "materializedAt": "2026-03-31T05:55:53.614Z"
+  },
+  "resolve-diff-excludes-non-materializable": {
+    "name": "resolve-diff-excludes-non-materializable",
+    "specHash": "4cf3e763b284810f61926a066d2904fbb5ff51e575efbeb21da027848ddb9d0f",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-diff-excludes-non-materializable",
+    "materializedAt": "2026-03-31T05:55:53.723Z"
+  },
+  "config-group-type-allows-optional-nesting": {
+    "name": "config-group-type-allows-optional-nesting",
+    "specHash": "905fbce51d0d6f9b2b518f04f0b0a76c9f3bd9f265b19581b112cab14cfb4854",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-group-type-allows-optional-nesting",
+    "materializedAt": "2026-03-31T05:55:53.793Z"
+  },
+  "resolve-displays-group-as-header": {
+    "name": "resolve-displays-group-as-header",
+    "specHash": "bf26ccc63e2d522000882cac5067d9e06ee199dec327d234718f4902c06f3833",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-displays-group-as-header",
+    "materializedAt": "2026-03-31T05:55:53.863Z"
+  },
+  "config-custom-file-extension": {
+    "name": "config-custom-file-extension",
+    "specHash": "01aee4a70ed7c1134f1c7d23d0ef366d90c26d2e58d1504ecb606fdef789f31e",
+    "dependencyHash": "85ab7d1c28e1e56c8b15516f54c7d8d0311fff552a993c0d4685de58ccdd6997",
+    "artifact": "test:config-custom-file-extension",
+    "materializedAt": "2026-03-31T05:55:53.933Z"
+  },
+  "config-custom-state-dir": {
+    "name": "config-custom-state-dir",
+    "specHash": "c33610ea6422f6b11cd3f812662992d23c71ebfdefd7ffaec13aeae3eb907e79",
+    "dependencyHash": "85ab7d1c28e1e56c8b15516f54c7d8d0311fff552a993c0d4685de58ccdd6997",
+    "artifact": "test:config-custom-state-dir",
+    "materializedAt": "2026-03-31T05:55:54.003Z"
+  },
+  "config-defaults": {
+    "name": "config-defaults",
+    "specHash": "998f727ac947a98c46da0f318343a98cd26d49eb5f2791542fe30d7ac0068a5a",
+    "dependencyHash": "85ab7d1c28e1e56c8b15516f54c7d8d0311fff552a993c0d4685de58ccdd6997",
+    "artifact": "test:config-defaults",
+    "materializedAt": "2026-03-31T05:55:54.074Z"
+  },
+  "config-ignores-unknown-keys": {
+    "name": "config-ignores-unknown-keys",
+    "specHash": "0cdf285002cf6010363cd3394270b85ac7cd9d6649864022fb73e127fefb6594",
+    "dependencyHash": "85ab7d1c28e1e56c8b15516f54c7d8d0311fff552a993c0d4685de58ccdd6997",
+    "artifact": "test:config-ignores-unknown-keys",
+    "materializedAt": "2026-03-31T05:55:54.144Z"
+  },
+  "config-trims-whitespace-from-types": {
+    "name": "config-trims-whitespace-from-types",
+    "specHash": "df670bb144c9bb869086abca32c74d3ceb174a81de2301d87ba381f421d206c2",
+    "dependencyHash": "85ab7d1c28e1e56c8b15516f54c7d8d0311fff552a993c0d4685de58ccdd6997",
+    "artifact": "test:config-trims-whitespace-from-types",
+    "materializedAt": "2026-03-31T05:55:54.215Z"
+  },
+  "config-defines-types": {
+    "name": "config-defines-types",
+    "specHash": "0d949dca2ef2f4cf44a97f592ca01a554a4dac9dfa7726998106c0eec772b97f",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-defines-types",
+    "materializedAt": "2026-03-31T05:55:54.284Z"
+  },
+  "config-defines-containment": {
+    "name": "config-defines-containment",
+    "specHash": "6cba8d33d8241d3092ec3ef1904ebded883daaff17f73ab74aa3c428613d9e7d",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-defines-containment",
+    "materializedAt": "2026-03-31T05:55:54.355Z"
+  },
+  "config-rejects-invalid-nesting": {
+    "name": "config-rejects-invalid-nesting",
+    "specHash": "dcee0f9bfa9b8fc8a340c2db4ef08c1e918b7849abeb59e177e9d2cbede39dbe",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-rejects-invalid-nesting",
+    "materializedAt": "2026-03-31T05:55:54.425Z"
+  },
+  "config-allows-multiple-containment-rules": {
+    "name": "config-allows-multiple-containment-rules",
+    "specHash": "3c90d9707570b372e7a9c970609533e87c0f09cd68f3b003a788f7d29604bbf8",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-allows-multiple-containment-rules",
+    "materializedAt": "2026-03-31T05:55:54.495Z"
+  },
+  "config-no-containment-means-no-nesting": {
+    "name": "config-no-containment-means-no-nesting",
+    "specHash": "ddb82344111acceb05600a52553b6fd795b4d73e79f08077bb9be403eea65de3",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-no-containment-means-no-nesting",
+    "materializedAt": "2026-03-31T05:55:54.564Z"
+  },
+  "config-containment-is-not-transitive": {
+    "name": "config-containment-is-not-transitive",
+    "specHash": "8ec4ce719200da1b8b1a6e7933a84817062166281d9a91e0f2de896fb4083304",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-containment-is-not-transitive",
+    "materializedAt": "2026-03-31T05:55:54.698Z"
+  },
+  "config-accepts-hyphenated-type-names": {
+    "name": "config-accepts-hyphenated-type-names",
+    "specHash": "30c952e2c6e98ea31624afddf8ae178165e7e0927d517ffffba7e7780a8e61ee",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-accepts-hyphenated-type-names",
+    "materializedAt": "2026-03-31T05:55:54.768Z"
+  },
+  "config-containment-allows-multiple-children": {
+    "name": "config-containment-allows-multiple-children",
+    "specHash": "dad961fb786c7f5b4e2ce40ba3e038e034bee7b8b9dcc5c04dc61e2e44d01fda",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:config-containment-allows-multiple-children",
+    "materializedAt": "2026-03-31T05:55:54.838Z"
+  },
+  "resolve-shows-simple-entities": {
+    "name": "resolve-shows-simple-entities",
+    "specHash": "4533d3da83bd8e4d6e13277787781d29cb047aca444efeb52d44af67f6a75c6c",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-shows-simple-entities",
+    "materializedAt": "2026-03-31T05:55:54.908Z"
+  },
+  "resolve-shows-container-with-children": {
+    "name": "resolve-shows-container-with-children",
+    "specHash": "c51b782eb5e288004145a69bc17c7ec31fe77f00e4e95899ac210d036b92a41d",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-shows-container-with-children",
+    "materializedAt": "2026-03-31T05:55:54.976Z"
+  },
+  "resolve-shows-for-expanded-entities": {
+    "name": "resolve-shows-for-expanded-entities",
+    "specHash": "abadbc5eb80a805f8942a6cc97b599e7538682c9edccd0aa85d8e22aa9bdaf8d",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-shows-for-expanded-entities",
+    "materializedAt": "2026-03-31T05:55:55.069Z"
+  },
+  "resolve-shows-for-tuple-expansion": {
+    "name": "resolve-shows-for-tuple-expansion",
+    "specHash": "a0b5e6f89220368cc14b8cbb3de0212943c76398b0331ccb022651bae00c4a2d",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-shows-for-tuple-expansion",
+    "materializedAt": "2026-03-31T05:55:55.140Z"
+  },
+  "resolve-ignores-prose-between-entities": {
+    "name": "resolve-ignores-prose-between-entities",
+    "specHash": "8afa7a9a0f11a58a37c0d43e2f588fc7cdade1c260503ab7518c5c9aece10baf",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-ignores-prose-between-entities",
+    "materializedAt": "2026-03-31T05:55:55.211Z"
+  },
+  "resolve-ignores-decl-inside-fences": {
+    "name": "resolve-ignores-decl-inside-fences",
+    "specHash": "15d1129067fb2ee86bce2a8944714e2735c8e9199c9a64f6a66fb5496a8c1dc9",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-ignores-decl-inside-fences",
+    "materializedAt": "2026-03-31T05:55:55.281Z"
+  },
+  "resolve-accepts-optional-param-syntax": {
+    "name": "resolve-accepts-optional-param-syntax",
+    "specHash": "859db98846402f0d1663db47494dc1613e64451994a5fc49fb3b9e75f1a484a8",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-accepts-optional-param-syntax",
+    "materializedAt": "2026-03-31T05:55:55.351Z"
+  },
+  "resolve-exits-zero-on-success": {
+    "name": "resolve-exits-zero-on-success",
+    "specHash": "c3db2ccb61223aef3b91db1c06195a5dfcbcc695737f64eb0752f56e4265a110",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-exits-zero-on-success",
+    "materializedAt": "2026-03-31T05:55:55.421Z"
+  },
+  "resolve-exits-one-on-error": {
+    "name": "resolve-exits-one-on-error",
+    "specHash": "52676d76165d799211905626863336ff8a20adab2a638cdeb20a6a370d2d4107",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "artifact": "test:resolve-exits-one-on-error",
+    "materializedAt": "2026-03-31T05:55:55.491Z"
+  },
+  "resolve-clean-project": {
+    "name": "resolve-clean-project",
+    "specHash": "4bf24815ea8d7a476eb4ef9bfced212655fc9813c27a8eb34b73d23d66cc0178",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785",
+    "artifact": "test:resolve-clean-project",
+    "materializedAt": "2026-03-31T05:55:55.562Z"
+  },
+  "resolve-mixed-statuses-ordered": {
+    "name": "resolve-mixed-statuses-ordered",
+    "specHash": "34bd336bb3f0c87713a3cd029492081005363f20df18ebf2005d7582cbdc783a",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785",
+    "artifact": "test:resolve-mixed-statuses-ordered",
+    "materializedAt": "2026-03-31T05:55:55.632Z"
+  },
+  "resolve-with-diff": {
+    "name": "resolve-with-diff",
+    "specHash": "e6937d851cc805dde3c78ce95540bde993b6ec64ec5cc2237f82671c54fd9f14",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785",
+    "artifact": "test:resolve-with-diff",
+    "materializedAt": "2026-03-31T05:55:55.702Z"
+  },
+  "resolve-catches-unclosed-decl": {
+    "name": "resolve-catches-unclosed-decl",
+    "specHash": "43170ff3cea20ca2b0342b0e08356f3b742016bc36952811ac8bb37d07455066",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-unclosed-decl",
+    "materializedAt": "2026-03-31T05:55:55.794Z"
+  },
+  "resolve-catches-invalid-nesting": {
+    "name": "resolve-catches-invalid-nesting",
+    "specHash": "b78c68668b91034a3d1719a40aecf4897bb3774830c82bcd83743732f031c524",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-invalid-nesting",
+    "materializedAt": "2026-03-31T05:55:55.869Z"
+  },
+  "resolve-catches-for-without-in": {
+    "name": "resolve-catches-for-without-in",
+    "specHash": "38a898bd7bbbdb80e7374e8ad084da4d79ecf1e483a552fe2eac4f9bd72a26cc",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-for-without-in",
+    "materializedAt": "2026-03-31T05:55:55.940Z"
+  },
+  "resolve-catches-for-with-invalid-array": {
+    "name": "resolve-catches-for-with-invalid-array",
+    "specHash": "19cf739691de9ce0726f72a127778f27e30a16e4d062a00e454ac392aa18fb12",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-for-with-invalid-array",
+    "materializedAt": "2026-03-31T05:55:56.011Z"
+  },
+  "resolve-catches-for-outside-container": {
+    "name": "resolve-catches-for-outside-container",
+    "specHash": "5c403b1520a666769703a88c090ff61ff97d7a39ed4dea7e72ff29dac4a55dae",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-for-outside-container",
+    "materializedAt": "2026-03-31T05:55:56.081Z"
+  },
+  "resolve-catches-unclosed-for": {
+    "name": "resolve-catches-unclosed-for",
+    "specHash": "d2caa1a39c2dd7389321da363bd0799a3b76b5ca01bcff68cc420b9c4f7e8b57",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-unclosed-for",
+    "materializedAt": "2026-03-31T05:55:56.153Z"
+  },
+  "resolve-catches-unresolved-reference": {
+    "name": "resolve-catches-unresolved-reference",
+    "specHash": "2065cb27559df0dac5086460d0706ce2f98ac501251c9bdc5f1fb79acb32f675",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-unresolved-reference",
+    "materializedAt": "2026-03-31T05:55:56.224Z"
+  },
+  "resolve-catches-missing-required-param": {
+    "name": "resolve-catches-missing-required-param",
+    "specHash": "43be838de588bd12b4a10a229b11bd66e6c49f9cc7dba75edfbf375d351d3b82",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-missing-required-param",
+    "materializedAt": "2026-03-31T05:55:56.296Z"
+  },
+  "resolve-catches-unknown-param": {
+    "name": "resolve-catches-unknown-param",
+    "specHash": "fed973a10d4eaf032929275eb2eff43354c80944cbb302aa9410161a18771933",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-unknown-param",
+    "materializedAt": "2026-03-31T05:55:56.367Z"
+  },
+  "resolve-catches-bare-ref-needing-params": {
+    "name": "resolve-catches-bare-ref-needing-params",
+    "specHash": "8ea1b6c3340271c82ee596716c7b51d67824fd68608221f7088450c432229ef5",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-bare-ref-needing-params",
+    "materializedAt": "2026-03-31T05:55:56.437Z"
+  },
+  "resolve-catches-circular-dependency": {
+    "name": "resolve-catches-circular-dependency",
+    "specHash": "494a76d2a6fa5381dc2c933c8e9d9f5759c3c0ecd5545c91b0469c55f5c96576",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-catches-circular-dependency",
+    "materializedAt": "2026-03-31T05:55:56.509Z"
+  },
+  "resolve-accepts-valid-references": {
+    "name": "resolve-accepts-valid-references",
+    "specHash": "30c79361d7593e341b70f58f0f0b3f0b604cb7266810265df36c09e2f2a4fad4",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-accepts-valid-references",
+    "materializedAt": "2026-03-31T05:55:56.579Z"
+  },
+  "resolve-accepts-optional-param-omission": {
+    "name": "resolve-accepts-optional-param-omission",
+    "specHash": "5b05fa5ccae542cadb9a0af2b2198c5ab051f5c3a166d1747794c23f52efd069",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-accepts-optional-param-omission",
+    "materializedAt": "2026-03-31T05:55:56.650Z"
+  },
+  "resolve-accepts-bare-ref-to-paramless-entity": {
+    "name": "resolve-accepts-bare-ref-to-paramless-entity",
+    "specHash": "030a792e83e08f9b665202a5d5ac89aba97ea2164b745a90228f0d1ea740fdf2",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003",
+    "artifact": "test:resolve-accepts-bare-ref-to-paramless-entity",
+    "materializedAt": "2026-03-31T05:55:56.721Z"
+  },
+  "resolve-new-entity-is-pending": {
+    "name": "resolve-new-entity-is-pending",
+    "specHash": "86fb7e0f9ac9f2c36b04cf047b42dd52a66179d0c3a2c3461326d0ff202caae1",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-new-entity-is-pending",
+    "materializedAt": "2026-03-31T05:55:56.792Z"
+  },
+  "resolve-unchanged-entity-is-current": {
+    "name": "resolve-unchanged-entity-is-current",
+    "specHash": "9aed8537b22f4b5ab9bf40cfcd11c51c6383ac387d5cedf1e935d74961f577d2",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-unchanged-entity-is-current",
+    "materializedAt": "2026-03-31T05:55:56.863Z"
+  },
+  "resolve-content-change-makes-stale": {
+    "name": "resolve-content-change-makes-stale",
+    "specHash": "c806fda116f66fc58628ffb7186ce027a308e5e4e2cd36ca42502f34fa1a8ee0",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-content-change-makes-stale",
+    "materializedAt": "2026-03-31T05:55:56.933Z"
+  },
+  "resolve-dependency-change-makes-stale": {
+    "name": "resolve-dependency-change-makes-stale",
+    "specHash": "733c0ede11d6872b16fdbe0af3fb721447544bfaa9578507cb8bab6d755d94d9",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-dependency-change-makes-stale",
+    "materializedAt": "2026-03-31T05:55:57.005Z"
+  },
+  "resolve-transitive-dep-change-cascades": {
+    "name": "resolve-transitive-dep-change-cascades",
+    "specHash": "1ce65028d886bafae278d9ac3bcc19d7a410636fca4f6406770913ad9e073f62",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-transitive-dep-change-cascades",
+    "materializedAt": "2026-03-31T05:55:57.078Z"
+  },
+  "resolve-orphaned-entity-detected": {
+    "name": "resolve-orphaned-entity-detected",
+    "specHash": "1cd6a38e4b7e1a7212144983e7b15873c8c3cee61740c159dac15481fce5d1de",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-orphaned-entity-detected",
+    "materializedAt": "2026-03-31T05:55:57.152Z"
+  },
+  "resolve-review-failed-shows-stale": {
+    "name": "resolve-review-failed-shows-stale",
+    "specHash": "3c72b109a36880a8518cc0a9cebd5307a342e4f775bd356753017ce14754e1d7",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-review-failed-shows-stale",
+    "materializedAt": "2026-03-31T05:55:57.226Z"
+  },
+  "resolve-needs-elaboration-shows-pending": {
+    "name": "resolve-needs-elaboration-shows-pending",
+    "specHash": "baa3eb0e88209b15f77ba724003a2b5e7a1d455703cc9badac63521bfe2c307e",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "test:resolve-needs-elaboration-shows-pending",
+    "materializedAt": "2026-03-31T05:55:57.299Z"
+  },
+  "cli-tool": {
+    "name": "cli-tool",
+    "specHash": "f4881ac14adbd4a26a2820d3dcca33165e2dc742505bda902cac25bcbdcf8107",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact": "surface:cli-tool",
+    "materializedAt": "2026-03-31T05:56:07.704Z"
+  },
+  "run-resolve": {
+    "name": "run-resolve",
+    "specHash": "14f2d9868a4eb9a3fa263eb161cbf1b17d095309813d4f9f9bdf0d4fbedc5952",
+    "dependencyHash": "e912fb59510ac1fa749fb088d6ec5a27c44f7910899d3615a48ee1b259b0500d",
+    "artifact": "instrument:run-resolve",
+    "materializedAt": "2026-03-31T05:56:07.735Z"
+  },
+  "run-list": {
+    "name": "run-list",
+    "specHash": "03ba940182177ff4835ae170f8b6e482b13b3ccfe6e93ad4718f036a754d99cf",
+    "dependencyHash": "e912fb59510ac1fa749fb088d6ec5a27c44f7910899d3615a48ee1b259b0500d",
+    "artifact": "instrument:run-list",
+    "materializedAt": "2026-03-31T05:56:07.766Z"
+  },
+  "run-init": {
+    "name": "run-init",
+    "specHash": "c975113241acf3ad0e418e0752dad5fca9d1fc80f1b31103d6e05b7ac740a8e8",
+    "dependencyHash": "e912fb59510ac1fa749fb088d6ec5a27c44f7910899d3615a48ee1b259b0500d",
+    "artifact": "instrument:run-init",
+    "materializedAt": "2026-03-31T05:56:07.797Z"
+  },
+  "run-mark": {
+    "name": "run-mark",
+    "specHash": "ba20c87c5332bb10716f8568323ff7fc6a44ae366e83c0e82f4903e5bd681788",
+    "dependencyHash": "e912fb59510ac1fa749fb088d6ec5a27c44f7910899d3615a48ee1b259b0500d",
+    "artifact": "instrument:run-mark",
+    "materializedAt": "2026-03-31T05:56:07.828Z"
+  },
+  "project-dir": {
+    "name": "project-dir",
+    "specHash": "ed8001690dbd1fd1bd58f99aa18855bd91ad6c9527f7205d51b8a77515616909",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact": "fixture:project-dir",
+    "materializedAt": "2026-03-31T05:56:07.858Z"
+  },
+  "manifest": {
+    "name": "manifest",
+    "specHash": "9255178de106c285909155934fd882db3a46cdea0fbf67295296f46dc0afa914",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact": "fixture:manifest",
+    "materializedAt": "2026-03-31T05:56:07.889Z"
+  },
+  "default-config": {
+    "name": "default-config",
+    "specHash": "3559e34dafffcdd55c0fac0abd64969994135a8eef9301e41abc347c85b24fb6",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifact": "fixture:default-config",
+    "materializedAt": "2026-03-31T05:56:07.920Z"
+  }
+}
