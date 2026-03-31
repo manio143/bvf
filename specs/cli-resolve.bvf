@@ -460,26 +460,29 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #decl behavior resolve-review-failed-shows-stale
-    Given entity "login-test" was marked review-failed via
-    @{run-mark}(entity: "login-test", status: "review-failed",
+  #decl behavior resolve-test-needs-fixing-shows-pending
+    Given entity "login-test" was marked test-needs-fixing via
+    @{run-mark}(entity: "login-test", status: "test-needs-fixing",
     note: "test uses fake hashes").
 
     When @{run-resolve} is executed.
 
-    Then "login-test" shows with ✗ status, reason "review-failed",
+    Then "login-test" shows with ⏳ status (pending), reason "reviewed",
     and the note displayed below.
+    
+    The entity is ready for re-materialization (spec is still reviewed,
+    but test needs fixing).
     Exit code is 0.
   #end
 
-  #decl behavior resolve-needs-elaboration-shows-pending
-    Given entity "password-reset" was marked needs-elaboration
+  #decl behavior resolve-spec-needs-elaboration-shows-pending
+    Given entity "password-reset" was marked spec-needs-elaboration
     via @{run-mark}(entity: "password-reset",
-    status: "needs-elaboration", note: "needs instrument").
+    status: "spec-needs-elaboration", note: "needs instrument").
 
     When @{run-resolve} is executed.
 
-    Then "password-reset" shows with ⏳ status, reason
+    Then "password-reset" shows with ⏳ status (pending), reason
     "needs-elaboration", and the note displayed below.
     Exit code is 0.
   #end

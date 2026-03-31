@@ -1,8 +1,8 @@
-# CLI Mark
+# CLI Mark - Workflow State Transitions
 
-The `bvf mark` command records status changes in the manifest.
-Used by review phases (soundness, alignment) and by the
-materialization agent to register artifacts.
+The `bvf mark` command records workflow transitions in the manifest.
+Used by review agents (soundness, alignment) and materialization
+to track spec and test validation state.
 
 
 #decl feature cli-mark on @{cli-tool}
@@ -10,71 +10,115 @@ materialization agent to register artifacts.
   A @{project-dir}(files: [], config: @{default-config}) with specs
   and a @{manifest}(entries: []).
 
-  #decl behavior mark-needs-elaboration
+  #decl behavior mark-spec-needs-elaboration
     Given entity "password-reset" exists in specs.
 
     When @{run-mark}(entity: "password-reset",
-    status: "needs-elaboration",
+    status: "spec-needs-elaboration",
     note: "needs instrument defining reset steps") is executed.
 
-    Then the manifest records "password-reset" with status "pending",
-    reason "needs-elaboration", and the note. Subsequent
-    @{run-resolve}() will show this entity as ⏳ with the note.
+    Then the manifest records "password-reset" with:
+    - status: "pending"
+    - reason: "needs-elaboration"
+    - note: "needs instrument defining reset steps"
+    
+    Subsequent @{run-resolve}() will show this entity as ⏳ pending
+    (needs-elaboration) with the note displayed.
     Exit code is 0.
   #end
 
-  #decl behavior mark-review-failed
-    Given entity "login-test" is current in the manifest.
+  #decl behavior mark-spec-reviewed
+    Given entity "password-reset" exists in specs.
 
-    When @{run-mark}(entity: "login-test",
-    status: "review-failed",
-    note: "test uses fake hashes") is executed.
+    When @{run-mark}(entity: "password-reset",
+    status: "spec-reviewed") is executed.
 
-    Then the manifest records "login-test" with status "stale",
-    reason "review-failed", and the note. Subsequent
-    @{run-resolve}() will show this entity as ✗ with the note.
+    Then the manifest records "password-reset" with:
+    - status: "pending"
+    - reason: "reviewed"
+    - specHash: (current spec content hash)
+    - dependencyHash: (current dependency hash)
+    
+    This indicates soundness review passed. The entity is ready
+    for materialization.
+    
+    Subsequent @{run-resolve}() will show this entity as ⏳ pending
+    (reviewed).
     Exit code is 0.
   #end
 
-  #decl behavior mark-current-with-artifact
+  #decl behavior mark-test-ready
     Given entity "login-test" exists in specs.
 
     When @{run-mark}(entity: "login-test",
-    status: "current",
+    status: "test-ready",
     artifact: "tests/login.test.ts") is executed.
 
     Then the manifest records "login-test" with:
-    - specHash matching the entity's current content hash
-    - dependencyHash matching the entity's current dependency hash
-    - artifact path "tests/login.test.ts"
-    - no status override (status is computed from hashes)
-
-    Subsequent @{run-resolve}() will show "login-test" as ✓ current.
+    - status: "current"
+    - reason: "needs-review"
+    - specHash: (current spec content hash)
+    - dependencyHash: (current dependency hash)
+    - artifact: "tests/login.test.ts"
+    - materializedAt: (timestamp)
+    
+    This indicates the test has been generated from the current spec
+    and is awaiting alignment review.
+    
+    Subsequent @{run-resolve}() will show this entity as ⏳ current
+    (needs-review).
     Exit code is 0.
   #end
 
-  #decl behavior mark-current-requires-artifact
+  #decl behavior mark-test-ready-requires-artifact
     Given entity "login-test" exists in specs.
 
     When @{run-mark}(entity: "login-test",
-    status: "current") is executed without an `--artifact` flag.
+    status: "test-ready") is executed without an `--artifact` flag.
 
-    Then stderr contains an error: marking as current requires
+    Then stderr contains an error: marking as test-ready requires
     an artifact path.
     Exit code is 1.
   #end
 
-  #decl behavior mark-current-updates-stale-entity
-    Given entity "login-test" was previously marked current with
-    artifact "tests/login.test.ts". Then its spec content changed,
-    making it stale.
+  #decl behavior mark-test-reviewed
+    Given entity "login-test" is test-ready in the manifest
+    (status: current, reason: needs-review).
 
     When @{run-mark}(entity: "login-test",
-    status: "current",
-    artifact: "tests/login.test.ts") is executed.
+    status: "test-reviewed") is executed.
 
-    Then the manifest is updated with new specHash and
-    dependencyHash. The entity becomes ✓ current again.
+    Then the manifest records "login-test" with:
+    - status: "current"
+    - reason: "reviewed"
+    
+    This indicates alignment review passed. The test matches the spec
+    and is fully validated.
+    
+    Subsequent @{run-resolve}() will show this entity as ✓ current
+    (reviewed).
+    Exit code is 0.
+  #end
+
+  #decl behavior mark-test-needs-fixing
+    Given entity "login-test" is test-ready in the manifest.
+
+    When @{run-mark}(entity: "login-test",
+    status: "test-needs-fixing",
+    note: "test uses hardcoded values") is executed.
+
+    Then the manifest records "login-test" with:
+    - status: "pending"
+    - reason: "reviewed"
+    - note: "test uses hardcoded values"
+    - artifact: (preserved from previous state)
+    
+    This indicates alignment review failed. The spec is still sound
+    (reason: reviewed) but the test needs to be regenerated.
+    The artifact path is preserved for context.
+    
+    Subsequent @{run-resolve}() will show this entity as ⏳ pending
+    (reviewed) with the note.
     Exit code is 0.
   #end
 
@@ -82,10 +126,140 @@ materialization agent to register artifacts.
     Given no entity named "nonexistent" in specs.
 
     When @{run-mark}(entity: "nonexistent",
-    status: "needs-elaboration") is executed.
+    status: "spec-needs-elaboration") is executed.
 
     Then stderr says entity "nonexistent" not found.
     Exit code is 1.
   #end
 
+  #decl behavior mark-updates-hashes-on-transition
+    Given entity "login-test" was previously in state (pending,
+    needs-elaboration). The spec has since been edited.
+
+    When @{run-mark}(entity: "login-test",
+    status: "spec-reviewed") is executed.
+
+    Then the manifest updates specHash and dependencyHash to match
+    the current spec content. This "blesses" the new version as
+    reviewed, even though it changed since the last state.
+    Exit code is 0.
+  #end
+
+#end
+
+
+#decl feature cli-mark-workflow-integration on @{cli-tool}
+
+  These behaviors demonstrate the complete workflow with resolve
+  interactions and auto-transitions.
+
+  #decl behavior workflow-soundness-review-pass
+    Given entity "auth-test" exists in specs (pending, needs-review).
+
+    When soundness review passes and agent runs:
+    @{run-mark}(entity: "auth-test", status: "spec-reviewed").
+
+    Then @{run-resolve}() shows "auth-test" as ⏳ pending (reviewed).
+    The entity is ready for materialization.
+  #end
+
+  #decl behavior workflow-soundness-review-fail
+    Given entity "auth-test" exists in specs (pending, needs-review).
+
+    When soundness review fails and agent runs:
+    @{run-mark}(entity: "auth-test", status: "spec-needs-elaboration",
+    note: "clarify error handling").
+
+    Then @{run-resolve}() shows "auth-test" as ⏳ pending
+    (needs-elaboration) with the note.
+    
+    The spec author must address the note and edit the spec.
+  #end
+
+  #decl behavior workflow-elaboration-triggers-re-review
+    Given entity "auth-test" is (pending, needs-elaboration).
+    The spec is edited to address review feedback.
+
+    When @{run-resolve}() is executed.
+
+    Then resolve detects the spec hash changed and auto-updates
+    the manifest to (pending, needs-review).
+    
+    The entity appears as ⏳ pending (needs-review), awaiting
+    a second soundness review pass.
+  #end
+
+  #decl behavior workflow-materialization
+    Given entity "auth-test" is (pending, reviewed).
+    The materialization agent generates a test file.
+
+    When agent runs:
+    @{run-mark}(entity: "auth-test", status: "test-ready",
+    artifact: "tests/auth.test.ts").
+
+    Then @{run-resolve}() shows "auth-test" as ⏳ current
+    (needs-review).
+    
+    The test exists but awaits alignment review.
+  #end
+
+  #decl behavior workflow-alignment-review-pass
+    Given entity "auth-test" is (current, needs-review).
+
+    When alignment review passes and agent runs:
+    @{run-mark}(entity: "auth-test", status: "test-reviewed").
+
+    Then @{run-resolve}() shows "auth-test" as ✓ current (reviewed).
+    
+    The workflow is complete. The test is validated.
+  #end
+
+  #decl behavior workflow-alignment-review-fail
+    Given entity "auth-test" is (current, needs-review).
+
+    When alignment review fails and agent runs:
+    @{run-mark}(entity: "auth-test", status: "test-needs-fixing",
+    note: "test doesn't handle edge case").
+
+    Then @{run-resolve}() shows "auth-test" as ⏳ pending (reviewed)
+    with the note.
+    
+    The test needs to be regenerated. The spec is still sound
+    (reason: reviewed), so materialization can retry without
+    re-doing soundness review.
+  #end
+
+  #decl behavior workflow-staleness-auto-restart
+    Given entity "auth-test" (behavior) is (current, reviewed).
+    The spec content is edited.
+
+    When @{run-resolve}() is executed.
+
+    Then resolve detects spec hash changed and auto-updates
+    the manifest to (pending, needs-review).
+    
+    The artifact path is preserved for context but the entity
+    must restart the workflow from soundness review.
+  #end
+
+  #decl behavior workflow-dependency-change-cascade
+    Given entity "web-app" (surface) is (current, reviewed).
+    Entity "auth-test" (behavior) references @{web-app} and is
+    (current, reviewed).
+    
+    The "web-app" spec is edited.
+
+    When @{run-resolve}() is executed.
+
+    Then resolve detects both entities have changed (direct change
+    for web-app, dependency change for auth-test).
+    
+    Both entities auto-update to (pending, needs-review).
+  #end
+
+#end
+
+
+#decl surface web-app
+  Example surface for workflow demonstrations.
 #end
