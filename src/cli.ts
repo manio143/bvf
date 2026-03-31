@@ -818,10 +818,11 @@ async function cmdMark(cmdArgs: string[]) {
   const dependencyHash = computeDependencyHash(entity, currentHashes);
   
   // Check for staleness if entry exists and we're trying to bless
-  if (entry && !force && ['spec-reviewed', 'test-reviewed'].includes(statusArg)) {
+  // Note: Skip staleness check for test-reviewed (only reviewing test alignment, spec shouldn't change)
+  if (entry && !force && statusArg === 'spec-reviewed') {
     // Special case: when transitioning from needs-elaboration to spec-reviewed,
     // allow hash update (this is the re-review after elaboration)
-    const isReReviewAfterElaboration = entry.reason === 'needs-elaboration' && statusArg === 'spec-reviewed';
+    const isReReviewAfterElaboration = entry.reason === 'needs-elaboration';
     
     // Check if spec has changed since last manifest state (unless re-reviewing after elaboration)
     if (!isReReviewAfterElaboration && entry.specHash && entry.specHash !== specHash) {
@@ -890,9 +891,16 @@ async function cmdMark(cmdArgs: string[]) {
         process.exit(1);
       }
       
+      // Update hashes to ensure they match current spec state
+      // (prevents staleness detection on next resolve)
       newEntry = {
-        ...entry,
-        reason: 'reviewed'
+        name: entry.name,
+        status: entry.status,
+        reason: 'reviewed',
+        specHash,
+        dependencyHash,
+        artifact: entry.artifact,
+        materializedAt: entry.materializedAt
       };
       break;
       
