@@ -1038,3 +1038,167 @@ describe('resolve-exit-codes', () => {
     expect(result.exitCode).toBe(1);
   });
 });
+
+describe('resolve-materializable', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'bvf-test-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('resolve-counts-only-materializable', async () => {
+    const config = `#config
+  types: service, endpoint, scenario, fixture
+  containment:
+    service: endpoint
+    endpoint: scenario
+  materializable: scenario
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl service payments
+  Payment service.
+  #decl endpoint create-charge
+    Create charge endpoint.
+    #decl scenario charge-succeeds
+      Charge is created.
+    #end
+  #end
+#end
+
+#decl fixture test-db
+  Test database fixture.
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Summary should count only scenarios (1)
+    // Fixture is NOT counted even though standalone (not in materializable list)
+    expect(result.stdout.toLowerCase()).toMatch(/pending:\s*1/);
+  });
+
+  it('resolve-shows-non-materializable-in-tree', async () => {
+    const config = `#config
+  types: service, endpoint, scenario, fixture
+  containment:
+    service: endpoint
+    endpoint: scenario
+  materializable: scenario
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl service payments
+  Payment service.
+  #decl endpoint create-charge
+    Create charge endpoint.
+    #decl scenario charge-succeeds
+      Charge is created.
+    #end
+  #end
+#end
+
+#decl fixture test-db
+  Test database fixture.
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // All entities appear in tree, but only scenario has status symbol
+    expect(result.stdout).toContain('payments');
+    expect(result.stdout).toContain('service');
+    expect(result.stdout).toContain('create-charge');
+    expect(result.stdout).toContain('endpoint');
+    expect(result.stdout).toContain('charge-succeeds');
+    expect(result.stdout).toContain('⏳'); // scenario has status
+    expect(result.stdout).toContain('test-db');
+    expect(result.stdout).toContain('fixture');
+  });
+
+  it('resolve-diff-excludes-non-materializable', async () => {
+    const config = `#config
+  types: service, endpoint, scenario, fixture
+  containment:
+    service: endpoint
+    endpoint: scenario
+  materializable: scenario
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl service payments
+  Payment service.
+  #decl endpoint create-charge
+    Create charge endpoint.
+    #decl scenario charge-succeeds
+      Charge is created.
+    #end
+  #end
+#end
+
+#decl fixture test-db
+  Test database fixture.
+#end`
+    }, config);
+
+    const result = await runCli('resolve --diff', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Only materializable entities in diff output
+    expect(result.stdout).toMatch(/pending\s+scenario\s+charge-succeeds/);
+    // Service, endpoint, and fixture should NOT appear
+    expect(result.stdout).not.toContain('payments');
+    expect(result.stdout).not.toContain('create-charge');
+    expect(result.stdout).not.toContain('test-db');
+  });
+
+  it('resolve-displays-group-as-header', async () => {
+    const config = `#config
+  types: feature, behavior, group
+  containment:
+    feature: behavior, group
+    group: behavior
+  materializable: behavior
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl feature payments on @{some-surface}
+  #decl behavior charge-succeeds
+    Happy path.
+  #end
+
+  #decl group error-handling
+    #decl behavior charge-fails
+      Invalid card.
+    #end
+  #end
+#end
+
+#decl surface some-surface
+  Test surface.
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Group appears as header without status symbol
+    expect(result.stdout).toContain('error-handling');
+    expect(result.stdout).toContain('group');
+    // Behaviors have status symbols
+    expect(result.stdout).toContain('charge-succeeds');
+    expect(result.stdout).toContain('charge-fails');
+    expect(result.stdout).toContain('⏳');
+    // Verify hierarchical display: charge-fails appears after error-handling
+    const groupIdx = result.stdout.indexOf('error-handling');
+    const failIdx = result.stdout.indexOf('charge-fails');
+    expect(groupIdx).toBeGreaterThan(-1);
+    expect(failIdx).toBeGreaterThan(groupIdx);
+  });
+});

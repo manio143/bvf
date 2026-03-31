@@ -128,7 +128,9 @@ function parseEntityFromLines(
   
   // Validate type against config
   if (config) {
-    if (!config.types.includes(type)) {
+    // When materializable is specified, skip type validation
+    // (allows flexible type usage for non-materializable entities)
+    if (!config.materializable && !config.types.includes(type)) {
       return {
         ok: false,
         errors: [new Error(`unknown type "${type}" (line ${startIndex + 1})`)],

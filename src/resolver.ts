@@ -23,15 +23,19 @@ export function resolveReferences(
   
   // Validate entity types if config provided
   if (config) {
-    for (const entity of entities) {
-      if (!config.types.includes(entity.type)) {
-        const suggestions = config.types.slice(0, 3).join(', ');
-        errors.push(
-          new Error(
-            `Unknown entity type "${entity.type}" for ${entity.name}. ` +
-            `Valid types: ${suggestions}${config.types.length > 3 ? '...' : ''}`
-          )
-        );
+    // When materializable is specified, skip type validation
+    // (allows flexible type usage for non-materializable entities)
+    if (!config.materializable) {
+      for (const entity of entities) {
+        if (!config.types.includes(entity.type)) {
+          const suggestions = config.types.slice(0, 3).join(', ');
+          errors.push(
+            new Error(
+              `Unknown entity type "${entity.type}" for ${entity.name}. ` +
+              `Valid types: ${suggestions}${config.types.length > 3 ? '...' : ''}`
+            )
+          );
+        }
       }
     }
   }
@@ -131,7 +135,7 @@ export function resolveReferences(
     if (entity.type === 'feature' && entity.behaviors) {
       for (const behavior of entity.behaviors) {
         const behaviorEntity: ResolvedEntity = {
-          type: 'behavior',
+          type: behavior.type || 'behavior',  // Preserve actual type (behavior, group, etc.), fallback to 'behavior'
           name: behavior.name,
           params: behavior.params || [],
           clauses: {},

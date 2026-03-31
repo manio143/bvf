@@ -45,6 +45,10 @@ export function parseConfig(content: string): ConfigResult {
   let inContainmentSection = false;
   let currentContainmentKey: string | null = null;
   let containmentLines: string[] = [];
+  let materializable: string[] | undefined;
+  let materializableLines: string[] = [];
+  let collectingMaterializable = false;
+  let materializableKeySeen = false;
   
   for (const line of lines) {
     const trimmed = line.trim();
@@ -59,6 +63,8 @@ export function parseConfig(content: string): ConfigResult {
       // Not a key:value line - could be continuation or syntax error
       if (collectingTypes) {
         typeLines.push(trimmed);
+      } else if (collectingMaterializable) {
+        materializableLines.push(trimmed);
       } else if (currentContainmentKey) {
         containmentLines.push(trimmed);
       } else {
@@ -71,7 +77,7 @@ export function parseConfig(content: string): ConfigResult {
     const [, key, valueStr] = keyMatch;
     
     // Check if this is a known top-level key
-    const topLevelKeys = ['types', 'containment', 'file-extension', 'state-dir'];
+    const topLevelKeys = ['types', 'containment', 'materializable', 'file-extension', 'state-dir'];
     const isTopLevelKey = topLevelKeys.includes(key);
     
     // Finish any ongoing collections when we see a new key (top-level or unknown)
@@ -85,6 +91,18 @@ export function parseConfig(content: string): ConfigResult {
     } else if (collectingTypes && typeLines.length === 0 && typesKeySeen) {
       types = [];
       collectingTypes = false;
+    }
+    
+    if (collectingMaterializable && materializableLines.length > 0) {
+      materializable = materializableLines.join(',')
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+      materializableLines = [];
+      collectingMaterializable = false;
+    } else if (collectingMaterializable && materializableLines.length === 0 && materializableKeySeen) {
+      materializable = [];
+      collectingMaterializable = false;
     }
     
     if (currentContainmentKey && containmentLines.length > 0) {
@@ -105,11 +123,22 @@ export function parseConfig(content: string): ConfigResult {
             typeLines.push(valueStr);
           }
           collectingTypes = true;
+          collectingMaterializable = false;
+          inContainmentSection = false;
+          break;
+        case 'materializable':
+          materializableKeySeen = true;
+          if (valueStr) {
+            materializableLines.push(valueStr);
+          }
+          collectingMaterializable = true;
+          collectingTypes = false;
           inContainmentSection = false;
           break;
         case 'containment':
           inContainmentSection = true;
           collectingTypes = false;
+          collectingMaterializable = false;
           if (valueStr && valueStr.trim()) {
             return { ok: false, errors: [new Error('containment must be a section with nested rules')] };
           }
@@ -120,11 +149,13 @@ export function parseConfig(content: string): ConfigResult {
           }
           fileExtension = valueStr.trim();
           collectingTypes = false;
+          collectingMaterializable = false;
           inContainmentSection = false;
           break;
         case 'state-dir':
           stateDir = valueStr.trim();
           collectingTypes = false;
+          collectingMaterializable = false;
           inContainmentSection = false;
           break;
       }
@@ -148,6 +179,18 @@ export function parseConfig(content: string): ConfigResult {
         .filter(t => t.length > 0);
     } else if (typesKeySeen) {
       types = [];
+    }
+  }
+  
+  // Finish collecting materializable if still ongoing
+  if (collectingMaterializable) {
+    if (materializableLines.length > 0) {
+      materializable = materializableLines.join(',')
+        .split(',')
+        .map(t => t.trim())
+        .filter(t => t.length > 0);
+    } else if (materializableKeySeen) {
+      materializable = [];
     }
   }
   
@@ -188,11 +231,24 @@ export function parseConfig(content: string): ConfigResult {
     }
   }
   
+  // Validate materializable references
+  if (materializable) {
+    for (const typeName of materializable) {
+      if (!typeSet.has(typeName)) {
+        return {
+          ok: false,
+          errors: [new Error(`materializable references unknown type "${typeName}"`)]
+        };
+      }
+    }
+  }
+  
   return {
     ok: true,
     value: {
       types,
       containment: containment.size > 0 ? containment : undefined,
+      materializable,
       fileExtension,
       stateDir
     }

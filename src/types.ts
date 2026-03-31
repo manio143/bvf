@@ -55,6 +55,7 @@ export interface ResolveResult {
 export interface BvfConfig {
   types: string[];
   containment?: Map<string, string[]>;
+  materializable?: string[];
   fileExtension: string;
   stateDir: string;
 }

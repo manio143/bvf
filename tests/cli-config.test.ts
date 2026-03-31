@@ -559,3 +559,108 @@ describe('config-generic-display', () => {
     expect(result.stdout.toLowerCase()).toMatch(/pending:\s*2/);
   });
 });
+
+describe('config-materializable', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'bvf-test-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('config-accepts-materializable-key', async () => {
+    const config = `#config
+  types: surface, fixture, instrument, behavior, feature
+  containment:
+    feature: behavior
+  materializable: behavior
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl surface my-surface
+  Test surface.
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+  });
+
+  it('config-materializable-must-be-subset-of-types', async () => {
+    const config = `#config
+  types: surface, behavior, feature
+  materializable: behavior, scenario
+#end`;
+    setupProject(tmpDir, {}, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr.toLowerCase()).toContain('scenario');
+    expect(result.stderr.toLowerCase()).toContain('materializable');
+  });
+
+  it('config-materializable-defaults-to-inference', async () => {
+    const config = `#config
+  types: surface, behavior, feature
+  containment:
+    feature: behavior
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl surface my-surface
+  Standalone surface.
+#end
+
+#decl feature my-feature on @{my-surface}
+  #decl behavior my-behavior
+    Test behavior.
+  #end
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Summary should count leaf type (behavior) + standalone type (surface)
+    expect(result.stdout.toLowerCase()).toMatch(/pending:\s*2/);
+  });
+
+  it('config-group-type-allows-optional-nesting', async () => {
+    const config = `#config
+  types: feature, behavior, group
+  containment:
+    feature: behavior, group
+    group: behavior
+  materializable: behavior
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl feature payments on @{some-surface}
+  #decl behavior charge-succeeds
+    Happy path.
+  #end
+
+  #decl group error-handling
+    #decl behavior charge-fails
+      Invalid card.
+    #end
+  #end
+#end
+
+#decl surface some-surface
+  Test surface.
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Summary should count 2 behaviors (charge-succeeds, charge-fails)
+    expect(result.stdout.toLowerCase()).toMatch(/pending:\s*2/);
+  });
+});

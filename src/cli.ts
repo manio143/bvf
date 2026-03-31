@@ -168,8 +168,14 @@ async function cmdResolve(cmdArgs: string[]) {
   const allContainmentTypes = new Set([...parentTypes, ...childTypes]);
   const standaloneTypes = new Set(config.types.filter(t => !allContainmentTypes.has(t)));
   
-  // Counted types: leaf + standalone (these are materializable)
-  const countedTypes = new Set([...leafTypes, ...standaloneTypes]);
+  // Counted types: if config specifies materializable, use it; otherwise infer (leaf + standalone)
+  let countedTypes: Set<string>;
+  if (config.materializable && config.materializable.length > 0) {
+    countedTypes = new Set(config.materializable);
+  } else {
+    // Infer: leaf types + standalone types (these are materializable)
+    countedTypes = new Set([...leafTypes, ...standaloneTypes]);
+  }
   
   // Build map of ALL children to their parents (recursively)
   const childToParent = new Map<string, string>();
@@ -281,26 +287,26 @@ async function cmdResolve(cmdArgs: string[]) {
   
   // Print clean containers first
   for (const { container, entities } of cleanContainers) {
-    printContainerGroup(container, entities, entityStatuses, manifest, showDiff);
+    printContainerGroup(container, entities, entityStatuses, manifest, showDiff, countedTypes);
   }
   
   // Print standalone entities (if they're clean, before problematic containers)
   if (standalone.length > 0 && !standaloneHasIssues) {
     for (const entity of standalone) {
-      printEntity(entity, entityStatuses.get(entity.name), manifest, showDiff);
+      printEntity(entity, entityStatuses.get(entity.name), manifest, showDiff, 0, countedTypes);
     }
     console.log('');
   }
   
   // Print problematic containers
   for (const { container, entities } of problematicContainers) {
-    printContainerGroup(container, entities, entityStatuses, manifest, showDiff);
+    printContainerGroup(container, entities, entityStatuses, manifest, showDiff, countedTypes);
   }
   
   // Print standalone entities if they have issues (at the end)
   if (standalone.length > 0 && standaloneHasIssues) {
     for (const entity of standalone) {
-      printEntity(entity, entityStatuses.get(entity.name), manifest, showDiff);
+      printEntity(entity, entityStatuses.get(entity.name), manifest, showDiff, 0, countedTypes);
     }
     console.log('');
   }
@@ -335,34 +341,41 @@ async function cmdResolve(cmdArgs: string[]) {
   }
 }
 
-function printContainerGroup(container: any, entities: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean) {
+function printContainerGroup(container: any, entities: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean, countedTypes: Set<string>) {
   // Print container itself
   const containerStatus = statuses.get(container.name);
   if (containerStatus) {
-    printEntity(container, containerStatus, manifest, showDiff, 0);
+    printEntity(container, containerStatus, manifest, showDiff, 0, countedTypes);
   }
   
   // Print children nested under container recursively
-  printChildrenRecursive(container.behaviors || [], statuses, manifest, showDiff, 2);
+  printChildrenRecursive(container.behaviors || [], statuses, manifest, showDiff, 2, countedTypes);
   
   console.log('');
 }
 
-function printChildrenRecursive(children: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean, indent: number) {
+function printChildrenRecursive(children: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean, indent: number, countedTypes: Set<string>) {
   for (const child of children) {
     const status = statuses.get(child.name);
     if (status) {
-      printEntity(child, status, manifest, showDiff, indent);
+      printEntity(child, status, manifest, showDiff, indent, countedTypes);
     }
     // Recursively print this child's children with increased indent
     if (child.behaviors && child.behaviors.length > 0) {
-      printChildrenRecursive(child.behaviors, statuses, manifest, showDiff, indent + 2);
+      printChildrenRecursive(child.behaviors, statuses, manifest, showDiff, indent + 2, countedTypes);
     }
   }
 }
 
-function printEntity(entity: any, status: any, manifest: any, showDiff: boolean, indent: number = 0) {
+function printEntity(entity: any, status: any, manifest: any, showDiff: boolean, indent: number = 0, countedTypes: Set<string>) {
+  const isMaterializable = countedTypes.has(entity.type);
+  
   if (showDiff) {
+    // In diff mode, skip non-materializable entities
+    if (!isMaterializable) {
+      return;
+    }
+    
     // Machine-parseable format: status type name file:line
     const statusStr = status.status;
     const typeStr = entity.type;
@@ -386,6 +399,12 @@ function printEntity(entity: any, status: any, manifest: any, showDiff: boolean,
   } else {
     // Human-friendly format with colors and symbols
     const indentStr = ' '.repeat(indent);
+    
+    if (!isMaterializable) {
+      // Non-materializable: show without status symbol
+      console.log(`${indentStr}  ${entity.name} (${entity.type})`);
+      return;
+    }
     
     let symbol = '';
     let color = '';
