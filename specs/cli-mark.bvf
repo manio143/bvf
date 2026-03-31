@@ -145,6 +145,29 @@ to track spec and test validation state.
     Exit code is 0.
   #end
 
+  #decl behavior mark-detects-stale-before-blessing
+    Given entity "auth-test" is (pending, needs-elaboration) with
+    blessed specHash "abc123...".
+    
+    The spec is edited (content changes to hash "def456...").
+
+    When @{run-mark}(entity: "auth-test",
+    status: "spec-reviewed") is executed WITHOUT running resolve first.
+
+    Then mark detects the hash mismatch and warns:
+    "Warning: entity has changed since last state (needs-elaboration).
+     Run 'bvf resolve' to validate changes before marking as reviewed."
+    
+    The command exits 1 (refuses to bless stale state).
+    
+    Alternatively, with `--force` flag:
+    @{run-mark}(entity: "auth-test", status: "spec-reviewed",
+    flags: "--force") succeeds and updates hashes anyway.
+    
+    This prevents accidentally blessing a changed spec without
+    review validation.
+  #end
+
 #end
 
 

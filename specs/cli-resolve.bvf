@@ -573,4 +573,71 @@ code signals success vs structural failure.
     Then exit code is 1.
   #end
 
+  #decl behavior resolve-displays-workflow-reason-states
+    Given entities in various workflow states:
+    - "spec-a" is (pending, needs-review)
+    - "spec-b" is (pending, needs-elaboration)
+    - "spec-c" is (pending, reviewed)
+    - "spec-d" is (current, needs-review)
+    - "spec-e" is (current, reviewed)
+
+    When @{run-resolve} is executed.
+
+    Then each entity displays with its reason in parentheses:
+    - ⏳ spec-a (behavior) [needs-review]
+    - ⏳ spec-b (behavior) [needs-elaboration] + note below
+    - ⏳ spec-c (behavior) [reviewed]
+    - ⏳ spec-d (behavior) [needs-review]
+    - ✓ spec-e (behavior) [reviewed]
+    
+    Status symbols:
+    - ⏳ = pending work (either status=pending OR status=current with reason=needs-review)
+    - ✓ = complete (status=current AND reason=reviewed)
+    
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-writes-manifest-on-auto-transition
+    Given entity "auth-test" is (pending, needs-elaboration) with
+    blessed specHash "abc123...".
+    
+    The spec is edited (hash changes to "def456...").
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Auto-updates manifest entry:
+       - specHash: "def456..." (new hash)
+       - dependencyHash: (recomputed)
+       - reason: "needs-review" (auto-transition)
+    3. Writes manifest.json back to disk
+    4. Displays entity as ⏳ pending (needs-review)
+    
+    This persists the auto-transition so subsequent resolves
+    show the correct state without re-detecting the change.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-preserves-artifact-on-staleness
+    Given entity "auth-test" is (current, reviewed) with
+    artifact "tests/auth.test.ts".
+    
+    The spec is edited.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Auto-updates to (pending, needs-review)
+    3. Preserves artifact: "tests/auth.test.ts"
+    4. Displays: ⏳ auth-test (behavior) [needs-review]
+    
+    The artifact path remains in the manifest for context,
+    even though the entity must restart the workflow.
+    
+    Reviewers can see what test existed before the change.
+    Exit code is 0.
+  #end
+
 #end
