@@ -71,6 +71,16 @@ async function cmdResolve(cmdArgs: string[]) {
   
   const bvfFiles = findBvfFiles(specsDir, config.fileExtension);
   
+  // Helper to recursively propagate sourceFile to all nested entities
+  function propagateSourceFile(entity: any, file: string) {
+    entity.sourceFile = file;
+    if (entity.behaviors) {
+      for (const child of entity.behaviors) {
+        propagateSourceFile(child, file);
+      }
+    }
+  }
+  
   for (const file of bvfFiles) {
     const content = readFileSync(file, 'utf-8');
     const result = parseBvfFile(content, config);
@@ -80,15 +90,9 @@ async function cmdResolve(cmdArgs: string[]) {
       continue;
     }
     
-    // Add source file to entities AND their children
+    // Add source file to entities AND their children recursively
     for (const entity of result.value || []) {
-      entity.sourceFile = file;
-      // Also propagate to behaviors
-      if (entity.behaviors) {
-        for (const behavior of entity.behaviors) {
-          behavior.sourceFile = file;
-        }
-      }
+      propagateSourceFile(entity, file);
     }
     
     allEntities.push(...(result.value || []));
@@ -120,41 +124,90 @@ async function cmdResolve(cmdArgs: string[]) {
     resolved = resolveResult.value!;
   }
   
+  // Recursively flatten all entities (including deeply nested children)
+  function flattenEntities(entities: any[], depth: number = 0): any[] {
+    const result: any[] = [];
+    for (const entity of entities) {
+      result.push(entity);
+      if (entity.behaviors) {
+        result.push(...flattenEntities(entity.behaviors, depth + 1));
+      }
+    }
+    return result;
+  }
+  
+  const allResolvedEntities = flattenEntities(resolved);
+  
   // Load manifest
   const stateDir = join(cwd, config.stateDir);
   const manifest = loadManifest(stateDir);
   
-  // Compute current hashes
+  // Compute current hashes for all entities (including nested)
   const currentHashes = new Map<string, string>();
-  for (const entity of resolved) {
+  for (const entity of allResolvedEntities) {
     currentHashes.set(entity.name, computeSpecHash(entity));
   }
   
-  // Build map of behaviors to their parent features
-  const behaviorToFeature = new Map<string, string>();
-  for (const entity of resolved) {
-    if (entity.type === 'feature' && entity.behaviors) {
-      for (const behavior of entity.behaviors) {
-        behaviorToFeature.set(behavior.name, entity.name);
+  // Determine container and leaf types from config
+  const parentTypes = new Set<string>();
+  const childTypes = new Set<string>();
+  
+  if (config.containment) {
+    for (const [parent, children] of config.containment) {
+      parentTypes.add(parent);
+      for (const child of children) {
+        childTypes.add(child);
       }
     }
   }
+  
+  // Leaf types: appear only as children, never as parents
+  const leafTypes = new Set([...childTypes].filter(t => !parentTypes.has(t)));
+  
+  // Standalone types: not mentioned in containment at all
+  const allContainmentTypes = new Set([...parentTypes, ...childTypes]);
+  const standaloneTypes = new Set(config.types.filter(t => !allContainmentTypes.has(t)));
+  
+  // Counted types: leaf + standalone (these are materializable)
+  const countedTypes = new Set([...leafTypes, ...standaloneTypes]);
+  
+  // Build map of ALL children to their parents (recursively)
+  const childToParent = new Map<string, string>();
+  
+  function mapChildrenToParent(entities: any[]) {
+    for (const entity of entities) {
+      if (parentTypes.has(entity.type) && entity.behaviors) {
+        for (const child of entity.behaviors) {
+          childToParent.set(child.name, entity.name);
+          // Recursively process child's children
+          if (child.behaviors) {
+            mapChildrenToParent([child]);
+          }
+        }
+      }
+    }
+  }
+  
+  mapChildrenToParent(resolved);
   
   // Check status of each entity
   let pendingCount = 0;
   let currentCount = 0;
   let staleCount = 0;
   
-  // Build a map of statuses
+  // Build a map of statuses and track counted entities to avoid double-counting
   const entityStatuses = new Map<string, any>();
-  for (const entity of resolved) {
+  const countedEntities = new Set<string>();
+  
+  for (const entity of allResolvedEntities) {
     const status = getEntityStatus(entity, manifest, currentHashes);
     entityStatuses.set(entity.name, status);
     
-    // Only count materializable entities (behavior, instrument) in summary
-    // Exclude container/context types (feature, surface, fixture)
-    const materializableTypes = ['behavior', 'instrument'];
-    if (materializableTypes.includes(entity.type)) {
+    // Only count materializable entities (leaf + standalone types) in summary
+    // Use Set to prevent double-counting if entity appears multiple times
+    if (countedTypes.has(entity.type) && !countedEntities.has(entity.name)) {
+      countedEntities.add(entity.name);
+      
       switch (status.status) {
         case 'pending':
           pendingCount++;
@@ -169,39 +222,39 @@ async function cmdResolve(cmdArgs: string[]) {
     }
   }
   
-  // Group entities by feature
-  const features: Array<{ feature: any | null; entities: any[]; hasIssues: boolean }> = [];
-  const featureMap = new Map<string, any>();
+  // Group entities by containers (parent types in containment)
+  const containers: Array<{ container: any | null; entities: any[]; hasIssues: boolean }> = [];
+  const containerMap = new Map<string, any>();
   const standalone: any[] = [];
   
   for (const entity of resolved) {
-    if (entity.type === 'feature') {
-      featureMap.set(entity.name, entity);
+    if (parentTypes.has(entity.type)) {
+      containerMap.set(entity.name, entity);
     }
   }
   
-  // Process features first
-  for (const [featureName, feature] of featureMap) {
-    const behaviors = feature.behaviors || [];
+  // Process containers first
+  for (const [containerName, container] of containerMap) {
+    const children = container.behaviors || [];
     let hasIssues = false;
     
-    // Check if any of the feature's behaviors have issues
-    // (The feature entity itself is a container — its status doesn't
-    // determine ordering. Only behavior statuses matter.)
-    for (const behavior of behaviors) {
-      const behaviorStatus = entityStatuses.get(behavior.name);
-      if (behaviorStatus && (behaviorStatus.status === 'stale' || behaviorStatus.status === 'pending')) {
+    // Check if any of the container's children have issues
+    // (The container entity itself is a container — its status doesn't
+    // determine ordering. Only child statuses matter.)
+    for (const child of children) {
+      const childStatus = entityStatuses.get(child.name);
+      if (childStatus && (childStatus.status === 'stale' || childStatus.status === 'pending')) {
         hasIssues = true;
         break;
       }
     }
     
-    features.push({ feature, entities: [feature, ...behaviors], hasIssues });
+    containers.push({ container, entities: [container, ...children], hasIssues });
   }
   
-  // Collect standalone entities (not features and not behaviors in features)
+  // Collect standalone entities (not containers and not children of containers)
   for (const entity of resolved) {
-    if (entity.type !== 'feature' && !behaviorToFeature.has(entity.name)) {
+    if (!parentTypes.has(entity.type) && !childToParent.has(entity.name)) {
       standalone.push(entity);
     }
   }
@@ -216,22 +269,22 @@ async function cmdResolve(cmdArgs: string[]) {
     }
   }
   
-  // Sort features: clean first (alphabetically), then problematic (alphabetically)
-  const cleanFeatures = features.filter(f => !f.hasIssues).sort((a, b) => 
-    (a.feature?.name || '').localeCompare(b.feature?.name || '')
+  // Sort containers: clean first (alphabetically), then problematic (alphabetically)
+  const cleanContainers = containers.filter(c => !c.hasIssues).sort((a, b) => 
+    (a.container?.name || '').localeCompare(b.container?.name || '')
   );
-  const problematicFeatures = features.filter(f => f.hasIssues).sort((a, b) => 
-    (a.feature?.name || '').localeCompare(b.feature?.name || '')
+  const problematicContainers = containers.filter(c => c.hasIssues).sort((a, b) => 
+    (a.container?.name || '').localeCompare(b.container?.name || '')
   );
   
   console.log('Resolution Status:\n');
   
-  // Print clean features first
-  for (const { feature, entities } of cleanFeatures) {
-    printFeatureGroup(feature, entities, entityStatuses, manifest, showDiff);
+  // Print clean containers first
+  for (const { container, entities } of cleanContainers) {
+    printContainerGroup(container, entities, entityStatuses, manifest, showDiff);
   }
   
-  // Print standalone entities (if they're clean, before problematic features)
+  // Print standalone entities (if they're clean, before problematic containers)
   if (standalone.length > 0 && !standaloneHasIssues) {
     for (const entity of standalone) {
       printEntity(entity, entityStatuses.get(entity.name), manifest, showDiff);
@@ -239,9 +292,9 @@ async function cmdResolve(cmdArgs: string[]) {
     console.log('');
   }
   
-  // Print problematic features
-  for (const { feature, entities } of problematicFeatures) {
-    printFeatureGroup(feature, entities, entityStatuses, manifest, showDiff);
+  // Print problematic containers
+  for (const { container, entities } of problematicContainers) {
+    printContainerGroup(container, entities, entityStatuses, manifest, showDiff);
   }
   
   // Print standalone entities if they have issues (at the end)
@@ -253,7 +306,7 @@ async function cmdResolve(cmdArgs: string[]) {
   }
   
   // Check for orphaned entries
-  const orphaned = findOrphanedEntries(manifest, resolved);
+  const orphaned = findOrphanedEntries(manifest, allResolvedEntities);
   
   if (orphaned.length > 0) {
     console.log('Orphaned (removed from specs):');
@@ -282,24 +335,30 @@ async function cmdResolve(cmdArgs: string[]) {
   }
 }
 
-function printFeatureGroup(feature: any, entities: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean) {
-  // Print feature itself
-  const featureStatus = statuses.get(feature.name);
-  if (featureStatus) {
-    printEntity(feature, featureStatus, manifest, showDiff, 0);
+function printContainerGroup(container: any, entities: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean) {
+  // Print container itself
+  const containerStatus = statuses.get(container.name);
+  if (containerStatus) {
+    printEntity(container, containerStatus, manifest, showDiff, 0);
   }
   
-  // Print behaviors nested under feature
-  for (const entity of entities) {
-    if (entity !== feature) {
-      const status = statuses.get(entity.name);
-      if (status) {
-        printEntity(entity, status, manifest, showDiff, 2);
-      }
-    }
-  }
+  // Print children nested under container recursively
+  printChildrenRecursive(container.behaviors || [], statuses, manifest, showDiff, 2);
   
   console.log('');
+}
+
+function printChildrenRecursive(children: any[], statuses: Map<string, any>, manifest: any, showDiff: boolean, indent: number) {
+  for (const child of children) {
+    const status = statuses.get(child.name);
+    if (status) {
+      printEntity(child, status, manifest, showDiff, indent);
+    }
+    // Recursively print this child's children with increased indent
+    if (child.behaviors && child.behaviors.length > 0) {
+      printChildrenRecursive(child.behaviors, statuses, manifest, showDiff, indent + 2);
+    }
+  }
 }
 
 function printEntity(entity: any, status: any, manifest: any, showDiff: boolean, indent: number = 0) {
@@ -573,10 +632,10 @@ async function cmdInit() {
 async function cmdMark(cmdArgs: string[]) {
   const cwd = process.cwd();
   
-  // Parse arguments: bvf mark <entity> <status> [--note "..."]
+  // Parse arguments: bvf mark <entity> <status> [--note "..."] [--artifact "..."]
   if (cmdArgs.length < 2) {
-    console.error('Usage: bvf mark <entity> <status> [--note "..."]');
-    console.error('Status: needs-elaboration, review-failed');
+    console.error('Usage: bvf mark <entity> <status> [--note "..."] [--artifact "..."]');
+    console.error('Status: needs-elaboration, review-failed, current');
     process.exit(1);
   }
   
@@ -590,11 +649,24 @@ async function cmdMark(cmdArgs: string[]) {
     note = cmdArgs[noteIndex + 1];
   }
   
+  // Parse --artifact flag
+  let artifact: string | undefined;
+  const artifactIndex = cmdArgs.indexOf('--artifact');
+  if (artifactIndex !== -1 && artifactIndex + 1 < cmdArgs.length) {
+    artifact = cmdArgs[artifactIndex + 1];
+  }
+  
   // Validate status argument
-  const validStatuses = ['needs-elaboration', 'review-failed'];
+  const validStatuses = ['needs-elaboration', 'review-failed', 'current'];
   if (!validStatuses.includes(statusArg)) {
     console.error(`Invalid status: ${statusArg}`);
     console.error(`Valid statuses: ${validStatuses.join(', ')}`);
+    process.exit(1);
+  }
+  
+  // Validate current status requires artifact
+  if (statusArg === 'current' && !artifact) {
+    console.error('Error: artifact path is required when marking as current (--artifact "...")');
     process.exit(1);
   }
   
@@ -629,15 +701,21 @@ async function cmdMark(cmdArgs: string[]) {
     }
   }
   
+  // Resolve references to get dependency info
+  const resolveResult = resolveReferences(allEntities, config);
+  const resolved = resolveResult.ok ? resolveResult.value! : allEntities;
+  
   // Flatten behaviors to make them searchable by name
   const flattenedEntities: any[] = [];
-  for (const entity of allEntities) {
+  for (const entity of resolved) {
     flattenedEntities.push(entity);
     if (entity.behaviors) {
       for (const behavior of entity.behaviors) {
         flattenedEntities.push({
           ...behavior,
-          type: 'behavior'
+          type: 'behavior',
+          // Propagate transitiveDependencies if parent has them
+          transitiveDependencies: entity.transitiveDependencies || []
         });
       }
     }
@@ -656,36 +734,68 @@ async function cmdMark(cmdArgs: string[]) {
   
   // Get or create manifest entry
   let entry = manifest.entries.get(entityName);
-  if (!entry) {
-    // Create new entry
+  
+  // Handle different status cases
+  if (statusArg === 'current') {
+    // Compute fresh hashes from current entity state
     const specHash = computeSpecHash(entity);
+    
+    // Compute dependency hash
+    const currentHashes = new Map<string, string>();
+    for (const e of resolved) {
+      currentHashes.set(e.name, computeSpecHash(e));
+    }
+    const dependencyHash = computeDependencyHash(entity, currentHashes);
+    
+    // Create/update entry with computed hashes and artifact
     entry = {
       name: entityName,
       specHash,
-      dependencyHash: specHash, // Initial value
+      dependencyHash,
+      artifact: artifact!,
+      materializedAt: new Date().toISOString()
     };
-  }
-  
-  // Update status based on status argument
-  if (statusArg === 'needs-elaboration') {
-    entry.status = 'pending';
-    entry.reason = 'needs-elaboration';
-  } else if (statusArg === 'review-failed') {
-    entry.status = 'stale';
-    entry.reason = 'review-failed';
-  }
-  
-  if (note) {
-    entry.note = note;
+    
+    // Clear any status override (delete status, reason, note)
+    // By not setting these fields, the entry will compute status from hashes
+    
+  } else {
+    // Handle needs-elaboration and review-failed
+    if (!entry) {
+      // Create new entry
+      const specHash = computeSpecHash(entity);
+      entry = {
+        name: entityName,
+        specHash,
+        dependencyHash: specHash, // Initial value
+      };
+    }
+    
+    // Update status based on status argument
+    if (statusArg === 'needs-elaboration') {
+      entry.status = 'pending';
+      entry.reason = 'needs-elaboration';
+    } else if (statusArg === 'review-failed') {
+      entry.status = 'stale';
+      entry.reason = 'review-failed';
+    }
+    
+    if (note) {
+      entry.note = note;
+    }
   }
   
   // Save updated manifest
   manifest.entries.set(entityName, entry);
   saveManifest(stateDir, manifest);
   
-  console.log(`Marked ${entityName} as ${entry.status} (${entry.reason})`);
-  if (note) {
-    console.log(`Note: ${note}`);
+  if (statusArg === 'current') {
+    console.log(`Marked ${entityName} as current (artifact: ${artifact})`);
+  } else {
+    console.log(`Marked ${entityName} as ${entry.status} (${entry.reason})`);
+    if (note) {
+      console.log(`Note: ${note}`);
+    }
   }
   
   process.exit(0);

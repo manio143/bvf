@@ -100,7 +100,7 @@ function parseEntityFromLines(
     // For templates inside #for, name can include {placeholders} with parentheses
     // Params must be preceded by whitespace to be recognized
     // Pattern: #decl type name({x}) (param1, param2) on @{...}
-    const templateMatch = declLine.match(/^#decl\s+(\w+)\s+(.+?)(?:\s+\(([^)]*)\))?(?:\s+(on|using)\s+(.*))?$/);
+    const templateMatch = declLine.match(/^#decl\s+([\w-]+)\s+(.+?)(?:\s+\(([^)]*)\))?(?:\s+(on|using)\s+(.*))?$/);
     if (!templateMatch) {
       return {
         ok: false,
@@ -114,7 +114,7 @@ function parseEntityFromLines(
     clausesStr = clausesStr || '';
   } else {
     // For normal entities, use strict parsing
-    const declMatch = declLine.match(/^#decl\s+(\w+)\s+([\w-]+)(?:\(([^)]*)\))?\s*(.*?)$/);
+    const declMatch = declLine.match(/^#decl\s+([\w-]+)\s+([\w-]+)(?:\(([^)]*)\))?\s*(.*?)$/);
     if (!declMatch) {
       return {
         ok: false,
@@ -354,7 +354,7 @@ function parseEntityFromLines(
 }
 
 /**
- * Convert child entities to behaviors format (for backward compatibility)
+ * Convert child entities to behaviors format (preserving recursive structure)
  */
 function convertChildrenToBehaviors(children: Entity[]): any[] {
   return children.map(child => ({
@@ -363,7 +363,8 @@ function convertChildrenToBehaviors(children: Entity[]): any[] {
     params: child.params,
     body: child.body,
     context: child.context,
-    line: child.line
+    line: child.line,
+    behaviors: child.behaviors // Preserve nested children for multi-level containment
   }));
 }
 

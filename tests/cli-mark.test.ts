@@ -153,4 +153,130 @@ describe('cli-mark', () => {
     expect(result.stderr.toLowerCase()).toContain('nonexistent');
     expect(result.stderr.toLowerCase()).toContain('not found');
   });
+
+  it('mark-current-with-artifact', async () => {
+    const specContent = `#decl surface my-surface
+  Test surface.
+#end
+
+#decl feature auth on @{my-surface}
+  #decl behavior login-test
+    Test login behavior.
+  #end
+#end
+`;
+    setupProject(tmpDir, {
+      'test.bvf': specContent
+    });
+
+    createManifest(tmpDir, {});
+
+    // Mark entity as current with artifact
+    const markResult = await runCli('mark login-test current --artifact "tests/login.test.ts"', tmpDir);
+
+    expect(markResult.exitCode).toBe(0);
+
+    // Verify manifest was updated with real hashes
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifestContent = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    
+    expect(manifestContent['login-test']).toBeDefined();
+    expect(manifestContent['login-test'].artifact).toBe('tests/login.test.ts');
+    expect(manifestContent['login-test'].specHash).toBeDefined();
+    expect(manifestContent['login-test'].specHash.length).toBeGreaterThan(0);
+    expect(manifestContent['login-test'].dependencyHash).toBeDefined();
+    expect(manifestContent['login-test'].dependencyHash.length).toBeGreaterThan(0);
+
+    // Subsequent resolve should show entity as current
+    const resolveResult = await runCli('resolve', tmpDir);
+    expect(resolveResult.exitCode).toBe(0);
+    expect(resolveResult.stdout).toContain('✓');
+    expect(resolveResult.stdout).toContain('login-test');
+  });
+
+  it('mark-current-requires-artifact', async () => {
+    setupProject(tmpDir, {
+      'test.bvf': `#decl surface my-surface
+  Test surface.
+#end
+
+#decl feature auth on @{my-surface}
+  #decl behavior login-test
+    Test login behavior.
+  #end
+#end
+`
+    });
+
+    createManifest(tmpDir, {});
+
+    // Try to mark as current without --artifact flag
+    const result = await runCli('mark login-test current', tmpDir);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr.toLowerCase()).toContain('artifact');
+    expect(result.stderr.toLowerCase()).toContain('required');
+  });
+
+  it('mark-current-updates-stale-entity', async () => {
+    const newSpecContent = `#decl surface my-surface
+  Test surface.
+#end
+
+#decl feature auth on @{my-surface}
+  #decl behavior login-test
+    Updated test content with changes.
+  #end
+#end
+`;
+
+    // Set up project with current spec content
+    setupProject(tmpDir, {
+      'test.bvf': newSpecContent
+    });
+
+    // Create manifest with stale status to simulate:
+    // "entity was current with old content, then spec changed"
+    // Using status override instead of manually computed hashes
+    createManifest(tmpDir, {
+      'login-test': {
+        type: 'behavior',
+        status: 'stale',
+        reason: 'content-changed',
+        artifact: 'tests/login.test.ts',
+        specHash: 'old-content-hash',
+        dependencyHash: 'old-dep-hash',
+        materializedAt: new Date(Date.now() - 10000).toISOString()
+      }
+    });
+
+    // Verify entity shows as stale before marking
+    const resolveBeforeResult = await runCli('resolve', tmpDir);
+    expect(resolveBeforeResult.exitCode).toBe(0);
+    expect(resolveBeforeResult.stdout).toContain('✗');
+    expect(resolveBeforeResult.stdout).toContain('login-test');
+
+    // Mark entity as current with artifact
+    // This should compute real hashes from current spec content and clear status override
+    const markResult = await runCli('mark login-test current --artifact "tests/login.test.ts"', tmpDir);
+
+    expect(markResult.exitCode).toBe(0);
+
+    // Verify manifest was updated with real computed hashes
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifestContent = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    
+    expect(manifestContent['login-test']).toBeDefined();
+    expect(manifestContent['login-test'].specHash).not.toBe('old-content-hash');
+    expect(manifestContent['login-test'].specHash.length).toBeGreaterThan(0);
+    expect(manifestContent['login-test'].artifact).toBe('tests/login.test.ts');
+    // Status override should be cleared (no explicit status field)
+    expect(manifestContent['login-test'].status).toBeUndefined();
+
+    // Subsequent resolve should show entity as current
+    const resolveAfterResult = await runCli('resolve', tmpDir);
+    expect(resolveAfterResult.exitCode).toBe(0);
+    expect(resolveAfterResult.stdout).toContain('✓');
+    expect(resolveAfterResult.stdout).toContain('login-test');
+  });
 });

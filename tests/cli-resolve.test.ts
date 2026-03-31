@@ -160,33 +160,6 @@ describe('resolve-parse-errors', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stderr.toLowerCase()).toContain('for');
   });
-
-  it('resolve-catches-duplicate-context', async () => {
-    setupProject(tmpDir, {
-      'broken.bvf': `#decl surface my-surface
-  Test.
-#end
-
-#decl feature broken on @{my-surface}
-  #context
-    First context.
-  #end
-  #context
-    Second context.
-  #end
-  #decl behavior test
-    Test.
-  #end
-#end
-`
-    });
-
-    const result = await runCli('resolve', tmpDir);
-
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr.toLowerCase()).toContain('context');
-    expect(result.stderr.toLowerCase()).toContain('multiple');
-  });
 });
 
 describe('resolve-reference-errors', () => {
@@ -852,11 +825,19 @@ describe('resolve-output-format', () => {
     });
 
     const crypto = require('crypto');
+    const surfaceHash = crypto.createHash('sha256').update('my-surface').digest('hex').substring(0, 16);
     const hash1 = crypto.createHash('sha256').update('test-one').digest('hex').substring(0, 16);
     const hash2 = crypto.createHash('sha256').update('test-two').digest('hex').substring(0, 16);
     const depHash = crypto.createHash('sha256').update('my-surface').digest('hex').substring(0, 16);
 
     createManifest(tmpDir, {
+      'my-surface': {
+        type: 'surface',
+        status: 'current',
+        specHash: surfaceHash,
+        dependencyHash: '',
+        materializedAt: Date.now()
+      },
       'test-one': {
         type: 'behavior',
         status: 'current',

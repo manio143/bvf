@@ -422,4 +422,140 @@ describe('config-errors', () => {
     expect(result.stderr.toLowerCase()).toContain('feature');
     expect(result.stderr.toLowerCase()).toContain('unknown');
   });
+
+  it('config-accepts-hyphenated-type-names', async () => {
+    const config = `#config
+  types: epic, story, acceptance-criterion
+  containment:
+    epic: story
+    story: acceptance-criterion
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl epic onboarding
+  Onboarding epic.
+  #decl story new-user
+    New user story.
+    #decl acceptance-criterion shows-welcome-screen
+      The welcome screen is displayed.
+    #end
+  #end
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('onboarding');
+    expect(result.stdout).toContain('new-user');
+    expect(result.stdout).toContain('shows-welcome-screen');
+  });
+});
+
+describe('config-generic-display', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'bvf-test-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('resolve-groups-by-configured-containers', async () => {
+    const config = `#config
+  types: service, endpoint, scenario
+  containment:
+    service: endpoint
+    endpoint: scenario
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl service payments
+  Payment service.
+  #decl endpoint create-charge
+    Create charge endpoint.
+    #decl scenario charge-succeeds
+      Charge is created.
+    #end
+  #end
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    expect(result.stdout).toContain('payments');
+    expect(result.stdout).toContain('service');
+    expect(result.stdout).toContain('create-charge');
+    expect(result.stdout).toContain('endpoint');
+    expect(result.stdout).toContain('charge-succeeds');
+    expect(result.stdout).toContain('scenario');
+    // Verify hierarchical grouping (charge-succeeds appears after create-charge)
+    const paymentIdx = result.stdout.indexOf('payments');
+    const chargeEndpointIdx = result.stdout.indexOf('create-charge');
+    const scenarioIdx = result.stdout.indexOf('charge-succeeds');
+    expect(paymentIdx).toBeGreaterThan(-1);
+    expect(chargeEndpointIdx).toBeGreaterThan(paymentIdx);
+    expect(scenarioIdx).toBeGreaterThan(chargeEndpointIdx);
+  });
+
+  it('resolve-counts-leaf-types-in-summary', async () => {
+    const config = `#config
+  types: service, endpoint, scenario
+  containment:
+    service: endpoint
+    endpoint: scenario
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl service payments
+  Payment service.
+  #decl endpoint create-charge
+    Create charge endpoint.
+    #decl scenario charge-succeeds
+      Charge is created.
+    #end
+  #end
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Summary should count only leaf types (scenario, not service or endpoint)
+    expect(result.stdout.toLowerCase()).toMatch(/pending:\s*1/);
+  });
+
+  it('resolve-counts-standalone-types-in-summary', async () => {
+    const config = `#config
+  types: service, endpoint, scenario, fixture
+  containment:
+    service: endpoint
+    endpoint: scenario
+#end`;
+    setupProject(tmpDir, {
+      'test.bvf': `#decl service payments
+  Payment service.
+  #decl endpoint create-charge
+    Create charge endpoint.
+    #decl scenario charge-succeeds
+      Charge is created.
+    #end
+  #end
+#end
+
+#decl fixture test-db
+  Test database fixture.
+#end`
+    }, config);
+
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe('');
+    // Summary should count both leaf type (scenario) and standalone type (fixture)
+    expect(result.stdout.toLowerCase()).toMatch(/pending:\s*2/);
+  });
 });
