@@ -138,18 +138,18 @@ async function cmdResolve(cmdArgs: string[]) {
         seen.add(entity.name);
       }
       
-      // Extract nested behaviors (if not already in top-level)
+      // Recursively extract all nested behaviors (multi-level nesting support)
       if (entity.behaviors) {
-        for (const behavior of entity.behaviors) {
-          if (!seen.has(behavior.name)) {
+        const nestedFlattened = flattenEntities(entity.behaviors, depth + 1);
+        for (const nested of nestedFlattened) {
+          if (!seen.has(nested.name)) {
             // Propagate transitiveDependencies from parent
-            const enrichedBehavior = {
-              ...behavior,
-              type: 'behavior',
-              transitiveDependencies: entity.transitiveDependencies || []
+            const enriched = {
+              ...nested,
+              transitiveDependencies: entity.transitiveDependencies || nested.transitiveDependencies || []
             };
-            result.push(enrichedBehavior);
-            seen.add(behavior.name);
+            result.push(enriched);
+            seen.add(nested.name);
           }
         }
       }
