@@ -125,12 +125,33 @@ async function cmdResolve(cmdArgs: string[]) {
   }
   
   // Recursively flatten all entities (including deeply nested children)
+  // IMPORTANT: Copy transitiveDependencies from parent to child behaviors
+  // Note: Resolver already flattens behaviors to top-level, so we need to avoid duplicates
   function flattenEntities(entities: any[], depth: number = 0): any[] {
     const result: any[] = [];
+    const seen = new Set<string>();
+    
     for (const entity of entities) {
-      result.push(entity);
+      // Add top-level entity if not seen
+      if (!seen.has(entity.name)) {
+        result.push(entity);
+        seen.add(entity.name);
+      }
+      
+      // Extract nested behaviors (if not already in top-level)
       if (entity.behaviors) {
-        result.push(...flattenEntities(entity.behaviors, depth + 1));
+        for (const behavior of entity.behaviors) {
+          if (!seen.has(behavior.name)) {
+            // Propagate transitiveDependencies from parent
+            const enrichedBehavior = {
+              ...behavior,
+              type: 'behavior',
+              transitiveDependencies: entity.transitiveDependencies || []
+            };
+            result.push(enrichedBehavior);
+            seen.add(behavior.name);
+          }
+        }
       }
     }
     return result;
@@ -863,12 +884,16 @@ async function cmdMark(cmdArgs: string[]) {
       break;
       
     case 'test-ready':
-      // Allow test-ready in two scenarios:
-      // 1. Entity has been spec-reviewed (entry exists with reason='reviewed' or 'needs-review')
-      // 2. Entity is brand new (no entry) - materialization agent can directly mark
-      //
-      // Reject if entity exists but is in needs-elaboration (must be reviewed first)
-      if (entry && entry.reason === 'needs-elaboration') {
+      // Entity must be spec-reviewed first (entry exists)
+      // Reject if:
+      // 1. No entry (never reviewed)
+      // 2. Entry exists but is in needs-elaboration state
+      if (!entry) {
+        console.error('Error: cannot mark as test-ready. Entity must be spec-reviewed first.');
+        process.exit(1);
+      }
+      
+      if (entry.reason === 'needs-elaboration') {
         console.error('Error: cannot mark as test-ready. Entity is in needs-elaboration state and must be spec-reviewed first.');
         process.exit(1);
       }

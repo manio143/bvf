@@ -5,6 +5,10 @@ import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync } from 'fs'
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { createHash } from 'crypto';
+import { parseBvfFile } from '../src/parser.js';
+import { resolveReferences } from '../src/resolver.js';
+import { computeSpecHash, computeDependencyHash } from '../src/manifest.js';
+import { defaultConfig } from '../src/config.js';
 
 const execAsync = promisify(exec);
 const CLI = join(__dirname, '../dist/cli.js');
@@ -48,6 +52,52 @@ function readManifest(dir: string): Record<string, any> {
 
 function computeHash(content: string): string {
   return createHash('sha256').update(content).digest('hex').substring(0, 16);
+}
+
+/**
+ * Parse spec content and compute REAL hashes for entities (matches production behavior)
+ */
+function computeRealHashes(specContent: string): Map<string, { specHash: string; dependencyHash: string }> {
+  const config = defaultConfig();
+  const parseResult = parseBvfFile(specContent, config);
+  if (!parseResult.ok || !parseResult.value) {
+    throw new Error('Failed to parse spec content');
+  }
+  
+  const entities = parseResult.value;
+  const resolveResult = resolveReferences(entities, config);
+  const resolved = resolveResult.ok ? resolveResult.value! : entities;
+  
+  // Flatten behaviors (copy transitiveDependencies from parent)
+  const flatEntities: any[] = [];
+  for (const entity of resolved) {
+    flatEntities.push(entity);
+    if (entity.behaviors) {
+      for (const behavior of entity.behaviors) {
+        flatEntities.push({
+          ...behavior,
+          type: 'behavior',
+          transitiveDependencies: entity.transitiveDependencies || []
+        });
+      }
+    }
+  }
+  
+  // Compute spec hashes for all entities
+  const specHashes = new Map<string, string>();
+  for (const entity of flatEntities) {
+    specHashes.set(entity.name, computeSpecHash(entity));
+  }
+  
+  // Compute dependency hashes
+  const result = new Map<string, { specHash: string; dependencyHash: string }>();
+  for (const entity of flatEntities) {
+    const specHash = specHashes.get(entity.name)!;
+    const dependencyHash = computeDependencyHash(entity, specHashes);
+    result.set(entity.name, { specHash, dependencyHash });
+  }
+  
+  return result;
 }
 
 /**
@@ -197,8 +247,11 @@ describe('cli-workflow - mark commands', () => {
       'test.bvf': specContent
     });
 
-    createManifest(tmpDir, {});
+    // First, mark as spec-reviewed (workflow requirement)
+    const reviewResult = await runCli('mark login-test spec-reviewed', tmpDir);
+    expect(reviewResult.exitCode).toBe(0);
 
+    // Then mark as test-ready
     const result = await runCli('mark login-test test-ready --artifact "tests/login.test.ts"', tmpDir);
 
     expect(result.exitCode).toBe(0);
@@ -259,17 +312,16 @@ describe('cli-workflow - mark commands', () => {
       'test.bvf': specContent
     });
 
-    const specHash = computeHash(specContent);
-    const surfaceDecl = extractEntityDeclaration(specContent, 'my-surface');
-    const depHash = computeHash(surfaceDecl);
+    const hashes = computeRealHashes(specContent);
+    const loginTestHashes = hashes.get('login-test')!;
 
     createManifest(tmpDir, {
       'login-test': {
         type: 'behavior',
         status: 'current',
         reason: 'needs-review',
-        specHash,
-        dependencyHash: depHash,
+        specHash: loginTestHashes.specHash,
+        dependencyHash: loginTestHashes.dependencyHash,
         artifact: 'tests/login.test.ts',
         materializedAt: Date.now()
       }
@@ -433,19 +485,22 @@ describe('cli-workflow - mark commands', () => {
 #end
 `;
 
-    const oldHash = computeHash(oldSpecContent);
-
     setupProject(tmpDir, {
       'test.bvf': newSpecContent
     });
+
+    // Compute real hashes for OLD content
+    // (simulate manifest being out of sync with current spec)
+    const oldHashes = computeRealHashes(oldSpecContent);
+    const authTestOldHashes = oldHashes.get('auth-test')!;
 
     createManifest(tmpDir, {
       'auth-test': {
         type: 'behavior',
         status: 'pending',
-        reason: 'needs-elaboration',
-        specHash: oldHash,
-        dependencyHash: computeHash('old-dep')
+        reason: 'needs-review',  // Changed from 'needs-elaboration' to test staleness detection
+        specHash: authTestOldHashes.specHash,
+        dependencyHash: authTestOldHashes.dependencyHash
       }
     });
 
@@ -460,7 +515,7 @@ describe('cli-workflow - mark commands', () => {
     expect(forceResult.exitCode).toBe(0);
 
     const manifest = readManifest(tmpDir);
-    expect(manifest['auth-test'].specHash).not.toBe(oldHash);
+    expect(manifest['auth-test'].specHash).not.toBe(authTestOldHashes.specHash);
   });
 
   it('mark-rejects-invalid-state-transition', async () => {
@@ -521,16 +576,16 @@ describe('cli-workflow - workflow integration', () => {
       'test.bvf': specContent
     });
 
-    const surfaceDecl = extractEntityDeclaration(specContent, 'my-surface');
-    const depHash = computeHash(surfaceDecl);
+    const hashes = computeRealHashes(specContent);
+    const authTestHashes = hashes.get('auth-test')!;
 
     createManifest(tmpDir, {
       'auth-test': {
         type: 'behavior',
         status: 'pending',
         reason: 'needs-review',
-        specHash: computeHash(specContent),
-        dependencyHash: depHash
+        specHash: authTestHashes.specHash,
+        dependencyHash: authTestHashes.dependencyHash
       }
     });
 
@@ -562,16 +617,16 @@ describe('cli-workflow - workflow integration', () => {
       'test.bvf': specContent
     });
 
-    const surfaceDecl = extractEntityDeclaration(specContent, 'my-surface');
-    const depHash = computeHash(surfaceDecl);
+    const hashes = computeRealHashes(specContent);
+    const authTestHashes = hashes.get('auth-test')!;
 
     createManifest(tmpDir, {
       'auth-test': {
         type: 'behavior',
         status: 'pending',
         reason: 'needs-review',
-        specHash: computeHash(specContent),
-        dependencyHash: depHash
+        specHash: authTestHashes.specHash,
+        dependencyHash: authTestHashes.dependencyHash
       }
     });
 
@@ -976,37 +1031,37 @@ describe('cli-workflow - resolve displays workflow states', () => {
       'test.bvf': specContent
     });
 
-    const hash = computeHash(specContent);
+    const hashes = computeRealHashes(specContent);
 
     createManifest(tmpDir, {
       'spec-a': {
         type: 'behavior',
         status: 'pending',
         reason: 'needs-review',
-        specHash: hash,
-        dependencyHash: hash
+        specHash: hashes.get('spec-a')!.specHash,
+        dependencyHash: hashes.get('spec-a')!.dependencyHash
       },
       'spec-b': {
         type: 'behavior',
         status: 'pending',
         reason: 'needs-elaboration',
-        specHash: hash,
-        dependencyHash: hash,
+        specHash: hashes.get('spec-b')!.specHash,
+        dependencyHash: hashes.get('spec-b')!.dependencyHash,
         note: 'needs clarification'
       },
       'spec-c': {
         type: 'behavior',
         status: 'pending',
         reason: 'reviewed',
-        specHash: hash,
-        dependencyHash: hash
+        specHash: hashes.get('spec-c')!.specHash,
+        dependencyHash: hashes.get('spec-c')!.dependencyHash
       },
       'spec-d': {
         type: 'behavior',
         status: 'current',
         reason: 'needs-review',
-        specHash: hash,
-        dependencyHash: hash,
+        specHash: hashes.get('spec-d')!.specHash,
+        dependencyHash: hashes.get('spec-d')!.dependencyHash,
         artifact: 'tests/spec-d.test.ts',
         materializedAt: Date.now()
       },
@@ -1014,8 +1069,8 @@ describe('cli-workflow - resolve displays workflow states', () => {
         type: 'behavior',
         status: 'current',
         reason: 'reviewed',
-        specHash: hash,
-        dependencyHash: hash,
+        specHash: hashes.get('spec-e')!.specHash,
+        dependencyHash: hashes.get('spec-e')!.dependencyHash,
         artifact: 'tests/spec-e.test.ts',
         materializedAt: Date.now()
       }

@@ -132,7 +132,9 @@ export function resolveReferences(
     resolved.push(resolvedEntity);
     
     // Extract behaviors from features as separate entities
+    // Behaviors inherit the feature's transitive dependencies
     if (entity.type === 'feature' && entity.behaviors) {
+      const parentTransitiveDeps = graph.getTransitiveDependencies(entity.name);
       for (const behavior of entity.behaviors) {
         const behaviorEntity: ResolvedEntity = {
           type: behavior.type || 'behavior',  // Preserve actual type (behavior, group, etc.), fallback to 'behavior'
@@ -145,7 +147,7 @@ export function resolveReferences(
           context: behavior.context,
           sourceFile: entity.sourceFile,
           dependencies: [],
-          transitiveDependencies: []
+          transitiveDependencies: parentTransitiveDeps  // Inherit from parent feature
         };
         resolved.push(behaviorEntity);
       }
