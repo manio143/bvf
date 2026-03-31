@@ -1,0 +1,166 @@
+# Config Materializable Types & Optional Grouping
+
+Extends the config to explicitly declare which entity types
+are materializable (tracked in manifest, counted in summary)
+versus structural (grouping, infrastructure, context).
+
+
+#decl feature config-materializable on @{cli-tool}
+
+  The optional `materializable` key lists types that represent
+  testable work items. Only these types get manifest entries
+  and count toward summary statistics.
+
+
+  #decl behavior config-accepts-materializable-key
+    Given a config:
+    ```
+    #config
+      types: surface, fixture, instrument, behavior, feature
+      containment:
+        feature: behavior
+      materializable: behavior
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then no errors. The config is valid.
+  #end
+
+  #decl behavior config-materializable-must-be-subset-of-types
+    Given a config:
+    ```
+    #config
+      types: surface, behavior, feature
+      materializable: behavior, scenario
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then stderr contains an error: materializable type "scenario"
+    is not listed in types.
+    Exit code is 1.
+  #end
+
+  #decl behavior config-materializable-defaults-to-inference
+    Given a config that omits the `materializable` key:
+    ```
+    #config
+      types: surface, behavior, feature
+      containment:
+        feature: behavior
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then materializable types are inferred as leaf types (children
+    that are never parents) plus standalone types (not in
+    containment at all). This matches the current behavior.
+  #end
+
+  #decl behavior resolve-counts-only-materializable
+    Given a config:
+    ```
+    #config
+      types: service, endpoint, scenario, fixture
+      containment:
+        service: endpoint
+        endpoint: scenario
+      materializable: scenario
+    #end
+    ```
+
+    And specs declaring a service containing an endpoint containing
+    a scenario, plus a standalone fixture.
+
+    When @{run-resolve} is executed.
+
+    Then summary counts only scenarios. The fixture is NOT counted
+    because it's not in the materializable list (even though it's
+    standalone). Summary shows `Pending: 1` (one scenario only).
+  #end
+
+  #decl behavior resolve-shows-non-materializable-in-tree
+    Given the same config and specs as above.
+
+    When @{run-resolve} is executed (without `--diff`).
+
+    Then all entities appear in the tree output (service, endpoint,
+    scenario, fixture). Non-materializable types are shown for
+    context but without status symbols (no ✓/✗/⏳).
+  #end
+
+  #decl behavior resolve-diff-excludes-non-materializable
+    Given the same config and specs as above.
+
+    When @{run-resolve}(flags: "--diff") is executed.
+
+    Then only materializable entities (scenarios) appear in the
+    `--diff` output. Structural types are excluded — `--diff`
+    is for agent tooling that needs actionable items.
+  #end
+
+#end
+
+
+#decl feature config-optional-grouping on @{cli-tool}
+
+  A non-materializable type can serve as an optional grouping
+  container within a parent. Children can exist either directly
+  under the parent or under the group.
+
+
+  #decl behavior config-group-type-allows-optional-nesting
+    Given a config:
+    ```
+    #config
+      types: feature, behavior, group
+      containment:
+        feature: behavior, group
+        group: behavior
+      materializable: behavior
+    #end
+    ```
+
+    And a spec:
+    ```
+    #decl feature payments on @{some-surface}
+      #decl behavior charge-succeeds
+        Happy path.
+      #end
+
+      #decl group error-handling
+        #decl behavior charge-fails
+          Invalid card.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-resolve} is executed.
+
+    Then no errors. Behaviors can nest directly under feature
+    or inside a group that's inside a feature. Both are valid.
+    Summary counts 2 behaviors (charge-succeeds, charge-fails).
+    The group is not counted.
+  #end
+
+  #decl behavior resolve-displays-group-as-header
+    Given the same config and specs as above.
+
+    When @{run-resolve} is executed.
+
+    Then the tree output shows the group as an indented header
+    (without status symbol) with its children nested under it:
+    ```
+    ⏳ payments (feature)
+      ⏳ charge-succeeds (behavior)
+      error-handling (group)
+        ⏳ charge-fails (behavior)
+    ```
+  #end
+
+#end
