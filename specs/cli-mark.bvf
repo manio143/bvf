@@ -243,23 +243,22 @@ to track spec and test validation state.
   #end
 
   #decl behavior workflow-dependency-change-cascade
-    Given entity "web-app" (surface) is (current, reviewed).
-    Entity "auth-test" (behavior) references @{web-app} and is
-    (current, reviewed).
+    Given two entities in specs: a surface "web-app" marked as
+    (current, reviewed), and a behavior "auth-test" that references
+    the surface, also marked as (current, reviewed).
     
-    The "web-app" spec is edited.
+    The "web-app" surface spec is edited, changing its content.
 
     When @{run-resolve}() is executed.
 
-    Then resolve detects both entities have changed (direct change
-    for web-app, dependency change for auth-test).
+    Then resolve detects:
+    - "web-app" has spec hash mismatch (direct change)
+    - "auth-test" has dependency hash mismatch (transitive change)
     
     Both entities auto-update to (pending, needs-review).
+    
+    The dependency cascade ensures all affected entities restart
+    the workflow from soundness review.
   #end
 
-#end
-
-
-#decl surface web-app
-  Example surface for workflow demonstrations.
 #end
