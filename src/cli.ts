@@ -13,7 +13,7 @@ import {
   getEntityStatus,
   findOrphanedEntries 
 } from './manifest.js';
-import type { ResolvedEntity, Manifest } from './types.js';
+import type { ResolvedEntity, Manifest, ManifestEntry } from './types.js';
 
 const commands = ['resolve', 'list', 'init', 'mark'];
 
@@ -205,6 +205,49 @@ async function cmdResolve(cmdArgs: string[]) {
   const entityStatuses = new Map<string, any>();
   const countedEntities = new Set<string>();
   
+  // Auto-transition logic: detect staleness and update manifest
+  let manifestUpdated = false;
+  
+  for (const entity of allResolvedEntities) {
+    const entry = manifest.entries.get(entity.name);
+    if (!entry) continue; // Skip entities not in manifest
+    
+    const currentSpecHash = computeSpecHash(entity);
+    const currentDepHash = computeDependencyHash(entity, currentHashes);
+    
+    // Auto-transition 1: Elaboration completed → re-review
+    if (entry.reason === 'needs-elaboration' && entry.specHash !== currentSpecHash) {
+      entry.specHash = currentSpecHash;
+      entry.dependencyHash = currentDepHash;
+      entry.reason = 'needs-review';
+      manifest.entries.set(entity.name, entry);
+      manifestUpdated = true;
+      continue; // Skip auto-transition 2 for this entity
+    }
+    
+    // Auto-transition 2: Staleness detected → restart workflow
+    // Only auto-transition if entity was previously "complete" (current + reviewed)
+    // This prevents cascading resets for entities still in workflow
+    const wasComplete = entry.status === 'current' && entry.reason === 'reviewed';
+    const isStale = entry.specHash !== currentSpecHash || entry.dependencyHash !== currentDepHash;
+    
+    if (wasComplete && isStale) {
+      entry.status = 'pending';
+      entry.reason = 'needs-review';
+      entry.specHash = currentSpecHash;
+      entry.dependencyHash = currentDepHash;
+      // Preserve artifact for context
+      manifest.entries.set(entity.name, entry);
+      manifestUpdated = true;
+    }
+  }
+  
+  // Write manifest if auto-transitions occurred
+  if (manifestUpdated) {
+    saveManifest(stateDir, manifest);
+  }
+  
+  // Now compute statuses after auto-transitions
   for (const entity of allResolvedEntities) {
     const status = getEntityStatus(entity, manifest, currentHashes);
     entityStatuses.set(entity.name, status);
@@ -409,19 +452,21 @@ function printEntity(entity: any, status: any, manifest: any, showDiff: boolean,
     let symbol = '';
     let color = '';
     
-    switch (status.status) {
-      case 'pending':
-        symbol = '⏳';
-        color = '\x1b[33m'; // yellow
-        break;
-      case 'current':
-        symbol = '✓';
-        color = '\x1b[32m'; // green
-        break;
-      case 'stale':
-        symbol = '✗';
-        color = '\x1b[31m'; // red
-        break;
+    // Display logic based on workflow states:
+    // ⏳ = pending work (status=pending OR status=current with reason=needs-review)
+    // ✓ = complete (status=current AND reason=reviewed)
+    // ✗ = stale (deprecated, should not occur with auto-transitions)
+    
+    if (status.status === 'pending' || (status.status === 'current' && status.reason === 'needs-review')) {
+      symbol = '⏳';
+      color = '\x1b[33m'; // yellow
+    } else if (status.status === 'current' && status.reason === 'reviewed') {
+      symbol = '✓';
+      color = '\x1b[32m'; // green
+    } else {
+      // Fallback for stale or unknown states
+      symbol = '✗';
+      color = '\x1b[31m'; // red
     }
     
     const reset = '\x1b[0m';
@@ -429,8 +474,9 @@ function printEntity(entity: any, status: any, manifest: any, showDiff: boolean,
     
     console.log(statusLine);
     
+    // Show reason in brackets after the entity name
     if (status.reason) {
-      console.log(`${indentStr}    ${status.reason}`);
+      console.log(`${indentStr}    [${status.reason}]`);
     }
     
     if (status.note) {
@@ -651,10 +697,10 @@ async function cmdInit() {
 async function cmdMark(cmdArgs: string[]) {
   const cwd = process.cwd();
   
-  // Parse arguments: bvf mark <entity> <status> [--note "..."] [--artifact "..."]
+  // Parse arguments: bvf mark <entity> <status> [--note "..."] [--artifact "..."] [--force]
   if (cmdArgs.length < 2) {
-    console.error('Usage: bvf mark <entity> <status> [--note "..."] [--artifact "..."]');
-    console.error('Status: needs-elaboration, review-failed, current');
+    console.error('Usage: bvf mark <entity> <status> [--note "..."] [--artifact "..."] [--force]');
+    console.error('Status: spec-needs-elaboration, spec-reviewed, test-ready, test-reviewed, test-needs-fixing');
     process.exit(1);
   }
   
@@ -675,17 +721,26 @@ async function cmdMark(cmdArgs: string[]) {
     artifact = cmdArgs[artifactIndex + 1];
   }
   
+  // Parse --force flag
+  const force = cmdArgs.includes('--force');
+  
   // Validate status argument
-  const validStatuses = ['needs-elaboration', 'review-failed', 'current'];
+  const validStatuses = [
+    'spec-needs-elaboration',
+    'spec-reviewed',
+    'test-ready',
+    'test-reviewed',
+    'test-needs-fixing'
+  ];
   if (!validStatuses.includes(statusArg)) {
     console.error(`Invalid status: ${statusArg}`);
     console.error(`Valid statuses: ${validStatuses.join(', ')}`);
     process.exit(1);
   }
   
-  // Validate current status requires artifact
-  if (statusArg === 'current' && !artifact) {
-    console.error('Error: artifact path is required when marking as current (--artifact "...")');
+  // Validate test-ready status requires artifact
+  if (statusArg === 'test-ready' && !artifact) {
+    console.error('Error: artifact path is required when marking as test-ready (--artifact "...")');
     process.exit(1);
   }
   
@@ -751,70 +806,129 @@ async function cmdMark(cmdArgs: string[]) {
   const stateDir = join(cwd, config.stateDir);
   const manifest = loadManifest(stateDir);
   
-  // Get or create manifest entry
-  let entry = manifest.entries.get(entityName);
+  // Get current manifest entry
+  let entry: ManifestEntry | undefined = manifest.entries.get(entityName);
   
-  // Handle different status cases
-  if (statusArg === 'current') {
-    // Compute fresh hashes from current entity state
-    const specHash = computeSpecHash(entity);
+  // Compute fresh hashes from current entity state
+  const specHash = computeSpecHash(entity);
+  const currentHashes = new Map<string, string>();
+  for (const e of resolved) {
+    currentHashes.set(e.name, computeSpecHash(e));
+  }
+  const dependencyHash = computeDependencyHash(entity, currentHashes);
+  
+  // Check for staleness if entry exists and we're trying to bless
+  if (entry && !force && ['spec-reviewed', 'test-reviewed'].includes(statusArg)) {
+    // Special case: when transitioning from needs-elaboration to spec-reviewed,
+    // allow hash update (this is the re-review after elaboration)
+    const isReReviewAfterElaboration = entry.reason === 'needs-elaboration' && statusArg === 'spec-reviewed';
     
-    // Compute dependency hash
-    const currentHashes = new Map<string, string>();
-    for (const e of resolved) {
-      currentHashes.set(e.name, computeSpecHash(e));
-    }
-    const dependencyHash = computeDependencyHash(entity, currentHashes);
-    
-    // Create/update entry with computed hashes and artifact
-    entry = {
-      name: entityName,
-      specHash,
-      dependencyHash,
-      artifact: artifact!,
-      materializedAt: new Date().toISOString()
-    };
-    
-    // Clear any status override (delete status, reason, note)
-    // By not setting these fields, the entry will compute status from hashes
-    
-  } else {
-    // Handle needs-elaboration and review-failed
-    if (!entry) {
-      // Create new entry
-      const specHash = computeSpecHash(entity);
-      entry = {
-        name: entityName,
-        specHash,
-        dependencyHash: specHash, // Initial value
-      };
-    }
-    
-    // Update status based on status argument
-    if (statusArg === 'needs-elaboration') {
-      entry.status = 'pending';
-      entry.reason = 'needs-elaboration';
-    } else if (statusArg === 'review-failed') {
-      entry.status = 'stale';
-      entry.reason = 'review-failed';
-    }
-    
-    if (note) {
-      entry.note = note;
+    // Check if spec has changed since last manifest state (unless re-reviewing after elaboration)
+    if (!isReReviewAfterElaboration && entry.specHash && entry.specHash !== specHash) {
+      console.error(`Error: entity has changed since last state (${entry.reason || 'unknown'}).`);
+      console.error(`Run 'bvf resolve' to validate changes before marking as ${statusArg}.`);
+      console.error(`Or use --force to update hashes anyway.`);
+      process.exit(1);
     }
   }
   
+  // Handle different workflow transitions
+  let newEntry: ManifestEntry;
+  
+  switch (statusArg) {
+    case 'spec-needs-elaboration':
+      newEntry = {
+        name: entityName,
+        status: 'pending',
+        reason: 'needs-elaboration',
+        specHash: entry?.specHash || specHash,
+        dependencyHash: entry?.dependencyHash || dependencyHash,
+        ...(note && { note }),
+        ...(entry?.artifact && { artifact: entry.artifact })
+      };
+      break;
+      
+    case 'spec-reviewed':
+      // When transitioning FROM needs-elaboration, always update hashes (this is the re-review after elaboration)
+      // For other states, the staleness check above will catch mismatches
+      newEntry = {
+        name: entityName,
+        status: 'pending',
+        reason: 'reviewed',
+        specHash,
+        dependencyHash,
+        ...(entry?.artifact && { artifact: entry.artifact })
+      };
+      break;
+      
+    case 'test-ready':
+      // Allow test-ready in two scenarios:
+      // 1. Entity has been spec-reviewed (entry exists with reason='reviewed' or 'needs-review')
+      // 2. Entity is brand new (no entry) - materialization agent can directly mark
+      //
+      // Reject if entity exists but is in needs-elaboration (must be reviewed first)
+      if (entry && entry.reason === 'needs-elaboration') {
+        console.error('Error: cannot mark as test-ready. Entity is in needs-elaboration state and must be spec-reviewed first.');
+        process.exit(1);
+      }
+      
+      newEntry = {
+        name: entityName,
+        status: 'current',
+        reason: 'needs-review',
+        specHash,
+        dependencyHash,
+        artifact: artifact!,
+        materializedAt: new Date().toISOString()
+      };
+      break;
+      
+    case 'test-reviewed':
+      // Must be in test-ready state (current, needs-review) or have an artifact
+      if (!entry || entry.status !== 'current' || !entry.artifact) {
+        console.error('Error: cannot mark as test-reviewed. Entity must be test-ready first (must have artifact).');
+        process.exit(1);
+      }
+      
+      newEntry = {
+        ...entry,
+        reason: 'reviewed'
+      };
+      break;
+      
+    case 'test-needs-fixing':
+      // Must have a test (current status)
+      if (!entry || entry.status !== 'current') {
+        console.error('Error: cannot mark as test-needs-fixing. Entity must have a test first.');
+        process.exit(1);
+      }
+      
+      newEntry = {
+        name: entityName,
+        status: 'pending',
+        reason: 'reviewed',
+        specHash: entry.specHash,
+        dependencyHash: entry.dependencyHash,
+        artifact: entry.artifact, // Preserve artifact
+        ...(note && { note })
+      };
+      break;
+      
+    default:
+      console.error(`Invalid status: ${statusArg}`);
+      process.exit(1);
+  }
+  
   // Save updated manifest
-  manifest.entries.set(entityName, entry);
+  manifest.entries.set(entityName, newEntry);
   saveManifest(stateDir, manifest);
   
-  if (statusArg === 'current') {
-    console.log(`Marked ${entityName} as current (artifact: ${artifact})`);
-  } else {
-    console.log(`Marked ${entityName} as ${entry.status} (${entry.reason})`);
-    if (note) {
-      console.log(`Note: ${note}`);
-    }
+  console.log(`Marked ${entityName} as ${newEntry.status} (${newEntry.reason})`);
+  if (note) {
+    console.log(`Note: ${note}`);
+  }
+  if (artifact) {
+    console.log(`Artifact: ${artifact}`);
   }
   
   process.exit(0);
