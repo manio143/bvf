@@ -211,10 +211,10 @@
   },
   "resolve-displays-group-as-header": {
     "name": "resolve-displays-group-as-header",
-    "specHash": "bf26ccc63e2d522000882cac5067d9e06ee199dec327d234718f4902c06f3833",
+    "specHash": "77fdb975c2d90dc13546b7a4be47c20fbd950e0d9b7d7c58851b870bb29b5bbe",
     "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
     "artifact": "test:resolve-displays-group-as-header",
-    "materializedAt": "2026-03-31T05:55:53.863Z"
+    "materializedAt": "2026-03-31T06:11:09.920Z"
   },
   "config-custom-file-extension": {
     "name": "config-custom-file-extension",
