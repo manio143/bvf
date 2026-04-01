@@ -383,80 +383,153 @@ code signals success vs structural failure.
   #end
 
   #decl behavior resolve-unchanged-entity-is-current
-    Given entity "login-test" in specs and a manifest with matching
-    spec hash and dependency hash.
+    Given a spec file containing entity "login-test".
+    And entity "login-test" is marked as test-reviewed with artifact "test.js"
+    via command `bvf mark login-test test-reviewed --artifact test.js`.
+    And the spec file is NOT edited after marking.
 
     When @{run-resolve} is executed.
 
-    Then "login-test" shows with ✓ status.
+    Then "login-test" shows with ✓ status (current, reviewed).
+    And manifest hashes match current spec state.
     Exit code is 0.
   #end
 
   #decl behavior resolve-content-change-makes-stale
-    Given entity "login-test" in specs whose content differs from
-    the spec hash stored in the manifest.
+    # Related: workflow-staleness-auto-restart in cli-mark.bvf
+    # (same behavior, different test scope - this is unit, that is integration)
+    
+    Given a spec file containing entity "login-test".
+    And entity "login-test" is marked as test-reviewed with artifact "test.js"
+    via command `bvf mark login-test test-reviewed --artifact test.js`.
+    And the spec file for "login-test" is then edited (content changed).
 
     When @{run-resolve} is executed.
 
-    Then "login-test" shows with ✗ status and reason
-    indicating content changed.
+    Then resolve detects spec hash changed and auto-updates manifest
+    to status='pending', reason='needs-review'.
+    And output shows ⏳ symbol for "login-test".
+    And artifact path is preserved in manifest.
     Exit code is 0.
   #end
 
   #decl behavior resolve-dependency-change-makes-stale
-    Given spec files declaring:
-    ```
-    #decl surface web-app
-      The app (changed content).
-    #end
-
-    #decl instrument login on @{web-app}
-      Log in.
-    #end
-    ```
-    And a manifest with old dependency hash for "login".
+    Given spec files containing:
+    - Surface "web-app" 
+    - Instrument "login" referencing entity "web-app"
+    And both entities are marked as test-reviewed via `bvf mark` commands.
+    And the "web-app" spec file is then edited (content changed).
 
     When @{run-resolve} is executed.
 
-    Then "login" shows with ✗ status and reason indicating
-    a dependency changed.
+    Then resolve detects:
+    - "web-app" has spec hash mismatch (direct change)
+    - "login" has dependency hash mismatch (transitive change)
+    And both auto-update to status='pending', reason='needs-review'.
+    And output shows ⏳ symbol for both entities.
     Exit code is 0.
   #end
 
   #decl behavior resolve-transitive-dep-change-cascades
-    Given spec files declaring:
-    ```
-    #decl surface web-app
-      The app (changed content).
-    #end
-
-    #decl instrument login on @{web-app}
-      Log in.
-    #end
-
-    #decl feature auth on @{web-app}
-      #decl behavior can-login
-        Uses @{login}.
-      #end
-    #end
-    ```
-    And a manifest where all three were previously materialized,
-    but "web-app" content has since changed.
+    Given spec files containing:
+    - Surface "web-app"
+    - Instrument "login" referencing entity "web-app"
+    - Behavior "can-login" referencing entity "login"
+    And all three entities are marked as test-reviewed via `bvf mark` commands.
+    And the "web-app" spec file is then edited (content changed).
 
     When @{run-resolve} is executed.
 
-    Then both "login" and "can-login" show as ✗ stale.
+    Then resolve detects hash mismatches cascade transitively:
+    - "web-app": spec hash changed (direct edit)
+    - "login": dependency hash changed (web-app changed)
+    - "can-login": dependency hash changed (login changed)
+    And all three auto-update to status='pending', reason='needs-review'.
+    And output shows ⏳ symbol for all three.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-change-during-pending-review
+    Given a spec file containing entity "login-test".
+    And entity "login-test" is in state (pending, needs-review) - not yet reviewed.
+    And the spec file for "login-test" is then edited (content changed).
+
+    When @{run-resolve} is executed.
+
+    Then resolve detects spec hash changed and updates manifest hashes.
+    And entity remains in status='pending', reason='needs-review'.
+    And output shows ⏳ symbol for "login-test".
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-change-after-spec-reviewed
+    Given a spec file containing entity "login-test".
+    And entity "login-test" is marked as spec-reviewed via `bvf mark`
+    (state is pending, reviewed - ready for materialization).
+    And the spec file for "login-test" is then edited (content changed).
+
+    When @{run-resolve} is executed.
+
+    Then resolve detects spec hash changed and auto-updates manifest
+    to status='pending', reason='needs-review'.
+    And output shows ⏳ symbol for "login-test".
+    And the entity must be re-reviewed before materialization.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-change-during-test-review
+    Given a spec file containing entity "login-test".
+    And entity "login-test" is marked as test-ready with artifact "test.js"
+    (state is current, needs-review - test materialized, awaiting alignment review).
+    And the spec file for "login-test" is then edited (content changed).
+
+    When @{run-resolve} is executed.
+
+    Then resolve detects spec hash changed and auto-updates manifest
+    to status='pending', reason='needs-review'.
+    And output shows ⏳ symbol for "login-test".
+    And artifact path is preserved but test is now misaligned with spec.
+    And the entity must restart workflow from soundness review.
     Exit code is 0.
   #end
 
   #decl behavior resolve-orphaned-entity-detected
-    Given the manifest contains "old-test" but no spec file
-    declares an entity named "old-test".
+    Given a spec file containing entity "old-test".
+    And entity "old-test" is marked as test-ready with artifact "tests/old.test.ts".
+    And the spec file is then deleted (or entity declaration removed).
 
     When @{run-resolve} is executed.
 
-    Then "old-test" appears in an "Orphaned" section.
-    The manifest entry is removed.
+    Then "old-test" appears in "Orphaned (removed from specs):" section.
+    And manifest entry is preserved with status='orphaned'.
+    And output shows warning: "⚠️ old-test - spec removed but test exists at tests/old.test.ts".
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-orphaned-without-artifact-is-deleted
+    Given a spec file containing entity "login-test".
+    And entity "login-test" is in state (pending, needs-review).
+    And manifest entry has no artifact field (never materialized).
+    And the spec file is then deleted (or entity declaration removed).
+
+    When @{run-resolve} is executed.
+
+    Then "login-test" appears in "Orphaned (removed from specs):" section.
+    And manifest entry is removed (no artifact, safe to delete).
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-orphaned-pending-with-artifact
+    Given a spec file containing entity "updated-test".
+    And entity "updated-test" was previously materialized with artifact "tests/updated.test.ts".
+    And entity is now (pending, needs-review) after spec change.
+    And the spec file is then deleted (or entity declaration removed).
+
+    When @{run-resolve} is executed.
+
+    Then "updated-test" appears in "Orphaned (removed from specs):" section.
+    And manifest entry is preserved with status='orphaned' (has artifact).
+    And output shows warning with artifact path.
     Exit code is 0.
   #end
 

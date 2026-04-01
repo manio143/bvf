@@ -366,6 +366,10 @@ function convertChildrenToBehaviors(children: Entity[]): any[] {
     body: child.body,
     context: child.context,
     line: child.line,
+    // Preserve references and clauses for dependency tracking
+    clauses: child.clauses,
+    references: child.references,
+    paramUsages: child.paramUsages,
     behaviors: child.behaviors // Preserve nested children for multi-level containment
   }));
 }

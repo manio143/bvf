@@ -573,24 +573,31 @@ describe('resolve-status-tracking', () => {
 `
     });
 
-    // Create manifest marking entity as current
-    // Note: Hash validation is not yet implemented in the CLI,
-    // so any hash values will show the entity as current
-    createManifest(tmpDir, {
-      'login-test': {
-        type: 'behavior',
-        status: 'current',
-        specHash: 'any-hash-works',
-        dependencyHash: 'any-dep-hash',
-        materializedAt: Date.now()
-      }
-    });
+    // Run resolve first to create manifest entry
+    const firstResolve = await runCli('resolve', tmpDir);
+    expect(firstResolve.exitCode).toBe(0);
 
+    // Use CLI workflow: spec-reviewed → test-ready → test-reviewed
+    await runCli('mark login-test spec-reviewed', tmpDir);
+    await runCli('mark login-test test-ready --artifact test.js', tmpDir);
+    const markResult = await runCli('mark login-test test-reviewed', tmpDir);
+    expect(markResult.exitCode).toBe(0);
+
+    // Do NOT edit the spec file - entity should remain current
+
+    // Run resolve - should show entity as current (✓) with reviewed status
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('✓');
     expect(result.stdout).toContain('login-test');
+    
+    // Verify manifest state: status=current, reason=reviewed
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['login-test'].status).toBe('current');
+    expect(manifest['login-test'].reason).toBe('reviewed');
+    expect(manifest['login-test'].artifact).toBe('test.js');
   });
 
   it('resolve-content-change-makes-stale', async () => {
@@ -601,25 +608,36 @@ describe('resolve-status-tracking', () => {
 `
     });
 
-    // Create manifest with entity marked as stale with reason "content-changed"
-    // This simulates the case where spec content changed after materialization
-    createManifest(tmpDir, {
-      'login-test': {
-        type: 'behavior',
-        status: 'stale',
-        reason: 'content-changed',
-        specHash: 'old-hash',
-        dependencyHash: 'dep-hash',
-        materializedAt: Date.now() - 10000
-      }
-    });
+    // Run resolve first to create manifest entry
+    const firstResolve = await runCli('resolve', tmpDir);
+    expect(firstResolve.exitCode).toBe(0);
 
+    // Use CLI workflow: spec-reviewed → test-ready → test-reviewed
+    await runCli('mark login-test spec-reviewed', tmpDir);
+    await runCli('mark login-test test-ready --artifact test.js', tmpDir);
+    const markResult = await runCli('mark login-test test-reviewed', tmpDir);
+    expect(markResult.exitCode).toBe(0);
+
+    // Edit the spec file - change content
+    const specPath = join(tmpDir, 'specs', 'test.bvf');
+    writeFileSync(specPath, `#decl behavior login-test
+  Updated test content - spec changed!
+#end
+`);
+
+    // Run resolve - should detect spec hash changed and auto-update to pending/needs-review
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('✗');
+    expect(result.stdout).toContain('⏳'); // pending symbol
     expect(result.stdout).toContain('login-test');
-    expect(result.stdout.toLowerCase()).toContain('content');
+    
+    // Verify manifest state: auto-updated to pending/needs-review
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['login-test'].status).toBe('pending');
+    expect(manifest['login-test'].reason).toBe('needs-review');
+    expect(manifest['login-test'].artifact).toBe('test.js'); // artifact preserved
   });
 
   it('resolve-dependency-change-makes-stale', async () => {
@@ -634,25 +652,49 @@ describe('resolve-status-tracking', () => {
 `
     });
 
-    // Create manifest with instrument marked as stale with reason "dependency-changed"
-    // This simulates the case where the surface (@{web-app}) changed after materialization
-    createManifest(tmpDir, {
-      'login': {
-        type: 'instrument',
-        status: 'stale',
-        reason: 'dependency-changed',
-        specHash: 'spec-hash',
-        dependencyHash: 'old-dep-hash',
-        materializedAt: Date.now() - 10000
-      }
-    });
+    // Run resolve first to create manifest entries
+    const firstResolve = await runCli('resolve', tmpDir);
+    expect(firstResolve.exitCode).toBe(0);
 
+    // Use CLI workflow for both entities: spec-reviewed → test-ready → test-reviewed
+    await runCli('mark web-app spec-reviewed', tmpDir);
+    await runCli('mark web-app test-ready --artifact surface-test.js', tmpDir);
+    const markSurface = await runCli('mark web-app test-reviewed', tmpDir);
+    expect(markSurface.exitCode).toBe(0);
+    
+    await runCli('mark login spec-reviewed', tmpDir);
+    await runCli('mark login test-ready --artifact login-test.js', tmpDir);
+    const markInstrument = await runCli('mark login test-reviewed', tmpDir);
+    expect(markInstrument.exitCode).toBe(0);
+
+    // Edit the web-app spec file - change dependency
+    const specPath = join(tmpDir, 'specs', 'test.bvf');
+    writeFileSync(specPath, `#decl surface web-app
+  Surface content CHANGED!
+#end
+
+#decl instrument login on @{web-app}
+  Login instrument.
+#end
+`);
+
+    // Run resolve - should detect both changes:
+    // - web-app: spec hash mismatch (direct change)
+    // - login: dependency hash mismatch (transitive change from web-app)
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('✗');
+    expect(result.stdout).toContain('⏳'); // pending symbol
+    expect(result.stdout).toContain('web-app');
     expect(result.stdout).toContain('login');
-    expect(result.stdout.toLowerCase()).toContain('dependency');
+    
+    // Verify manifest state: both auto-updated to pending/needs-review
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['web-app'].status).toBe('pending');
+    expect(manifest['web-app'].reason).toBe('needs-review');
+    expect(manifest['login'].status).toBe('pending');
+    expect(manifest['login'].reason).toBe('needs-review');
   });
 
   it('resolve-transitive-dep-change-cascades', async () => {
@@ -671,33 +713,188 @@ describe('resolve-status-tracking', () => {
 `
     });
 
-    // Create manifest with both entities marked as stale due to transitive dependency change
-    // When web-app changes, both login (direct dep) and can-login (transitive via login) become stale
-    createManifest(tmpDir, {
-      'login': {
-        type: 'instrument',
-        status: 'stale',
-        reason: 'dependency-changed',
-        specHash: 'login-hash',
-        dependencyHash: 'old-web-app-hash',
-        materializedAt: Date.now() - 10000
-      },
-      'can-login': {
-        type: 'behavior',
-        status: 'stale',
-        reason: 'dependency-changed',
-        specHash: 'behavior-hash',
-        dependencyHash: 'old-login-hash',
-        materializedAt: Date.now() - 10000
-      }
-    });
+    // Run resolve first to create manifest entries
+    const firstResolve = await runCli('resolve', tmpDir);
+    expect(firstResolve.exitCode).toBe(0);
 
+    // Use CLI workflow for all three entities: spec-reviewed → test-ready → test-reviewed
+    await runCli('mark web-app spec-reviewed', tmpDir);
+    await runCli('mark web-app test-ready --artifact surface-test.js', tmpDir);
+    const markSurface = await runCli('mark web-app test-reviewed', tmpDir);
+    expect(markSurface.exitCode).toBe(0);
+    
+    await runCli('mark login spec-reviewed', tmpDir);
+    await runCli('mark login test-ready --artifact login-test.js', tmpDir);
+    const markInstrument = await runCli('mark login test-reviewed', tmpDir);
+    expect(markInstrument.exitCode).toBe(0);
+    
+    await runCli('mark can-login spec-reviewed', tmpDir);
+    await runCli('mark can-login test-ready --artifact can-login-test.js', tmpDir);
+    const markBehavior = await runCli('mark can-login test-reviewed', tmpDir);
+    expect(markBehavior.exitCode).toBe(0);
+
+    // Edit the web-app spec file - change root dependency
+    const specPath = join(tmpDir, 'specs', 'test.bvf');
+    writeFileSync(specPath, `#decl surface web-app
+  Surface CHANGED!
+#end
+
+#decl instrument login on @{web-app}
+  Login instrument.
+#end
+
+#decl behavior can-login
+  Uses @{login}.
+#end
+`);
+
+    // Run resolve - should detect transitive cascade:
+    // - web-app: spec hash changed (direct edit)
+    // - login: dependency hash changed (web-app changed)
+    // - can-login: dependency hash changed (login changed transitively)
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('✗');
-    const staleCount = (result.stdout.match(/✗/g) || []).length;
-    expect(staleCount).toBeGreaterThanOrEqual(2);
+    expect(result.stdout).toContain('⏳'); // pending symbol
+    expect(result.stdout).toContain('web-app');
+    expect(result.stdout).toContain('login');
+    expect(result.stdout).toContain('can-login');
+    
+    // Verify manifest state: all three auto-updated to pending/needs-review
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['web-app'].status).toBe('pending');
+    expect(manifest['web-app'].reason).toBe('needs-review');
+    expect(manifest['login'].status).toBe('pending');
+    expect(manifest['login'].reason).toBe('needs-review');
+    expect(manifest['can-login'].status).toBe('pending');
+    expect(manifest['can-login'].reason).toBe('needs-review');
+  });
+
+  it('resolve-change-during-pending-review', async () => {
+    setupProject(tmpDir, {
+      'test.bvf': `#decl behavior login-test
+  Original content.
+#end
+`
+    });
+
+    // Manually create manifest with entity in pending/needs-review (new, not yet reviewed)
+    // This simulates an entity that exists but hasn't gone through spec review yet
+    createManifest(tmpDir, {
+      'login-test': {
+        type: 'behavior',
+        status: 'pending',
+        reason: 'needs-review',
+        specHash: 'initial-hash',
+        dependencyHash: '',
+        materializedAt: Date.now()
+      }
+    });
+
+    // Edit the spec file while in pending/needs-review state
+    const specPath = join(tmpDir, 'specs', 'test.bvf');
+    writeFileSync(specPath, `#decl behavior login-test
+  Content changed during pending review.
+#end
+`);
+
+    // Run resolve - should update hashes but remain pending/needs-review
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('⏳'); // pending symbol
+    expect(result.stdout).toContain('login-test');
+    
+    // Verify manifest state: still pending/needs-review, but hashes updated
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['login-test'].status).toBe('pending');
+    expect(manifest['login-test'].reason).toBe('needs-review');
+  });
+
+  it('resolve-change-after-spec-reviewed', async () => {
+    setupProject(tmpDir, {
+      'test.bvf': `#decl behavior login-test
+  Original content.
+#end
+`
+    });
+
+    // Manually create manifest with entity in pending/reviewed (spec approved, ready for materialization)
+    createManifest(tmpDir, {
+      'login-test': {
+        type: 'behavior',
+        status: 'pending',
+        reason: 'reviewed',
+        specHash: 'initial-hash',
+        dependencyHash: '',
+        materializedAt: Date.now()
+      }
+    });
+
+    // Edit the spec file after spec review
+    const specPath = join(tmpDir, 'specs', 'test.bvf');
+    writeFileSync(specPath, `#decl behavior login-test
+  Content changed after spec review!
+#end
+`);
+
+    // Run resolve - should detect spec hash changed and auto-restart to pending/needs-review
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('⏳'); // pending symbol
+    expect(result.stdout).toContain('login-test');
+    
+    // Verify manifest state: auto-updated back to pending/needs-review
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['login-test'].status).toBe('pending');
+    expect(manifest['login-test'].reason).toBe('needs-review');
+  });
+
+  it('resolve-change-during-test-review', async () => {
+    setupProject(tmpDir, {
+      'test.bvf': `#decl behavior login-test
+  Original content.
+#end
+`
+    });
+
+    // Manually create manifest with entity in current/needs-review (test materialized, awaiting alignment review)
+    createManifest(tmpDir, {
+      'login-test': {
+        type: 'behavior',
+        status: 'current',
+        reason: 'needs-review',
+        specHash: 'initial-hash',
+        dependencyHash: '',
+        artifact: 'tests/login.test.ts',
+        materializedAt: Date.now()
+      }
+    });
+
+    // Edit the spec file while test is awaiting review
+    const specPath = join(tmpDir, 'specs', 'test.bvf');
+    writeFileSync(specPath, `#decl behavior login-test
+  Content changed during test review!
+#end
+`);
+
+    // Run resolve - should detect spec hash changed and auto-restart to pending/needs-review
+    const result = await runCli('resolve', tmpDir);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('⏳'); // pending symbol
+    expect(result.stdout).toContain('login-test');
+    
+    // Verify manifest state: auto-updated to pending/needs-review, artifact preserved
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    expect(manifest['login-test'].status).toBe('pending');
+    expect(manifest['login-test'].reason).toBe('needs-review');
+    expect(manifest['login-test'].artifact).toBe('tests/login.test.ts'); // preserved
   });
 
   it('resolve-orphaned-entity-detected', async () => {
@@ -756,32 +953,29 @@ describe('resolve-output-format', () => {
       'test.bvf': specContent
     });
 
-    const crypto = require('crypto');
-    const surfaceHash = crypto.createHash('sha256').update('my-surface').digest('hex').substring(0, 16);
-    const hash1 = crypto.createHash('sha256').update('test-one').digest('hex').substring(0, 16);
-    const hash2 = crypto.createHash('sha256').update('test-two').digest('hex').substring(0, 16);
-    const depHash = crypto.createHash('sha256').update('my-surface').digest('hex').substring(0, 16);
-
+    // Run resolve once to get the correct hashes
+    await runCli('resolve', tmpDir);
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const tempManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
+    
+    // Now create a manifest with all entities marked as current/reviewed with the correct hashes
     createManifest(tmpDir, {
       'my-surface': {
-        type: 'surface',
+        ...tempManifest['my-surface'],
         status: 'current',
-        specHash: surfaceHash,
-        dependencyHash: '',
+        reason: 'reviewed',
         materializedAt: Date.now()
       },
       'test-one': {
-        type: 'behavior',
+        ...tempManifest['test-one'],
         status: 'current',
-        specHash: hash1,
-        dependencyHash: depHash,
+        reason: 'reviewed',
         materializedAt: Date.now()
       },
       'test-two': {
-        type: 'behavior',
+        ...tempManifest['test-two'],
         status: 'current',
-        specHash: hash2,
-        dependencyHash: depHash,
+        reason: 'reviewed',
         materializedAt: Date.now()
       }
     });
@@ -818,35 +1012,47 @@ describe('resolve-output-format', () => {
 `
     });
 
-    const crypto = require('crypto');
-    const currentHash = crypto.createHash('sha256').update('current').digest('hex').substring(0, 16);
-    const staleHash = crypto.createHash('sha256').update('old-stale').digest('hex').substring(0, 16);
-    const depHash = crypto.createHash('sha256').update('dep').digest('hex').substring(0, 16);
+    // Run resolve once to get correct hashes
+    await runCli('resolve', tmpDir);
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    const tempManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 
+    // Create manifest with mixed states:
+    // - test-current: current + reviewed with correct hash (will stay ✓)
+    // - test-stale: use wrong hash to make it stale (auto-transitions to pending/needs-review → ⏳)
+    // - test-pending: omit from manifest (will be detected as new → ⏳)
+    const crypto = require('crypto');
+    const staleHash = crypto.createHash('sha256').update('old-stale-content-that-doesnt-match').digest('hex');
+    
     createManifest(tmpDir, {
       'test-current': {
-        type: 'behavior',
+        ...tempManifest['test-current'],
         status: 'current',
-        specHash: currentHash,
-        dependencyHash: depHash,
+        reason: 'reviewed',
         materializedAt: Date.now()
       },
       'test-stale': {
-        type: 'behavior',
-        status: 'stale',
-        reason: 'content-changed',
-        specHash: staleHash,
-        dependencyHash: depHash,
+        ...tempManifest['test-stale'],
+        status: 'current',
+        reason: 'reviewed',
+        specHash: staleHash,  // Wrong hash triggers auto-transition to pending/needs-review
         materializedAt: Date.now()
       }
+      // test-pending not in manifest - will show as pending
     });
 
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('✓');
-    expect(result.stdout).toContain('✗');
-    expect(result.stdout).toContain('⏳');
+    expect(result.stdout).toContain('✓');   // test-current
+    expect(result.stdout).toContain('⏳');  // test-stale (auto-transitioned) and test-pending
+    
+    // With auto-transitions, stale entities become pending/needs-review, not stale
+    // So we expect Summary to show: Current: 1, Pending: 3 (including my-surface), Stale: 0
+    expect(result.stdout.toLowerCase()).toMatch(/current:\s*1/);
+    expect(result.stdout.toLowerCase()).toMatch(/pending:\s*3/);
+    expect(result.stdout.toLowerCase()).toMatch(/stale:\s*0/);
+    
     const lines = result.stdout.split('\n');
     const currentIdx = lines.findIndex(l => l.includes('test-current'));
     const staleIdx = lines.findIndex(l => l.includes('test-stale'));

@@ -79,11 +79,11 @@
   "mark-nonexistent-entity": {
     "name": "mark-nonexistent-entity",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "c8eded38e248b27e40c96fe6fdb54de042460728acda6966862621bd8c63f1f7",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:47:17.547Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.446Z"
   },
   "config-rejects-missing-types": {
     "name": "config-rejects-missing-types",
@@ -500,31 +500,39 @@
   },
   "resolve-unchanged-entity-is-current": {
     "name": "resolve-unchanged-entity-is-current",
-    "specHash": "9aed8537b22f4b5ab9bf40cfcd11c51c6383ac387d5cedf1e935d74961f577d2",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "2ddcd4d41fe4250549a45da15ed50e62c8055435cc401b7020ac914ec8bcd7f6",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "test:resolve-unchanged-entity-is-current",
-    "materializedAt": "2026-03-31T05:55:56.863Z"
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T07:42:45.216Z"
   },
   "resolve-content-change-makes-stale": {
     "name": "resolve-content-change-makes-stale",
-    "specHash": "c806fda116f66fc58628ffb7186ce027a308e5e4e2cd36ca42502f34fa1a8ee0",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "b6abe6ce07b18d82c7b67b8ef1e24b49d0420ca510aecd4e87c07823fc9653a0",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "test:resolve-content-change-makes-stale",
-    "materializedAt": "2026-03-31T05:55:56.933Z"
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T07:42:46.367Z"
   },
   "resolve-dependency-change-makes-stale": {
     "name": "resolve-dependency-change-makes-stale",
-    "specHash": "733c0ede11d6872b16fdbe0af3fb721447544bfaa9578507cb8bab6d755d94d9",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "56e3ec2dbbf1a65cd64c64a0f5975680d88e3ec5d4aacb16a4d8a224b495e493",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "test:resolve-dependency-change-makes-stale",
-    "materializedAt": "2026-03-31T05:55:57.005Z"
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T07:42:47.572Z"
   },
   "resolve-transitive-dep-change-cascades": {
     "name": "resolve-transitive-dep-change-cascades",
-    "specHash": "1ce65028d886bafae278d9ac3bcc19d7a410636fca4f6406770913ad9e073f62",
+    "status": "current",
+    "reason": "needs-review",
+    "specHash": "4b791b6cf8199d279b07a3e495927246de49309e9f54efa0e128b2a64d483907",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "test:resolve-transitive-dep-change-cascades",
-    "materializedAt": "2026-03-31T05:55:57.078Z"
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T06:00:23.220Z"
   },
   "resolve-orphaned-entity-detected": {
     "name": "resolve-orphaned-entity-detected",
@@ -606,65 +614,65 @@
   "mark-spec-needs-elaboration": {
     "name": "mark-spec-needs-elaboration",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "d07c1e0d4a5d254323210df111a0118a6bac38318a26a5898891cf9918bc9887",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.540Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.051Z"
   },
   "mark-spec-reviewed": {
     "name": "mark-spec-reviewed",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "c68dac7c58a8e53f120ec9dadcdd09476ecdf818f4a338590944c5d4169248e7",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.611Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.114Z"
   },
   "mark-test-ready": {
     "name": "mark-test-ready",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "77f3c37aa8062e9301767c1cc2ad0604a8d4f190412da1da12f3c1673061abe5",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.681Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.179Z"
   },
   "mark-test-ready-requires-artifact": {
     "name": "mark-test-ready-requires-artifact",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "28cb88ff96685ded93d17c0402ee4feb5dbe69f7a6b3c7ab047000e4faaf331f",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.787Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.244Z"
   },
   "mark-test-reviewed": {
     "name": "mark-test-reviewed",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "85ba7a36c28f3ba5cab8603766cfef3f52b59b2958ea332d65e7affedb033d44",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.839Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.314Z"
   },
   "mark-test-needs-fixing": {
     "name": "mark-test-needs-fixing",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "7b1b8c2229ab2a87c1b821e514602238754ea4555886c1716a2ae42a7408bf05",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.893Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.381Z"
   },
   "mark-updates-hashes-on-transition": {
     "name": "mark-updates-hashes-on-transition",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "b898411678c43b34e43d46d94367fba28b153068c988f7be333628155d412271",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:30.954Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.512Z"
   },
   "mark-detects-stale-before-blessing": {
     "name": "mark-detects-stale-before-blessing",
@@ -672,133 +680,305 @@
     "reason": "reviewed",
     "specHash": "ada5afa038ab38258340f427f2369e94078178c9cefbcce573ed44fc3ac5ab1d",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.002Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T08:33:10.842Z"
   },
   "mark-rejects-invalid-state-transition": {
     "name": "mark-rejects-invalid-state-transition",
     "status": "current",
-    "reason": "reviewed",
+    "reason": "needs-review",
     "specHash": "92285d6c086c1300b079018c7ab033a6a7d428f440cb41b4f74821920be998dd",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.057Z"
+    "artifact": "tests/cli-mark.test.ts",
+    "materializedAt": "2026-04-01T06:01:54.645Z"
   },
   "workflow-soundness-review-pass": {
     "name": "workflow-soundness-review-pass",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "8bf69872f1fd14fecec779999c6cfff910cae3d496f5e20379d09bfc7c68cec8",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.108Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-soundness-review-fail": {
     "name": "workflow-soundness-review-fail",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "0abc5f08043c2d781f4b6cae6112d20f76183a3b7811de08acfb6a0915024530",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.158Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-elaboration-triggers-re-review": {
     "name": "workflow-elaboration-triggers-re-review",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "82dc18466bf5fc4c1c38c555c2b46fd5308f6f07a408635c34b8d71d25ebf85b",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.224Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-materialization": {
     "name": "workflow-materialization",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "f128be90c2a97babadbbc77ba03ce343d766fdd568ac30a0e92d58588dbe90da",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.276Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-alignment-review-pass": {
     "name": "workflow-alignment-review-pass",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "e9de81eded04b3b155a93208dc60259ce9b05704c8f171fdd6efd40e3f5eef01",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.332Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-alignment-review-fail": {
     "name": "workflow-alignment-review-fail",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "6f4d2d47159416306aa959b7b8136d81331c913688734486e5a77fa069b911d0",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.397Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-staleness-auto-restart": {
     "name": "workflow-staleness-auto-restart",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
-    "specHash": "3b156e8dfaf7cdefc845ef70d5988752f20e0f85c3d73f00c5b532454cf6f316",
+    "specHash": "be0eccc4e5e45f7564a455c6569cdaa3e15e77550f96c2766cbac416bda51ee7",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.449Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "workflow-dependency-change-cascade": {
     "name": "workflow-dependency-change-cascade",
-    "status": "current",
+    "status": "pending",
     "reason": "reviewed",
     "specHash": "4cf4d362188ed69cb4bc82925e4df870dc1cebdd426ecbabdbcb3b961dd18328",
     "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e",
-    "artifact": "tests/cli-workflow.test.ts",
-    "materializedAt": "2026-03-31T13:38:31.499Z"
+    "artifact": "tests/cli-workflow.test.ts"
   },
   "resolve-displays-workflow-reason-states": {
     "name": "resolve-displays-workflow-reason-states",
-    "status": "current",
-    "reason": "reviewed",
+    "status": "pending",
+    "reason": "needs-review",
     "specHash": "ab579f08e03a2956c085eb4c71bfec7b6e4d8805d8c1218842864edf40f8a182",
-    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "artifact": "tests/cli-workflow.test.ts",
     "materializedAt": "2026-03-31T13:38:31.556Z"
   },
   "resolve-writes-manifest-on-auto-transition": {
     "name": "resolve-writes-manifest-on-auto-transition",
-    "status": "current",
-    "reason": "reviewed",
+    "status": "pending",
+    "reason": "needs-review",
     "specHash": "dbba694fce01dd36a6a408f6043a0ee5f1d949fadfaeaa5c5dcde7a3022b89ed",
-    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "artifact": "tests/cli-workflow.test.ts",
     "materializedAt": "2026-03-31T13:38:31.610Z"
   },
   "resolve-preserves-artifact-on-staleness": {
     "name": "resolve-preserves-artifact-on-staleness",
-    "status": "current",
-    "reason": "reviewed",
+    "status": "pending",
+    "reason": "needs-review",
     "specHash": "f5ec2463e7f666e10a8306822559b170d2ffe021de5c950ff2061731b33ba453",
-    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "artifact": "tests/cli-workflow.test.ts",
     "materializedAt": "2026-03-31T13:38:31.668Z"
   },
   "resolve-test-needs-fixing-shows-pending": {
     "name": "resolve-test-needs-fixing-shows-pending",
-    "status": "current",
-    "reason": "reviewed",
+    "status": "pending",
+    "reason": "needs-review",
     "specHash": "4b03ba97c6147e21894689b50b1fb7885e8e8e7414581b37bbbbd6b3dddc3056",
-    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "artifact": "tests/cli-workflow.test.ts",
     "materializedAt": "2026-03-31T13:38:31.730Z"
   },
   "resolve-spec-needs-elaboration-shows-pending": {
     "name": "resolve-spec-needs-elaboration-shows-pending",
-    "status": "current",
-    "reason": "reviewed",
+    "status": "pending",
+    "reason": "needs-review",
     "specHash": "5bacb0842e36862594e94d63685ecfc74c2fda54e21343d3e2b33c24e22db516",
-    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "artifact": "tests/cli-workflow.test.ts",
     "materializedAt": "2026-03-31T13:38:31.780Z"
+  },
+  "deps-shows-direct-references": {
+    "name": "deps-shows-direct-references",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "3de72c1e23b4e4c8176d2e4e7b5008fd36ffca0524dc6f14991fcc0b0bf62831",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.562Z"
+  },
+  "deps-shows-transitive-references": {
+    "name": "deps-shows-transitive-references",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "e21aa21d22adb40455a9f3504d6a723fcd2f53dea7674efa346cc45ca7d078b3",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.629Z"
+  },
+  "deps-shows-parent-chain": {
+    "name": "deps-shows-parent-chain",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "d9683b25946966d4e90412872e9e15ddf05e7be2113e7bc052fda534c84c564f",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.703Z"
+  },
+  "deps-deduplicates-across-sections": {
+    "name": "deps-deduplicates-across-sections",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "0b5c102f79f28e9e8d6b787d669822a3b00d3a1ed3768c3269e16ddab004d2c8",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.774Z"
+  },
+  "deps-shows-all-files-section": {
+    "name": "deps-shows-all-files-section",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "8f269b2ec8a1a875516720620542f79a4816df4c1cd2554f1c53371da2fe9ade",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.851Z"
+  },
+  "deps-handles-entity-without-references": {
+    "name": "deps-handles-entity-without-references",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "e60b0ecd3a3c36b5b12432b0b9e26e97e3d675669c539db99c48c6b9de25a55a",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.914Z"
+  },
+  "deps-handles-entity-without-parent": {
+    "name": "deps-handles-entity-without-parent",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "11237f8cebacc0dac0104355b4dc08504a45ffba605bc9156d14daf801aef776",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.979Z"
+  },
+  "deps-validates-entity-exists": {
+    "name": "deps-validates-entity-exists",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "0d0400bd950390e187a759d126451c6616b8648ab40d928d64e177ea7e7f33a8",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:08.045Z"
+  },
+  "deps-requires-entity-argument": {
+    "name": "deps-requires-entity-argument",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "70bfb9c1ea61b9b2cfb1c1b7020d76f89a0089c4513d24789f845959298944fa",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:08.115Z"
+  },
+  "deps-shows-relative-paths": {
+    "name": "deps-shows-relative-paths",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "efb084c46b081f1aace4f23b33c8b1a22cd8fc57c25ede551d9166c5c39f6ea4",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-deps.test.ts",
+    "materializedAt": "2026-04-01T05:59:08.186Z"
+  },
+  "remove-orphans-deletes-entry": {
+    "name": "remove-orphans-deletes-entry",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "c703c8fbbeb2beef0c045f9537f1a15eac4ef7d3218eed7192c13311724035de",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:58:53.223Z"
+  },
+  "remove-orphans-warns-if-artifact-exists": {
+    "name": "remove-orphans-warns-if-artifact-exists",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "bda963802a345600b19205fa4cea19c9cb92e7211de2bd292a0335b7f2bae362",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:58:55.412Z"
+  },
+  "remove-orphans-force-flag": {
+    "name": "remove-orphans-force-flag",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "463c57936e7db5273e1c308c00ad61f976f6d19db86e5471351c2c9aace83fef",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:58:57.946Z"
+  },
+  "remove-orphans-multiple-entries": {
+    "name": "remove-orphans-multiple-entries",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "436ce0ca6509832a0c3b3a06dc9814aec35a126857dc39a1643c2321c323f0f8",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:59:00.624Z"
+  },
+  "remove-orphans-nonexistent-entry": {
+    "name": "remove-orphans-nonexistent-entry",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "6a713ce6648ff0c6f6e0c9b2f0847d078b023b68b173fae7b67a934f714ecb6b",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:59:02.680Z"
+  },
+  "remove-orphans-non-orphaned-entry": {
+    "name": "remove-orphans-non-orphaned-entry",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "bec91c59abf24df80801cf5a020d3c884955385e2586bc168846a1afd46d2278",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:59:05.771Z"
+  },
+  "remove-orphans-all-flag": {
+    "name": "remove-orphans-all-flag",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "d45238e2372dce38fe1abab098127cc7a91972fe2b31aff9a042c39017f81b90",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
+    "artifact": "tests/cli-remove-orphans.test.ts",
+    "materializedAt": "2026-04-01T05:59:07.868Z"
+  },
+  "resolve-change-during-pending-review": {
+    "name": "resolve-change-during-pending-review",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "4e2e07d67aa882b222be2f8dffc73ff5ee984fade403fdd22df27fea2407dc43",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T07:42:48.812Z"
+  },
+  "resolve-change-after-spec-reviewed": {
+    "name": "resolve-change-after-spec-reviewed",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "759f7e1af46bd97a01457f46153828b5af2971ea50990cb8acb241d27f92406d",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T07:42:50.053Z"
+  },
+  "resolve-change-during-test-review": {
+    "name": "resolve-change-during-test-review",
+    "status": "current",
+    "reason": "reviewed",
+    "specHash": "1520afe1a1f25a340ea1a87a30f4b2dcd70265d6c96a3de1dedccc7c113ec3d1",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
+    "artifact": "tests/cli-resolve.test.ts",
+    "materializedAt": "2026-04-01T07:42:51.275Z"
   }
 }

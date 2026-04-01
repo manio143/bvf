@@ -38,6 +38,17 @@ with it.
   Returns stdout, stderr, and exit code.
 #end
 
+#decl instrument run-deps(entity) on @{cli-tool}
+  Execute `bvf deps <entity>` in the current project directory.
+  Returns stdout, stderr, and exit code.
+#end
+
+#decl instrument run-remove-orphans(entities?, flags?) on @{cli-tool}
+  Execute `bvf remove-orphans [entities...]` in the current project directory.
+  Optional {flags} like `--force` or `--all`.
+  Returns stdout, stderr, and exit code.
+#end
+
 
 # Fixtures
 

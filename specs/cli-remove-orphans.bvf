@@ -1,0 +1,86 @@
+# CLI: remove-orphans command
+
+The `bvf remove-orphans` command explicitly removes orphaned manifest entries
+after their test artifacts have been deleted. This provides a safe cleanup path
+for entities whose specs were removed.
+
+
+#decl feature cli-remove-orphans on @{cli-tool}
+
+  Given a @{project-dir}(files: [], config: @{default-config}).
+
+  #decl behavior remove-orphans-deletes-entry
+    Given entity "old-test" is in manifest with status='orphaned' and artifact="tests/old.test.ts".
+    And the artifact file "tests/old.test.ts" has been deleted.
+
+    When command `bvf remove-orphans old-test` is executed.
+
+    Then manifest entry for "old-test" is removed.
+    And stdout confirms "Removed orphaned entry: old-test".
+    Exit code is 0.
+  #end
+
+  #decl behavior remove-orphans-warns-if-artifact-exists
+    Given entity "old-test" is in manifest with status='orphaned' and artifact="tests/old.test.ts".
+    And the artifact file "tests/old.test.ts" still exists.
+
+    When command `bvf remove-orphans old-test` is executed.
+
+    Then stderr warns "Artifact still exists: tests/old.test.ts - delete it first".
+    And manifest entry is NOT removed.
+    Exit code is 1.
+  #end
+
+  #decl behavior remove-orphans-force-flag
+    Given entity "old-test" is in manifest with status='orphaned' and artifact="tests/old.test.ts".
+    And the artifact file still exists.
+
+    When command `bvf remove-orphans old-test --force` is executed.
+
+    Then manifest entry is removed despite artifact existing.
+    And stdout warns "Removed orphaned entry (artifact still exists): old-test".
+    Exit code is 0.
+  #end
+
+  #decl behavior remove-orphans-multiple-entries
+    Given entities "test-1", "test-2", "test-3" are all orphaned in manifest.
+    And all their artifact files have been deleted.
+
+    When command `bvf remove-orphans test-1 test-2 test-3` is executed.
+
+    Then all three manifest entries are removed.
+    And stdout lists all removed entries.
+    Exit code is 0.
+  #end
+
+  #decl behavior remove-orphans-nonexistent-entry
+    Given manifest does not contain "nonexistent".
+
+    When command `bvf remove-orphans nonexistent` is executed.
+
+    Then stderr says "Error: Entity 'nonexistent' not found in manifest".
+    Exit code is 1.
+  #end
+
+  #decl behavior remove-orphans-non-orphaned-entry
+    Given entity "active-test" is in manifest with status='current', reason='reviewed'.
+
+    When command `bvf remove-orphans active-test` is executed.
+
+    Then stderr says "Error: Entity 'active-test' is not orphaned (status: current)".
+    And manifest entry is NOT removed.
+    Exit code is 1.
+  #end
+
+  #decl behavior remove-orphans-all-flag
+    Given 3 orphaned entries exist in manifest.
+    And all their artifacts have been deleted.
+
+    When command `bvf remove-orphans --all` is executed.
+
+    Then all orphaned entries are removed.
+    And stdout lists count: "Removed 3 orphaned entries".
+    Exit code is 0.
+  #end
+
+#end

@@ -133,21 +133,40 @@ export function resolveReferences(
     
     // Extract behaviors from features as separate entities
     // Behaviors inherit the feature's transitive dependencies
+    // AND compute their own transitive deps from their references
     if (entity.type === 'feature' && entity.behaviors) {
       const parentTransitiveDeps = graph.getTransitiveDependencies(entity.name);
       for (const behavior of entity.behaviors) {
+        // Compute behavior's direct dependencies from its references
+        const behaviorDirectDeps: string[] = [];
+        if ((behavior as any).references) {
+          for (const ref of (behavior as any).references) {
+            behaviorDirectDeps.push(ref.name);
+          }
+        }
+        
+        // Compute behavior's transitive dependencies
+        // For each direct dep, get its transitive deps
+        const behaviorTransitiveDeps = new Set<string>(parentTransitiveDeps);
+        for (const depName of behaviorDirectDeps) {
+          const depTransitive = graph.getTransitiveDependencies(depName);
+          for (const transName of depTransitive) {
+            behaviorTransitiveDeps.add(transName);
+          }
+        }
+        
         const behaviorEntity: ResolvedEntity = {
           type: behavior.type || 'behavior',  // Preserve actual type (behavior, group, etc.), fallback to 'behavior'
           name: behavior.name,
           params: behavior.params || [],
-          clauses: {},
+          clauses: (behavior as any).clauses || {},
           body: behavior.body || '',
-          references: [],
-          paramUsages: [],
+          references: (behavior as any).references || [],
+          paramUsages: (behavior as any).paramUsages || [],
           context: behavior.context,
           sourceFile: entity.sourceFile,
-          dependencies: [],
-          transitiveDependencies: parentTransitiveDeps  // Inherit from parent feature
+          dependencies: behaviorDirectDeps,
+          transitiveDependencies: Array.from(behaviorTransitiveDeps)
         };
         resolved.push(behaviorEntity);
       }

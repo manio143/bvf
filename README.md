@@ -319,7 +319,7 @@ bvf resolve                     # Show project status
 bvf resolve --diff              # Machine-readable format (materializable only)
 
 bvf list [type]                 # List all entities (or filter by type)
-bvf list --feature <name>       # List entities in a feature
+bvf list --parent <name>        # List entities in a feature
 
 bvf init                        # Initialize new BVF project
 

@@ -72,7 +72,7 @@ export interface ManifestEntry {
   dependencyHash: string;
   artifact?: string;
   materializedAt?: string;
-  status?: 'pending' | 'stale' | 'current';
+  status?: 'pending' | 'stale' | 'current' | 'orphaned';
   reason?: string;
   note?: string;
 }

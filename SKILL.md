@@ -34,7 +34,7 @@ tests/              — materialized test code
 
 **CLI commands** (available to both orchestrator and workers):
 - `bvf resolve` — show current state of all entities
-- `bvf list [type] [--feature name]` — browse entities
+- `bvf list [type] [--parent name]` — browse entities
 - `bvf mark <entity> <status> [--note "..."] [--artifact "..."] [--force]` — record review outcomes
   - Statuses: `spec-needs-elaboration`, `spec-reviewed`, `test-ready`, `test-reviewed`, `test-needs-fixing`
 
@@ -104,7 +104,7 @@ or CONTRADICTION (with description).
 
 Use the CLI to resolve entity names to file paths so the worker
 gets exactly the files it needs. For example:
-- `bvf list --feature auth` → find which files contain auth behaviors
+- `bvf list --parent auth` → find which files contain auth behaviors
 - Follow `@{entity-name}` references to include dependency specs
 
 **When the worker reports back:**
@@ -206,7 +206,7 @@ Give the worker exactly the files it needs — no more, no less.
 **Use the CLI to build scope:**
 ```bash
 # Find all behaviors in a feature
-bvf list --feature auth
+bvf list --parent auth
 
 # Find all entities of a type
 bvf list instrument
@@ -351,34 +351,67 @@ bvf mark <entity> test-ready --artifact tests/my-test.test.ts
 ## Alignment Review Task
 
 Review a materialized test against its spec. You are a reviewer,
-not the author. Check three axes:
+not the author. Check four axes:
 
-**Preconditions (Given → test setup)**
+**1. Preconditions (Given → test setup)**
 Does the test setup actually create the state the spec describes?
 Look for fake values, hardcoded strings, or mocks that skip real
 computation. If the spec says "entities are current," the test must
 use real computed hashes — not `"current-hash-web-app"`.
 
-**Assertions (Then → expect/assert)**
+**Common issues:**
+- Hardcoded hash values instead of using real hash computation
+- Skipped workflow steps (e.g., jumping to test-ready without spec-reviewed)
+- Manual manifest manipulation instead of using CLI commands
+- Wrong helper functions (e.g., string hashing vs entity structure hashing)
+
+**2. Assertions (Then → expect/assert)**
 Does the test verify each expected outcome? Using the correct method?
 (`existsSync` for directories, not `readFileSync`. Regex for patterns,
 not string equality for dynamic output.)
 
-**Scope (spec boundary)**
+**Common issues:**
+- Wrong assertion method for the data type (toBe vs toContain vs toMatch)
+- Missing assertions for outcomes mentioned in spec
+- Outdated expectations (e.g., expecting old behavior after implementation changed)
+
+**3. Scope (spec boundary)**
 Does the test verify *only* what the spec describes? Extra assertions
 testing implementation details will break on refactors.
+
+**4. Executability (does the test actually work?)**
+**CRITICAL:** After reviewing the test code, RUN THE TEST to verify it passes:
+```bash
+npm test -- <test-file-path> -t "<test-name>"
+```
+
+If the test FAILS:
+- Determine if it's a test bug (wrong setup, wrong assertions, wrong helpers)
+- OR an implementation bug (behavior not implemented, partially implemented, or wrong)
+- Report which category the failure falls into
+
+A test that looks correct but fails execution is NOT aligned.
+A test that passes but doesn't match the spec is NOT aligned.
+Both static analysis (code review) AND dynamic testing (execution) are required.
 
 **Report format:**
 ```
 Entity: <name>
 Status: PASS | FAIL
+Test execution: PASSING | FAILING (exit code, brief error)
 Issues (if FAIL):
-  - [precondition|assertion|scope]: <specific description>
+  - [precondition|assertion|scope|execution]: <specific description>
 ```
 
 Write issues as if someone with no context will read them and need
 to fix the test. Good: "test uses hardcoded hash 'abc123' instead
 of computing from actual entity content." Bad: "hashes are wrong."
+
+**When test execution fails:**
+- **Test bug:** "Test skips required `spec-reviewed` step before `test-ready`, causing mark command to fail with exit 1"
+- **Implementation bug:** "Test expects staleness check to fail (exit 1) but implementation bypasses check for needs-elaboration state (BUG-004)"
+
+Only report PASS when BOTH static analysis succeeds AND test execution passes.
 
 ## Implementation Task
 

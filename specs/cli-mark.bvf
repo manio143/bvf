@@ -269,6 +269,9 @@ to track spec and test validation state.
   #end
 
   #decl behavior workflow-staleness-auto-restart
+    # Related: resolve-content-change-makes-stale in cli-resolve.bvf
+    # (same behavior, different test scope - this is integration, that is unit)
+    
     Given entity "auth-test" (behavior) is (current, reviewed).
     The spec content is edited.
 

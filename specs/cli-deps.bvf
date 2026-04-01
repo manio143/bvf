@@ -1,0 +1,116 @@
+# CLI Deps
+
+The `bvf deps` command shows the transitive dependency tree for a given entity,
+including direct references, transitive dependencies, parent chain, and file paths.
+This output is optimized for materialization agents to quickly gather all needed context.
+
+
+#decl feature cli-deps on @{cli-tool}
+
+  Given a @{project-dir}(files: [], config: @{default-config}) with spec files.
+
+  #decl behavior deps-shows-direct-references
+    Given a behavior "login-test" that references entities "http-client" and "user-fixture".
+
+    When command `bvf deps login-test` is executed.
+
+    Then output shows "Direct references:" section.
+    And it lists "instrument http-client (specs/instruments.bvf)".
+    And it lists "fixture user-fixture (specs/fixtures.bvf)".
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-shows-transitive-references
+    Given a behavior "login-test" that references entity "http-client".
+    And entity "http-client" references entity "base-url-config".
+
+    When command `bvf deps login-test` is executed.
+
+    Then output shows "Transitive references (deduplicated):" section.
+    And it lists "fixture base-url-config (specs/config.bvf)".
+    And entity "http-client" is NOT listed (it's already in direct references).
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-shows-parent-chain
+    Given a behavior "login-test" nested under feature "auth".
+    And feature "auth" references entity "web-app".
+
+    When command `bvf deps login-test` is executed.
+
+    Then output shows "Parent chain:" section.
+    And it lists "feature auth (specs/auth.bvf)".
+    And under "auth" it shows "Dependencies:" with "surface web-app (specs/surfaces.bvf)".
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-deduplicates-across-sections
+    Given a behavior "login-test" that references entity "http-client".
+    And behavior is nested under feature "auth" that also references entity "http-client".
+
+    When command `bvf deps login-test` is executed.
+
+    Then entity "http-client" appears only once (in direct references).
+    And it does NOT appear again under parent dependencies.
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-shows-all-files-section
+    Given a behavior "login-test" that references entity "http-client" (specs/instruments.bvf).
+    And entity "http-client" references entity "config" (specs/config.bvf).
+    And behavior is nested in "auth" feature (specs/auth.bvf).
+
+    When command `bvf deps login-test` is executed.
+
+    Then output shows "All files needed for materialization:" section.
+    And it lists all unique file paths: specs/auth.bvf, specs/instruments.bvf, specs/config.bvf.
+    And each path appears only once.
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-handles-entity-without-references
+    Given a surface "web-app" with no references.
+
+    When command `bvf deps web-app` is executed.
+
+    Then output shows "Direct references: (none)".
+    And output shows "Transitive references: (none)".
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-handles-entity-without-parent
+    Given a top-level surface "web-app" with no parent.
+
+    When command `bvf deps web-app` is executed.
+
+    Then output shows "Parent chain: (none)".
+    Exit code is 0.
+  #end
+
+  #decl behavior deps-validates-entity-exists
+    Given a project with no entity named "nonexistent".
+
+    When command `bvf deps nonexistent` is executed.
+
+    Then stderr contains "Error: Entity 'nonexistent' not found".
+    Exit code is 1.
+  #end
+
+  #decl behavior deps-requires-entity-argument
+    When the command `bvf deps` is executed with no arguments.
+
+    Then stderr contains "Usage: bvf deps <entity>".
+    Exit code is 1.
+  #end
+
+  #decl behavior deps-shows-relative-paths
+    Given a behavior named "test-behavior" in specs/auth/login.bvf.
+
+    When command `bvf deps test-behavior` is executed.
+
+    Then all file paths start with "specs/" relative to project root.
+    And paths use forward slashes (e.g., "specs/auth/login.bvf").
+    Exit code is 0.
+  #end
+
+#end

@@ -359,17 +359,16 @@ describe('cli-workflow - mark commands', () => {
       'test.bvf': specContent
     });
 
-    const specHash = computeHash(specContent);
-    const surfaceDecl = extractEntityDeclaration(specContent, 'my-surface');
-    const depHash = computeHash(surfaceDecl);
+    // Run resolve to get correct hashes
+    await runCli('resolve', tmpDir);
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    let tempManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 
     createManifest(tmpDir, {
       'login-test': {
-        type: 'behavior',
+        ...tempManifest['login-test'],
         status: 'current',
         reason: 'needs-review',
-        specHash,
-        dependencyHash: depHash,
         artifact: 'tests/login.test.ts',
         materializedAt: Date.now()
       }
@@ -448,6 +447,9 @@ describe('cli-workflow - mark commands', () => {
         dependencyHash: computeHash('old-dep')
       }
     });
+
+    // Run resolve to update manifest with new hash (natural workflow)
+    await runCli('resolve', tmpDir);
 
     const result = await runCli('mark login-test spec-reviewed', tmpDir);
 
@@ -802,16 +804,16 @@ describe('cli-workflow - workflow integration', () => {
       'test.bvf': specContent
     });
 
-    const surfaceDecl = extractEntityDeclaration(specContent, 'my-surface');
-    const depHash = computeHash(surfaceDecl);
+    // Run resolve to get correct hashes
+    await runCli('resolve', tmpDir);
+    const manifestPath = join(tmpDir, '.bvf-state', 'manifest.json');
+    let tempManifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 
     createManifest(tmpDir, {
       'auth-test': {
-        type: 'behavior',
+        ...tempManifest['auth-test'],
         status: 'current',
         reason: 'needs-review',
-        specHash: computeHash(specContent),
-        dependencyHash: depHash,
         artifact: 'tests/auth.test.ts',
         materializedAt: Date.now()
       }
