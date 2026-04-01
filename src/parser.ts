@@ -86,12 +86,14 @@ function parseEntityFromLines(
   startIndex: number, 
   parentType: string | null,
   config?: BvfConfig,
-  isTemplate?: boolean
+  isTemplate?: boolean,
+  templateVars?: Map<string, string> // Variables from outer #for scopes
 ): 
   { ok: boolean; value?: Entity; errors?: Error[]; nextLine: number } {
   
   const errors: Error[] = [];
   const declLine = lines[startIndex].trim();
+  const currentTemplateVars = templateVars || new Map<string, string>();
   
   // Parse the declaration line
   let type: string, name: string, paramsStr: string | undefined, clausesStr: string;
@@ -203,25 +205,38 @@ function parseEntityFromLines(
   // Find the #end and parse body
   let endIndex = -1;
   let bodyLines: string[] = [];
-  let inFor = false;
-  let forVars: string[] = [];
-  let forValues: any[][] = [];
+  
+  // Stack for nested #for contexts
+  interface ForContext {
+    vars: string[];
+    values: any[][];
+    children: Entity[];
+  }
+  const forStack: ForContext[] = [];
+  
   const children: Entity[] = [];
-  let forChildren: Entity[] = [];
   let i = startIndex + 1;
   
   while (i < lines.length) {
     const line = lines[i].trim();
+    const inFor = forStack.length > 0;
     
     // Check for #end
     if (line === '#end') {
       if (inFor) {
         // Closing a #for block - expand it
-        expandForBlock(forVars, forValues, forChildren, children);
-        inFor = false;
-        forVars = [];
-        forValues = [];
-        forChildren = [];
+        const forCtx = forStack.pop()!;
+        const targetChildren = forStack.length > 0 ? forStack[forStack.length - 1].children : children;
+        
+        // Build outer vars from remaining enclosing #for contexts
+        const outerVars = new Map<string, string>();
+        for (const ctx of forStack) {
+          for (const v of ctx.vars) {
+            outerVars.set(v, `{${v}}`); // Still a placeholder at this level
+          }
+        }
+        
+        expandForBlock(forCtx.vars, forCtx.values, forCtx.children, targetChildren, outerVars);
         i++;
         continue;
       } else {
@@ -255,15 +270,17 @@ function parseEntityFromLines(
       const varsStr = forMatch[1];
       const valuesStr = forMatch[2];
       
-      forVars = varsStr.split(',').map(v => v.trim());
+      const newVars = varsStr.split(',').map(v => v.trim());
       
+      let newValues: any[][] = [];
       try {
-        forValues = parseForValues(valuesStr, forVars.length);
+        newValues = parseForValues(valuesStr, newVars.length);
       } catch (e: any) {
         errors.push(new Error(`#for requires valid array syntax (line ${i + 1}): ${e.message}`));
       }
       
-      inFor = true;
+      // Push new #for context onto stack
+      forStack.push({ vars: newVars, values: newValues, children: [] });
       i++;
       continue;
     }
@@ -272,17 +289,25 @@ function parseEntityFromLines(
     if (line.startsWith('#decl')) {
       if (inFor) {
         // Parse child entity as part of #for expansion (mark as template)
-        const childResult = parseEntityFromLines(lines, i, type, config, true);
+        // Build combined template vars from all enclosing #for scopes
+        const combinedVars = new Map(currentTemplateVars);
+        for (const ctx of forStack) {
+          for (const v of ctx.vars) {
+            combinedVars.set(v, `{${v}}`); // Placeholder - will be substituted during expansion
+          }
+        }
+        
+        const childResult = parseEntityFromLines(lines, i, type, config, true, combinedVars);
         if (!childResult.ok) {
           errors.push(...(childResult.errors || []));
           i = childResult.nextLine;
           continue;
         }
-        forChildren.push(childResult.value!);
+        forStack[forStack.length - 1].children.push(childResult.value!);
         i = childResult.nextLine;
       } else {
         // Parse child entity normally
-        const childResult = parseEntityFromLines(lines, i, type, config, false);
+        const childResult = parseEntityFromLines(lines, i, type, config, false, currentTemplateVars);
         if (!childResult.ok) {
           errors.push(...(childResult.errors || []));
           i = childResult.nextLine;
@@ -316,6 +341,36 @@ function parseEntityFromLines(
     children.map(c => c.body + (c.context || '')).join('\n');
   const references = extractReferences(allText, clauses);
   const paramUsages = extractParamUsages(body);
+  
+  // If this is a template inside a #for, validate that all {placeholders} correspond to:
+  // 1. Entity parameters, OR
+  // 2. Template variables from enclosing #for contexts
+  if (isTemplate && currentTemplateVars.size > 0) {
+    const validVars = new Set<string>();
+    
+    // Add entity parameters
+    for (const param of params) {
+      validVars.add(param.name);
+    }
+    
+    // Add template variables
+    for (const varName of currentTemplateVars.keys()) {
+      validVars.add(varName);
+    }
+    
+    // Check each param usage
+    for (const usedVar of paramUsages) {
+      if (!validVars.has(usedVar)) {
+        errors.push(new Error(
+          `undefined variable {${usedVar}} (available: ${Array.from(validVars).join(', ')})`
+        ));
+      }
+    }
+    
+    if (errors.length > 0) {
+      return { ok: false, errors, nextLine: endIndex + 1 };
+    }
+  }
   
   const entity: Entity = {
     type,
@@ -359,7 +414,8 @@ function expandForBlock(
   vars: string[],
   valueSets: any[][],
   templates: Entity[],
-  output: Entity[]
+  output: Entity[],
+  outerVars?: Map<string, string>
 ): void {
   for (const values of valueSets) {
     for (const template of templates) {
@@ -374,29 +430,37 @@ function expandForBlock(
  */
 function expandEntity(template: Entity, vars: string[], values: any[]): Entity {
   const substitutions = new Map<string, string>();
+  const bodySubstitutions = new Map<string, string>();
   
-  // Quote string values only for single-variable loops
-  // For multi-variable loops (tuples), use values as-is
-  const shouldQuoteStrings = vars.length === 1;
+  // For single-variable loops, quote string values in body but not in names
+  // For multi-variable loops (tuples), use values as-is everywhere
+  const shouldQuoteInBody = vars.length === 1;
   
   for (let i = 0; i < vars.length; i++) {
-    const value = (shouldQuoteStrings && typeof values[i] === 'string') 
+    const rawValue = String(values[i]);
+    
+    // Always use unquoted value for names
+    substitutions.set(vars[i], rawValue);
+    
+    // For body, quote strings in single-var loops only
+    const bodyValue = (shouldQuoteInBody && typeof values[i] === 'string') 
       ? `"${values[i]}"` 
-      : String(values[i]);
-    substitutions.set(vars[i], value);
+      : rawValue;
+    bodySubstitutions.set(vars[i], bodyValue);
   }
   
-  const expandText = (text: string) => {
+  const expandText = (text: string, useBodySubs: boolean) => {
     let result = text;
-    for (const [key, value] of substitutions) {
+    const subs = useBodySubs ? bodySubstitutions : substitutions;
+    for (const [key, value] of subs) {
       result = result.replace(new RegExp(`\\{${key}\\}`, 'g'), value);
     }
     return result;
   };
   
-  const expandedName = expandText(template.name);
-  const expandedBody = expandText(template.body);
-  const expandedContext = template.context ? expandText(template.context) : undefined;
+  const expandedName = expandText(template.name, false);
+  const expandedBody = expandText(template.body, true);
+  const expandedContext = template.context ? expandText(template.context, true) : undefined;
   
   return {
     ...template,
@@ -410,12 +474,32 @@ function expandEntity(template: Entity, vars: string[], values: any[]): Entity {
  * Parse #for values array - supports both single values and tuples
  */
 function parseForValues(valuesStr: string, expectedVarCount: number): any[][] {
+  // First, quote unquoted identifiers to make valid JSON
+  // Match: bare identifiers (not already in quotes, not numbers)
+  let jsonReady = valuesStr;
+  
+  // Quote bare identifiers: auth → "auth"
+  // But preserve already-quoted strings and numbers
+  // Use negative lookbehind/lookahead to avoid quoting things already in quotes
+  jsonReady = jsonReady.replace(/(?<!")(\b[a-zA-Z_][\w-]*\b)(?!")/g, (match, ident, offset, str) => {
+    // Check if this identifier is inside quotes by looking for unbalanced quotes before it
+    const before = str.substring(0, offset);
+    const quotesBefore = (before.match(/"/g) || []).length;
+    
+    // If odd number of quotes before, we're inside a quoted string, don't modify
+    if (quotesBefore % 2 === 1) {
+      return match;
+    }
+    
+    return `"${ident}"`;
+  });
+  
   // Convert Python-style tuples (parentheses) to JSON arrays (square brackets)
-  const jsonStr = valuesStr.replace(/\(/g, '[').replace(/\)/g, ']');
+  jsonReady = jsonReady.replace(/\(/g, '[').replace(/\)/g, ']');
   
   // Try to parse as JSON array
   try {
-    const parsed = JSON.parse(`[${jsonStr}]`);
+    const parsed = JSON.parse(`[${jsonReady}]`);
     
     if (expectedVarCount === 1) {
       // Single variable - each element is a value
@@ -438,7 +522,9 @@ function parseForValues(valuesStr: string, expectedVarCount: number): any[][] {
 }
 
 /**
- * Parse reference arguments like: email: "test@x.com", pw: {password}
+ * Parse reference arguments like: 
+ *   endpoint="/health"  (string literal with =)
+ *   email: {param}      (param reference with :)
  */
 function parseReferenceArgs(argsStr: string): Record<string, string | { param: string }> {
   const args: Record<string, string | { param: string }> = {};
@@ -447,19 +533,34 @@ function parseReferenceArgs(argsStr: string): Record<string, string | { param: s
   const argTokens = splitArgs(argsStr);
   
   for (const token of argTokens) {
-    const match = token.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/);
-    if (!match) continue;
+    // Try colon syntax first (for param references): key: {param}
+    let match = token.match(/^\s*(\w+)\s*:\s*(.+?)\s*$/);
     
-    const [, key, valueStr] = match;
+    if (match) {
+      const [, key, valueStr] = match;
+      
+      // Check if it's a param reference {param}
+      const paramMatch = valueStr.match(/^\{(\w+)\}$/);
+      if (paramMatch) {
+        args[key] = { param: paramMatch[1] };
+      } else {
+        // Colon with non-param value - remove quotes if present
+        const cleaned = valueStr.replace(/^["']|["']$/g, '');
+        args[key] = cleaned;
+      }
+      continue;
+    }
     
-    // Check if it's a param reference {param}
-    const paramMatch = valueStr.match(/^\{(\w+)\}$/);
-    if (paramMatch) {
-      args[key] = { param: paramMatch[1] };
-    } else {
-      // It's a string literal - remove quotes
+    // Try equals syntax (for string literals): key="value"
+    match = token.match(/^\s*(\w+)\s*=\s*(.+?)\s*$/);
+    
+    if (match) {
+      const [, key, valueStr] = match;
+      
+      // Remove quotes from value
       const cleaned = valueStr.replace(/^["']|["']$/g, '');
       args[key] = cleaned;
+      continue;
     }
   }
   

@@ -1238,353 +1238,453 @@
   },
   "fenced-code-ignored": {
     "name": "fenced-code-ignored",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "c0edce85cc54ffe36c22cf42e2bc2a91b72d8972431d951bbf41a1252b345152",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:25.900Z"
   },
   "fenced-code-preserves-line-count": {
     "name": "fenced-code-preserves-line-count",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "5213849309549a0c851334af4348c7577aecbb07abf42a28c125eae2c594c785",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.015Z"
   },
   "multiple-fenced-blocks": {
     "name": "multiple-fenced-blocks",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "049510948da524de38a2d026c61405889bf62850f142b7e8b8600c4838851d41",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.085Z"
   },
   "for-expansion-basic": {
     "name": "for-expansion-basic",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "bc583c16758f2218aa171bc55c7506ef660c8780fface46f8d64b7f96aa959dd",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.159Z"
   },
   "for-expansion-with-quoted-strings": {
     "name": "for-expansion-with-quoted-strings",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "3b971caee79a6b3eecec494531d121fcf7fecde80c8150c7ed9951b2618b0a1a",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.231Z"
   },
   "for-expansion-multi-variable": {
     "name": "for-expansion-multi-variable",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "02c873b4ef2a81a9dcb9d9318f6e45a379ec7572c21e8089c21c7bb046d388da",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.311Z"
   },
   "for-requires-in-keyword": {
     "name": "for-requires-in-keyword",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "54bd47246873e6aecc8968b2a88fe33a4d9f933ac183a7a06d8d96e2c57b7375",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.383Z"
   },
   "for-requires-array-syntax": {
     "name": "for-requires-array-syntax",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "7f8612394da9701c004836505755e1ad80a512beb84aba6716852921913dcd58",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.447Z"
   },
   "for-requires-container": {
     "name": "for-requires-container",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "cf164fd830dd7290f05acaa8587b069a17a6c9dc68beb0642a56475d14b367e0",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.515Z"
   },
   "for-closes-with-end": {
     "name": "for-closes-with-end",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "08ba78e52448351a77cc312310ecdba2d074bd4c5cbc11e732a43f0dc83b3052",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.624Z"
   },
   "for-tuple-count-mismatch": {
     "name": "for-tuple-count-mismatch",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "48a060ce4f81fc4f33894376e3e1063576e6432fc296c58a686a85f11cf44d8a",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.700Z"
   },
   "for-single-var-quotes-strings": {
     "name": "for-single-var-quotes-strings",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "8c14362a0f62d2e74bf1116f972dc682f7ad16d27a457f02f9238a970dec4e44",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.771Z"
   },
   "for-multi-var-no-quotes": {
     "name": "for-multi-var-no-quotes",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "f644b5836c6c732f63a11482c4d11a6900cd77d46bb760033d5213e1a93bf3b4",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.842Z"
   },
   "for-nested-loops-supported": {
     "name": "for-nested-loops-supported",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "80e8f7e7848ad6cfc81e274ea2467e932f8626e4044c420ff92c5d932f394a78",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.903Z"
   },
   "for-nested-variable-scoping": {
     "name": "for-nested-variable-scoping",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "756deeaf6614e5923ae2b6d754066c7037c1a0c5539246c6dec7fa0dfc3934d1",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:26.967Z"
   },
   "for-validates-template-variables": {
     "name": "for-validates-template-variables",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "9038af47a9c361a3f2817ec414b995e23a5f64bbe9bddbde3a45bc53ba109570",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.035Z"
   },
   "reference-with-single-param": {
     "name": "reference-with-single-param",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "6a76a4cd9a9ab8efc5b834b5f45eb5766cafdfdf0b9f0b1028ae723a0bd3e0b9",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.107Z"
   },
   "reference-with-multiple-params": {
     "name": "reference-with-multiple-params",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "53a2af1c74562d3f750d1d9f5914930004c8ab6a70848b78424a8e442563d8c2",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.178Z"
   },
   "bare-reference-valid": {
     "name": "bare-reference-valid",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "6072b2567a70817baa6ca3639a0d6128e29c8bd1a2bafcb24c2f051ce2c456c2",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.250Z"
   },
   "inline-reference-with-params": {
     "name": "inline-reference-with-params",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "d11e77adbc8f2ff8410ad6f36484a6bbc2c2c91405a3b0c467e4f8b80d2477d3",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.322Z"
   },
   "reference-param-from-entity-param": {
     "name": "reference-param-from-entity-param",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "90a04cdf062633a3e2302de11a3b1c3d263b81fad39291dfb3e1a3349c24cfd6",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.387Z"
   },
   "optional-param-syntax": {
     "name": "optional-param-syntax",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "2ba2424ad40560f280a7b9e17466bfcdc42c46677010e966beecad22356d3f85",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.451Z"
   },
   "required-param-syntax": {
     "name": "required-param-syntax",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "f5c87138f0ccfdb8c60726e19882ff8711633be1e480e62401969e2fc596155a",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.518Z"
   },
   "param-with-default-value": {
     "name": "param-with-default-value",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "a6ba967abdefd61317be8e41aa4a7038837d8a39de6da1fa45f5c1086af6ed6d",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.588Z"
   },
   "mixed-required-optional-params": {
     "name": "mixed-required-optional-params",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "efec3be83da60f5b48b70fde8986bf20013a8843f0572ac3704db5590a9e8a43",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.657Z"
   },
   "decl-basic-syntax": {
     "name": "decl-basic-syntax",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "222c2e81c3df899a98d0a5d5777f0eccdf34334c64965e665d92255d5fcd8d28",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.728Z"
   },
   "decl-with-params": {
     "name": "decl-with-params",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "c9a0b021552bc9472df95773626cd164a1d512beb1886560171068412d6d244d",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.800Z"
   },
   "decl-hyphenated-type-name": {
     "name": "decl-hyphenated-type-name",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "86464c6ff84c9557e73854e4a7dd004dacd249f46c3e528ac37a692035e4dbc9",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.861Z"
   },
   "decl-hyphenated-entity-name": {
     "name": "decl-hyphenated-entity-name",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "5082c2981b2ae871af9de9f17a501ef9c027316e270b7160e03aeb939d061666",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.928Z"
   },
   "decl-closes-with-end": {
     "name": "decl-closes-with-end",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "472674258486a203c4b0c70d7d9b7b45703961869712f9721ba0416249a94297",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:27.997Z"
   },
   "decl-unclosed-error": {
     "name": "decl-unclosed-error",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "4770c14502c8a6d3447b7bf0427558162b0dfb577390fb420dd72c6076609f93",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.075Z"
   },
   "decl-invalid-type-error": {
     "name": "decl-invalid-type-error",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "f03ae1fe165c0a8c1d4e4cef62c67ab0d7b365f3908a051f8c7dc377dab17ffe",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.151Z"
   },
   "decl-nesting-rules": {
     "name": "decl-nesting-rules",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "f15934665dbca2392f52c5000dec6144fb03ffd6cffa10400b1f8b50e8c229df",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.221Z"
   },
   "decl-invalid-nesting-error": {
     "name": "decl-invalid-nesting-error",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "4604e357b94a0270a45b5f7045c1ef738c36c3322c14360c72c7f67a6381a1a4",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.293Z"
   },
   "clause-on-basic": {
     "name": "clause-on-basic",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "c4eb944f6099f6668ab5b9b1e46bef5cf6a9c0cf6d0f5c19078e89c087be75d5",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.362Z"
   },
   "clause-using-basic": {
     "name": "clause-using-basic",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "e8b346c781e5890168cce14618723f27ee15c3b72d9014c5cdb39ca3bf3bee0d",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.425Z"
   },
   "clause-with-params": {
     "name": "clause-with-params",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "8bace591f7ec90528ffa385503e765968bbe3d0c154ea075519a8d8885edff33",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.492Z"
   },
   "multiple-clauses": {
     "name": "multiple-clauses",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "56adcac7d7bc0d438cf756c1e275f394b5e97d4d35f81bdcc5eda78e93817a2a",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.563Z"
   },
   "references-from-body": {
     "name": "references-from-body",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "0319d8a591c768ff179447aa9ad42c055bd753f3b247cd41b83526e8d64a2b55",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.636Z"
   },
   "references-include-clauses": {
     "name": "references-include-clauses",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "b7d405dd83e40397f9aa46fd8a62aa8cbf300dc90b68096cf0d3480c2fb2dcd1",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.719Z"
   },
   "references-deduplicated": {
     "name": "references-deduplicated",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "7949245ea3e160f36020aa8fcd63ccc65ee3be9a69c51b787bf475509a590fd9",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.791Z"
   },
   "param-usage-extraction": {
     "name": "param-usage-extraction",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "f39b4ff5304029d2fa71938f097ed067ab45dd2feaa4929c657ef6e6f3407a57",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.858Z"
   },
   "param-usage-deduplicated": {
     "name": "param-usage-deduplicated",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "b35910556192ce27f6de9f46e8cd500d3490c18c01f6db4302f8021583397c21",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.921Z"
   },
   "template-name-with-placeholders": {
     "name": "template-name-with-placeholders",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "e69a785e7dd75232d449dd0394e5f1b5194bb5ce3a119f098b1febc36c843fda",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:28.990Z"
   },
   "template-body-substitution": {
     "name": "template-body-substitution",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "6e8c1511222aa5102aebe6747b98bd6687364a45c42cd803bfc0413ba7eb2391",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:29.063Z"
   },
   "invalid-decl-syntax": {
     "name": "invalid-decl-syntax",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "96475f46a7eda5c0010c86f26a138b6288c4a74029ac709aac5c95eecabf630d",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:29.134Z"
   },
   "invalid-param-syntax": {
     "name": "invalid-param-syntax",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "8526c63dfb2a697ad5256385bfbca1f1daa85be903d8667a57adbffbab34220c",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:29.205Z"
   },
   "parser-skips-to-next-decl": {
     "name": "parser-skips-to-next-decl",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "6a545d5a2118802d213e3e2d18bdd64747ba2f8283fda76b43eb624a83dfc526",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:29.277Z"
   },
   "prose-ignored": {
     "name": "prose-ignored",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "6fead8fc471cb429588b11a9a62740c2f604172c9ce9af7cb4e387022c336d79",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:29.341Z"
   },
   "empty-lines-ignored": {
     "name": "empty-lines-ignored",
-    "status": "pending",
-    "reason": "reviewed",
+    "status": "current",
+    "reason": "needs-review",
     "specHash": "8fd9f0b7164430cc69e3f9827747ca343b4d05c84df21022521fe13ca26c99ea",
-    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98",
+    "artifact": "tests/language.test.ts",
+    "materializedAt": "2026-04-01T17:01:29.405Z"
   },
   "bvf-parser": {
     "name": "bvf-parser",
