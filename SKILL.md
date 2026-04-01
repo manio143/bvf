@@ -555,3 +555,48 @@ Report it and let the orchestrator resolve the scope.
 8. **Vague review notes** — describe the specific issue, not just "broken"
 9. **Self-reviewing** — the materializer should not review their own output
 10. **Scope creep in workers** — stick to your assigned files
+
+## Successful Workflow Example (2026-04-01)
+
+**Goal:** Document and implement BVF language syntax (50 behaviors)
+
+**Timeline:** ~12 hours (soundness → materialization → alignment → implementation)
+
+**Phases executed:**
+
+1. **Spec creation** (specs/language.bvf)
+   - 56 behaviors across 11 categories
+   - Added missing `@{bvf-parser}` surface and `@{run-parse}` instrument
+   - Fixed 3 behaviors using literal code examples (caused parse errors)
+
+2. **Soundness review** (3 rounds)
+   - Round 1: ALL NEEDS_ELABORATION (missing @{run-parse})
+   - Round 2: ALL PASS (after adding supporting specs)
+   - Round 3: ALL PASS (after fixing fenced-code behaviors)
+
+3. **Test materialization** (tests/language.test.ts)
+   - 50 tests created from specs
+   - 36 passing (features already implemented)
+   - 14 failing (correct TDD - tests before implementation)
+
+4. **Alignment review**
+   - 49/50 PASS
+   - 1 test marked as implementation gap (parser needs better error message)
+   - All behaviors marked `test-ready` with artifact path
+
+5. **Implementation** (src/parser.ts)
+   - #for expansion (8 features): single-var, multi-var, nested loops, scoping
+   - Parameterized references (4 features): literal args, param forwarding
+   - Template syntax (2 features): name/body substitution
+   - **Result:** 50/50 tests passing, 121 existing tests still passing
+
+**Key decisions:**
+- Spec ambiguities resolved with explicit rationale (quoting rules documented)
+- Implementation bugs vs test bugs clearly distinguished
+- "Spec is right" principle maintained throughout
+
+**Lessons:**
+- Soundness review catches missing supporting specs early
+- Alignment review must execute tests, not just static analysis
+- Implementation gaps are expected in TDD (14 failing tests was correct)
+- Fixing specs to avoid parse errors better than documenting workarounds

@@ -47,6 +47,21 @@ npx bvf init
 
 ### References & Parameters
 
+#### Basic References
+
+Reference other entities using `@{entity-name}`:
+
+```bvf
+#decl behavior api-health-check on @{web-app}
+  When @{http-client} GETs "/health".
+  Then response status is 200.
+#end
+```
+
+#### Parameterized References
+
+Pass parameters to referenced entities:
+
 ```bvf
 #decl instrument http-client(base-url = "http://localhost:3000")
   Makes HTTP requests to a server.
@@ -54,6 +69,19 @@ npx bvf init
 
 #decl behavior api-call
   When @{http-client}(base-url: "https://api.example.com") GETs "/users".
+  Then response status is 200.
+#end
+```
+
+**Parameter syntax:**
+- `key="literal value"` — pass a literal string
+- `key: {param}` — forward a parameter from the enclosing entity
+
+**Example with parameter forwarding:**
+
+```bvf
+#decl behavior test-endpoint(endpoint)
+  When @{http-client}(base-url: "https://api.example.com") GETs {endpoint}.
   Then response status is 200.
 #end
 ```
@@ -81,6 +109,8 @@ npx bvf init
 
 ### Parameterized Expansion
 
+#### Single-Variable Loops
+
 ```bvf
 #decl feature validation on @{api}
 
@@ -94,6 +124,48 @@ npx bvf init
 
 #end
 ```
+
+**Note:** Single-variable loops quote string values in bodies but not in names. So `{email}` in the name becomes `rejects-invalid-email(not-an-email)` (bare identifier), while `"{email}"` in the body becomes `"not-an-email"` (quoted string).
+
+#### Multi-Variable Loops (Tuples)
+
+```bvf
+#decl feature cross-browser-testing on @{web-app}
+
+  #for browser, version in [
+    ["chrome", "120"],
+    ["firefox", "121"],
+    ["safari", "17"]
+  ]
+    #decl behavior loads-on-{browser}-{version}
+      When page is loaded in {browser} {version}.
+      Then all elements render correctly.
+    #end
+  #end
+
+#end
+```
+
+**Note:** Multi-variable loops use values as-is (no automatic quoting).
+
+#### Nested Loops
+
+```bvf
+#decl feature service-health-checks on @{infrastructure}
+
+  #for service in [api, auth, payment]
+    #for env in [dev, staging, prod]
+      #decl behavior {service}-{env}-responds
+        When health check runs for {service} in {env}.
+        Then status is 200 and response contains "healthy".
+      #end
+    #end
+  #end
+
+#end
+```
+
+**Result:** 9 behaviors (3 services × 3 environments)
 
 ## Configuration
 
