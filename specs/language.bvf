@@ -1,0 +1,885 @@
+# BVF Language Syntax
+
+Documents the DSL syntax recognized by the BVF parser.
+
+#decl feature language-syntax on @{bvf-parser}
+
+  Given @{project-dir}(
+    files: ["test.bvf"],
+    config: "#config
+  types: feature, behavior, endpoint
+  containment:
+    feature: behavior
+#end"
+  )
+
+  ## 1. Fenced Code Blocks
+
+  #decl behavior fenced-code-ignored
+    Given test.bvf contains:
+    ```
+    Some prose explaining syntax.
+
+    ```
+    #decl example demo
+      This is an example.
+    #end
+    ```
+
+    #decl actual real-entity
+      This is a real entity.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities.length = 1
+    And entities[0].name = "real-entity"
+    And "demo" is NOT in entities
+    And fenced content (between ```) is completely ignored
+  #end
+
+  #decl behavior fenced-code-preserves-line-count
+    Given test.bvf contains:
+    ```
+    Line 1
+    ```
+    fenced line 2
+    fenced line 3
+    ```
+    #decl entity-on-line-5
+      Content
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].line = 5
+    And line numbers preserved despite fence removal
+  #end
+
+  #decl behavior multiple-fenced-blocks
+    Given test.bvf contains:
+    ```
+    First fence:
+    ```
+    #decl ignored-1
+    #end
+    ```
+
+    Second fence:
+    ```
+    #decl ignored-2
+    #end
+    ```
+
+    #decl actual-entity
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities.length = 1
+    And entities[0].name = "actual-entity"
+  #end
+
+  ## 2. #for Expansion
+
+  #decl behavior for-expansion-basic
+    Given test.bvf contains:
+    ```
+    #decl feature api on @{system}
+      #for service in [auth, payment, shipping]
+        #decl endpoint {service}-health
+          Health check for {service}.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].behaviors.length = 3
+    And behaviors[0].name = "auth-health"
+    And behaviors[1].name = "payment-health"
+    And behaviors[2].name = "shipping-health"
+    And each behavior.body contains substituted service name
+  #end
+
+  #decl behavior for-expansion-with-quoted-strings
+    Given test.bvf contains:
+    ```
+    #decl feature tests on @{suite}
+      #for lang in [python, javascript, rust]
+        #decl behavior test-{lang}
+          Run tests for {lang}.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then behaviors[0].body contains '"python"'
+    And behaviors[1].body contains '"javascript"'
+    And behaviors[2].body contains '"rust"'
+    And single-variable #for quotes string values
+  #end
+
+  #decl behavior for-expansion-multi-variable
+    Given test.bvf contains:
+    ```
+    #decl feature matrix on @{ci}
+      #for os, version in [(linux, 20.04), (macos, 13), (windows, 2022)]
+        #decl behavior test-{os}-{version}
+          Test on {os} version {version}.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then behaviors.length = 3
+    And behaviors[0].name = "test-linux-20.04"
+    And behaviors[1].name = "test-macos-13"
+    And behaviors[2].name = "test-windows-2022"
+    And multi-variable #for uses tuple syntax
+  #end
+
+  #decl behavior for-requires-in-keyword
+    Given test.bvf contains:
+    ```
+    #decl feature bad on @{system}
+      #for service [auth, payment]
+        #decl endpoint {service}-health
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "#for requires \"in\" keyword"
+  #end
+
+  #decl behavior for-requires-array-syntax
+    Given test.bvf contains:
+    ```
+    #decl feature bad on @{system}
+      #for service in auth, payment
+        #decl endpoint {service}-health
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "#for requires array syntax [...]"
+  #end
+
+  #decl behavior for-requires-container
+    Given test.bvf contains:
+    ```
+    #for service in [auth, payment]
+      #decl endpoint {service}-health
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "#for cannot be used outside a container entity"
+  #end
+
+  #decl behavior for-closes-with-end
+    Given test.bvf contains:
+    ```
+    #decl feature api on @{system}
+      #for service in [auth, payment]
+        #decl endpoint {service}-health
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = true
+    And #for closes with #end (not #end for)
+  #end
+
+  #decl behavior for-tuple-count-mismatch
+    Given test.bvf contains:
+    ```
+    #decl feature bad on @{system}
+      #for os, version in [(linux, 20.04), (macos)]
+        #decl behavior test-{os}-{version}
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "expected 2 values per tuple"
+  #end
+
+  #decl behavior for-single-var-quotes-strings
+    Given test.bvf contains:
+    ```
+    #decl feature tests on @{suite}
+      #for x in ["auth", "payment"]
+        #decl behavior test-{x}
+          Testing {x}
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then behaviors[0].body contains '"auth"'
+    And behaviors[1].body contains '"payment"'
+    And single-variable #for quotes string values in body
+    And rationale: Quoting makes it clear values are strings
+  #end
+
+  #decl behavior for-multi-var-no-quotes
+    Given test.bvf contains:
+    ```
+    #decl feature matrix on @{ci}
+      #for x, y in [("auth", 1), ("payment", 2)]
+        #decl behavior {x}-{y}
+          Service {x} has priority {y}
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then behaviors[0].body contains 'auth' (unquoted)
+    And behaviors[0].body contains '1' (unquoted)
+    And multi-variable #for uses values as-is
+    And rationale: Tuples support both strings and numbers without extra quoting
+  #end
+
+  #decl behavior for-nested-loops-supported
+    Given test.bvf contains:
+    ```
+    #decl feature matrix on @{platform}
+      #for service in ["auth", "payment"]
+        #for env in ["dev", "prod"]
+          #decl behavior {service}-{env}-test
+            Test {service} on {env}
+          #end
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = true
+    And behaviors.length = 4
+    And behaviors include "auth-dev-test", "auth-prod-test"
+    And behaviors include "payment-dev-test", "payment-prod-test"
+    And nested #for loops are fully supported
+  #end
+
+  #decl behavior for-nested-variable-scoping
+    Given test.bvf contains:
+    ```
+    #decl feature nested on @{system}
+      #for outer in ["a", "b"]
+        #for inner in [1, 2]
+          #decl behavior {outer}-{inner}
+            Content uses {outer} and {inner}
+          #end
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then inner loop can reference both {outer} and {inner}
+    And all 4 behaviors created with correct substitution
+    And variable scoping works across loop levels
+  #end
+
+  #decl behavior for-validates-template-variables
+    Given test.bvf contains:
+    ```
+    #decl feature test on @{api}
+      #for service in ["auth"]
+        #decl behavior {service}-check
+          Content uses {service} and {unknown}
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "undefined variable {unknown}"
+    And errors[0] contains "available: service"
+    And parser validates template variables during expansion
+  #end
+
+  ## 3. Parameterized References
+
+  #decl behavior reference-with-single-param
+    Given test.bvf contains:
+    ```
+    #decl behavior check-health on @{api}(endpoint="/health")
+      Verify the health endpoint.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.on.name = "api"
+    And entities[0].clauses.on.args.endpoint = "/health"
+  #end
+
+  #decl behavior reference-with-multiple-params
+    Given test.bvf contains:
+    ```
+    #decl behavior login using @{auth}(email="test@x.com", password="secret")
+      Authenticate user.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.using.name = "auth"
+    And entities[0].clauses.using.args.email = "test@x.com"
+    And entities[0].clauses.using.args.password = "secret"
+  #end
+
+  #decl behavior bare-reference-valid
+    Given test.bvf contains:
+    ```
+    #decl behavior test on @{api}
+      Test the API.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.on.name = "api"
+    And entities[0].clauses.on.args is undefined
+    And parameters optional at reference time
+  #end
+
+  #decl behavior inline-reference-with-params
+    Given test.bvf contains:
+    ```
+    #decl behavior test
+      Call @{api}(method="GET", path="/users").
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].references.length = 1
+    And entities[0].references[0].name = "api"
+    And entities[0].references[0].args.method = "GET"
+    And entities[0].references[0].args.path = "/users"
+  #end
+
+  #decl behavior reference-param-from-entity-param
+    Given test.bvf contains:
+    ```
+    #decl behavior login(email) using @{auth}(email: {email})
+      Authenticate with provided email.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.using.args.email.param = "email"
+    And param reference uses {param} syntax
+  #end
+
+  ## 4. Optional Parameters
+
+  #decl behavior optional-param-syntax
+    Given test.bvf contains:
+    ```
+    #decl endpoint health(timeout?)
+      Check system health.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].params.length = 1
+    And entities[0].params[0].name = "timeout"
+    And entities[0].params[0].required = false
+  #end
+
+  #decl behavior required-param-syntax
+    Given test.bvf contains:
+    ```
+    #decl endpoint create-user(email)
+      Create a new user.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].params[0].name = "email"
+    And entities[0].params[0].required = true
+  #end
+
+  #decl behavior param-with-default-value
+    Given test.bvf contains:
+    ```
+    #decl endpoint health(timeout="5000")
+      Check system health.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].params[0].name = "timeout"
+    And entities[0].params[0].required = false
+    And entities[0].params[0].defaultValue = "5000"
+  #end
+
+  #decl behavior mixed-required-optional-params
+    Given test.bvf contains:
+    ```
+    #decl endpoint create-user(email, name?, role="user")
+      Create a new user with optional name and default role.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].params.length = 3
+    And params[0].name = "email" and params[0].required = true
+    And params[1].name = "name" and params[1].required = false
+    And params[2].name = "role" and params[2].required = false
+    And params[2].defaultValue = "user"
+  #end
+
+  ## 5. Basic Entity Declaration
+
+  #decl behavior decl-basic-syntax
+    Given test.bvf contains:
+    ```
+    #decl feature user-auth
+      Authentication system.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].type = "feature"
+    And entities[0].name = "user-auth"
+    And entities[0].body = "Authentication system."
+  #end
+
+  #decl behavior decl-with-params
+    Given test.bvf contains:
+    ```
+    #decl endpoint health(timeout?, retries="3")
+      Health check endpoint.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].params.length = 2
+    And valid #decl with parameter list
+  #end
+
+  #decl behavior decl-hyphenated-type-name
+    Given test.bvf contains:
+    ```
+    #decl http-endpoint health
+      Health check.
+    #end
+    ```
+    And config types includes "http-endpoint"
+
+    When @{run-parse}
+
+    Then entities[0].type = "http-endpoint"
+    And type names support hyphens
+  #end
+
+  #decl behavior decl-hyphenated-entity-name
+    Given test.bvf contains:
+    ```
+    #decl feature user-auth-system
+      Multi-word feature name.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].name = "user-auth-system"
+    And entity names support hyphens
+  #end
+
+  #decl behavior decl-closes-with-end
+    Given test.bvf contains:
+    ```
+    #decl feature auth
+      Body content.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].body = "Body content."
+    And #decl closes with #end
+  #end
+
+  #decl behavior decl-unclosed-error
+    Given test.bvf contains:
+    ```
+    #decl feature auth
+      Body content.
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "unclosed #decl for auth"
+  #end
+
+  #decl behavior decl-invalid-type-error
+    Given test.bvf contains:
+    ```
+    #decl unknown-type entity-name
+      Content.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains 'unknown type "unknown-type"'
+    And type validated against config
+  #end
+
+  #decl behavior decl-nesting-rules
+    Given test.bvf contains:
+    ```
+    #decl feature auth
+      #decl behavior login
+        Login flow.
+      #end
+    #end
+    ```
+    And config containment allows feature: [behavior]
+
+    When @{run-parse}
+
+    Then entities[0].behaviors.length = 1
+    And behaviors[0].name = "login"
+    And nesting follows config.containment
+  #end
+
+  #decl behavior decl-invalid-nesting-error
+    Given test.bvf contains:
+    ```
+    #decl behavior outer
+      #decl feature inner
+        Invalid nesting.
+      #end
+    #end
+    ```
+    And config containment does NOT allow behavior: [feature]
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains 'invalid nesting: type "feature" cannot be nested inside "behavior"'
+  #end
+
+  ## 6. Clauses
+
+  #decl behavior clause-on-basic
+    Given test.bvf contains:
+    ```
+    #decl behavior check-health on @{api}
+      Verify API health.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.on.name = "api"
+    And "on" clause references surface/context
+  #end
+
+  #decl behavior clause-using-basic
+    Given test.bvf contains:
+    ```
+    #decl behavior login using @{auth}
+      Authenticate user.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.using.name = "auth"
+    And "using" clause references dependency
+  #end
+
+  #decl behavior clause-with-params
+    Given test.bvf contains:
+    ```
+    #decl behavior test on @{api}(base_url="http://localhost")
+      Test API locally.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.on.args.base_url = "http://localhost"
+    And clauses support parameterized references
+  #end
+
+  #decl behavior multiple-clauses
+    Given test.bvf contains:
+    ```
+    #decl behavior secure-check on @{api} using @{auth}
+      Authenticated API check.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].clauses.on.name = "api"
+    And entities[0].clauses.using.name = "auth"
+    And multiple clauses allowed
+  #end
+
+  ## 7. References Extraction
+
+  #decl behavior references-from-body
+    Given test.bvf contains:
+    ```
+    #decl behavior integration-test
+      First call @{login}.
+      Then verify @{user-profile}.
+      Finally @{logout}.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].references.length = 3
+    And references include "login", "user-profile", "logout"
+    And extracted from entity body
+  #end
+
+  #decl behavior references-include-clauses
+    Given test.bvf contains:
+    ```
+    #decl behavior test on @{api} using @{auth}
+      Call @{health}.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].references.length = 3
+    And references include clause entities ("api", "auth")
+    And references include inline entities ("health")
+  #end
+
+  #decl behavior references-deduplicated
+    Given test.bvf contains:
+    ```
+    #decl behavior test
+      Call @{api}.
+      Then call @{api} again.
+      Finally @{api} once more.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].references.length = 1
+    And references[0].name = "api"
+    And duplicate references removed
+  #end
+
+  ## 8. Parameter Usages
+
+  #decl behavior param-usage-extraction
+    Given test.bvf contains:
+    ```
+    #decl behavior login(email, password)
+      Login with {email} and {password}.
+      Verify {email} format.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].paramUsages.length = 2
+    And paramUsages includes "email", "password"
+    And extracted from {param} syntax in body
+  #end
+
+  #decl behavior param-usage-deduplicated
+    Given test.bvf contains:
+    ```
+    #decl behavior test(value)
+      Use {value} here.
+      And {value} there.
+      And {value} everywhere.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then entities[0].paramUsages.length = 1
+    And paramUsages[0] = "value"
+  #end
+
+  ## 9. Template Syntax (for #for expansion)
+
+  #decl behavior template-name-with-placeholders
+    Given test.bvf contains:
+    ```
+    #decl feature services on @{platform}
+      #for svc in [auth, payment]
+        #decl endpoint {svc}-health
+          Health check.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then behaviors[0].name = "auth-health"
+    And behaviors[1].name = "payment-health"
+    And template names support {var} placeholders
+  #end
+
+  #decl behavior template-body-substitution
+    Given test.bvf contains:
+    ```
+    #decl feature tests on @{suite}
+      #for lang in [python, rust]
+        #decl behavior test-{lang}
+          Run {lang} tests using {lang} toolchain.
+        #end
+      #end
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then behaviors[0].body contains '"python"' (twice)
+    And behaviors[1].body contains '"rust"' (twice)
+    And all {var} occurrences substituted
+  #end
+
+  ## 10. Error Recovery
+
+  #decl behavior invalid-decl-syntax
+    Given test.bvf contains:
+    ```
+    #decl feature
+      Missing name.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "invalid #decl syntax"
+  #end
+
+  #decl behavior invalid-param-syntax
+    Given test.bvf contains:
+    ```
+    #decl endpoint test(bad param name)
+      Invalid param.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then ok = false
+    And errors[0] contains "invalid parameter syntax"
+  #end
+
+  #decl behavior parser-skips-to-next-decl
+    Given test.bvf contains:
+    ```
+    #decl bad-entity
+      Unclosed entity.
+
+    #decl good-entity
+      This one is closed.
+    #end
+    ```
+
+    When @{run-parse}
+
+    Then errors.length >= 1
+    And entities.length >= 1
+    And entities includes "good-entity"
+    And parser continues after errors
+  #end
+
+  ## 11. Prose and Comments
+
+  #decl behavior prose-ignored
+    Given test.bvf contains:
+    ```
+    This is regular prose explaining the spec.
+
+    #decl feature auth
+      Authentication.
+    #end
+
+    More prose here.
+    ```
+
+    When @{run-parse}
+
+    Then entities.length = 1
+    And entities[0].name = "auth"
+    And prose lines (non-#decl) ignored
+  #end
+
+  #decl behavior empty-lines-ignored
+    Given test.bvf contains:
+    ```
+
+
+    #decl feature auth
+      Authentication.
+    #end
+
+
+    ```
+
+    When @{run-parse}
+
+    Then entities.length = 1
+    And empty lines skipped
+  #end
+
+#end
