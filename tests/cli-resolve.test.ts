@@ -1298,7 +1298,7 @@ describe('resolve-materializable', () => {
 
   it('resolve-displays-group-as-header', async () => {
     const config = `#config
-  types: feature, behavior, group
+  types: feature, behavior, group, surface
   containment:
     feature: behavior, group
     group: behavior

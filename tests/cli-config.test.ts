@@ -632,7 +632,7 @@ describe('config-materializable', () => {
 
   it('config-group-type-allows-optional-nesting', async () => {
     const config = `#config
-  types: feature, behavior, group
+  types: feature, behavior, group, surface
   containment:
     feature: behavior, group
     group: behavior
