@@ -425,9 +425,9 @@ describe('resolve-entity-parsing', () => {
     const result = await runCli('resolve', tmpDir);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('rejects-invalid("a@b.com")');
-    expect(result.stdout).toContain('rejects-invalid("bad")');
-    expect(result.stdout).toContain('rejects-invalid("")');
+    expect(result.stdout).toContain('rejects-invalid(a@b.com)');
+    expect(result.stdout).toContain('rejects-invalid(bad)');
+    expect(result.stdout).toContain('rejects-invalid()');
   });
 
   it('resolve-shows-for-tuple-expansion', async () => {
