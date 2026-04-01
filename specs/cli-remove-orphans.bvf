@@ -26,7 +26,7 @@ for entities whose specs were removed.
 
     When command `bvf remove-orphans old-test` is executed.
 
-    Then stderr warns "Artifact still exists: tests/old.test.ts - delete it first".
+    Then stderr says "Error: Artifact still exists at tests/old.test.ts. delete it first or use --force.".
     And manifest entry is NOT removed.
     Exit code is 1.
   #end
@@ -58,7 +58,7 @@ for entities whose specs were removed.
 
     When command `bvf remove-orphans nonexistent` is executed.
 
-    Then stderr says "Error: Entity 'nonexistent' not found in manifest".
+    Then stderr says "Error: Entity 'nonexistent' not found in manifest.".
     Exit code is 1.
   #end
 
@@ -67,7 +67,7 @@ for entities whose specs were removed.
 
     When command `bvf remove-orphans active-test` is executed.
 
-    Then stderr says "Error: Entity 'active-test' is not orphaned (status: current)".
+    Then stderr says "Error: Entity 'active-test' is not orphaned (status: current).".
     And manifest entry is NOT removed.
     Exit code is 1.
   #end
@@ -80,6 +80,15 @@ for entities whose specs were removed.
 
     Then all orphaned entries are removed.
     And stdout lists count: "Removed 3 orphaned entries".
+    Exit code is 0.
+  #end
+
+  #decl behavior remove-orphans-all-no-orphans
+    Given manifest contains no orphaned entries.
+
+    When command `bvf remove-orphans --all` is executed.
+
+    Then stdout says "No orphaned entries found.".
     Exit code is 0.
   #end
 

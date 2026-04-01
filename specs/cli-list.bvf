@@ -12,8 +12,8 @@ The `bvf list` command lists entities filtered by type or parent.
 
     When @{run-list} is executed with no type filter.
 
-    Then all 5 entities are listed with their type, name,
-    and source file location.
+    Then all 5 entities are listed with their type and name.
+    Output format: "  <type> <name>"
     Exit code is 0.
   #end
 
@@ -29,7 +29,7 @@ The `bvf list` command lists entities filtered by type or parent.
   #decl behavior list-by-parent
     Given a parent entity "auth" containing 3 child entities.
 
-    When @{run-list} is executed with `--parent auth`.
+    When @{run-list} is executed with `--parent auth` (alias: `--feature`).
 
     Then only the 3 children within "auth" are listed.
     Exit code is 0.
@@ -41,6 +41,26 @@ The `bvf list` command lists entities filtered by type or parent.
     When @{run-list} is executed with type "fixture".
 
     Then output says "No entities of type 'fixture' found."
+    Exit code is 0.
+  #end
+
+  #decl behavior list-flattens-nested-children
+    Given a feature "auth" containing 3 nested behavior entities.
+
+    When @{run-list} is executed with no filters.
+
+    Then all 3 nested behaviors are included in the output (flattened to top level).
+    And each nested behavior shows type "behavior".
+    Exit code is 0.
+  #end
+
+  #decl behavior list-deep-flattens-all-levels
+    Given a feature "auth" containing behavior "login" containing behavior "validate-credentials".
+
+    When @{run-list} is executed with no filters.
+
+    Then all behaviors at all nesting levels are included (deep flattening).
+    And output shows "behavior login" and "behavior validate-credentials" (both at top level).
     Exit code is 0.
   #end
 

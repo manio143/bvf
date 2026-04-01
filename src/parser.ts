@@ -203,8 +203,6 @@ function parseEntityFromLines(
   // Find the #end and parse body
   let endIndex = -1;
   let bodyLines: string[] = [];
-  let contextLines: string[] = [];
-  let inContext = false;
   let inFor = false;
   let forVars: string[] = [];
   let forValues: any[][] = [];
@@ -217,12 +215,7 @@ function parseEntityFromLines(
     
     // Check for #end
     if (line === '#end') {
-      if (inContext) {
-        // Closing context block
-        inContext = false;
-        i++;
-        continue;
-      } else if (inFor) {
+      if (inFor) {
         // Closing a #for block - expand it
         expandForBlock(forVars, forValues, forChildren, children);
         inFor = false;
@@ -236,16 +229,6 @@ function parseEntityFromLines(
         endIndex = i;
         break;
       }
-    }
-    
-    // Check for #context
-    if (line === '#context') {
-      if (contextLines.length > 0) {
-        errors.push(new Error(`multiple #context blocks not allowed - only one #context block allowed per container (line ${i + 1})`));
-      }
-      inContext = true;
-      i++;
-      continue;
     }
     
     // Check for #for
@@ -312,11 +295,7 @@ function parseEntityFromLines(
     }
     
     // Collect body lines
-    if (inContext) {
-      contextLines.push(lines[i]);
-    } else {
-      bodyLines.push(lines[i]);
-    }
+    bodyLines.push(lines[i]);
     
     i++;
   }
@@ -331,10 +310,9 @@ function parseEntityFromLines(
   }
   
   const body = bodyLines.join('\n').trim();
-  const context = contextLines.length > 0 ? contextLines.join('\n').trim() : undefined;
   
   // Extract references and param usages
-  const allText = body + (context ? '\n' + context : '') + 
+  const allText = body + 
     children.map(c => c.body + (c.context || '')).join('\n');
   const references = extractReferences(allText, clauses);
   const paramUsages = extractParamUsages(body);
@@ -347,7 +325,7 @@ function parseEntityFromLines(
     body,
     references,
     paramUsages,
-    context,
+    context: undefined, // Context field reserved for future use, not from #context blocks
     behaviors: children.length > 0 ? convertChildrenToBehaviors(children) : undefined,
     line: startIndex + 1
   };

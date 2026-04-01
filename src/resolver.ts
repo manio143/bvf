@@ -23,19 +23,15 @@ export function resolveReferences(
   
   // Validate entity types if config provided
   if (config) {
-    // When materializable is specified, skip type validation
-    // (allows flexible type usage for non-materializable entities)
-    if (!config.materializable) {
-      for (const entity of entities) {
-        if (!config.types.includes(entity.type)) {
-          const suggestions = config.types.slice(0, 3).join(', ');
-          errors.push(
-            new Error(
-              `Unknown entity type "${entity.type}" for ${entity.name}. ` +
-              `Valid types: ${suggestions}${config.types.length > 3 ? '...' : ''}`
-            )
-          );
-        }
+    for (const entity of entities) {
+      if (!config.types.includes(entity.type)) {
+        const suggestions = config.types.slice(0, 3).join(', ');
+        errors.push(
+          new Error(
+            `Unknown entity type "${entity.type}" for ${entity.name}. ` +
+            `Valid types: ${suggestions}${config.types.length > 3 ? '...' : ''}`
+          )
+        );
       }
     }
   }
@@ -131,10 +127,11 @@ export function resolveReferences(
     };
     resolved.push(resolvedEntity);
     
-    // Extract behaviors from features as separate entities
-    // Behaviors inherit the feature's transitive dependencies
+    // Extract children from container types as separate entities
+    // Children inherit the parent's transitive dependencies
     // AND compute their own transitive deps from their references
-    if (entity.type === 'feature' && entity.behaviors) {
+    const containerTypes = config?.containment ? Object.keys(config.containment) : [];
+    if (containerTypes.includes(entity.type) && entity.behaviors) {
       const parentTransitiveDeps = graph.getTransitiveDependencies(entity.name);
       for (const behavior of entity.behaviors) {
         // Compute behavior's direct dependencies from its references

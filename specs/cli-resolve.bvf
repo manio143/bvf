@@ -449,16 +449,82 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #decl behavior resolve-change-during-pending-review
+  #decl behavior resolve-change-during-pending-needs-review
     Given a spec file containing entity "login-test".
-    And entity "login-test" is in state (pending, needs-review) - not yet reviewed.
+    And entity "login-test" is in state (pending, needs-review).
+    And current manifest has:
+    ```
+    {
+      "name": "login-test",
+      "status": "pending",
+      "reason": "needs-review",
+      "specHash": "abc123...",
+      "dependencyHash": "def456..."
+    }
+    ```
     And the spec file for "login-test" is then edited (content changed).
 
     When @{run-resolve} is executed.
 
-    Then resolve detects spec hash changed and updates manifest hashes.
-    And entity remains in status='pending', reason='needs-review'.
-    And output shows ⏳ symbol for "login-test".
+    Then resolve:
+    1. Detects spec hash mismatch (content changed)
+    2. Recomputes specHash and dependencyHash
+    3. Updates manifest entry:
+       ```
+       {
+         "name": "login-test",
+         "status": "pending",
+         "reason": "needs-review",
+         "specHash": "xyz789...",  # NEW hash
+         "dependencyHash": "uvw012..."  # NEW dependency hash
+       }
+       ```
+    4. Entity remains (pending, needs-review) - no state transition
+    5. Writes updated manifest.json to disk
+    6. Displays: ⏳ login-test (behavior) [needs-review]
+    
+    The hashes are refreshed to track the latest spec content,
+    even though the workflow state doesn't change.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-change-during-pending-needs-elaboration
+    Given a spec file containing entity "incomplete-feature".
+    And entity "incomplete-feature" is in state (pending, needs-elaboration)
+    with note "missing instrument for authentication".
+    And the spec file is edited (attempting to address the note).
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Recomputes specHash and dependencyHash
+    3. Updates manifest entry with new hashes
+    4. Entity remains (pending, needs-elaboration)
+    5. Note is preserved (manual transition required via `bvf mark`)
+    6. Displays: ⏳ incomplete-feature (behavior) [needs-elaboration]
+       with note displayed below
+    
+    Hash refresh happens automatically, but workflow state
+    transitions require explicit marking.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-change-during-pending-reviewed
+    Given a spec file containing entity "ready-for-test".
+    And entity "ready-for-test" is in state (pending, reviewed).
+    And the spec file is edited after spec review but before test materialization.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Auto-transitions to (pending, needs-review)
+    3. Updates manifest with new hashes and reason
+    4. Displays: ⏳ ready-for-test (behavior) [needs-review]
+    
+    Changes after spec-reviewed invalidate the review, requiring
+    a fresh soundness review before test materialization.
     Exit code is 0.
   #end
 
@@ -493,33 +559,53 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #decl behavior resolve-orphaned-entity-detected
+  #decl behavior resolve-orphan-with-artifact-warns
     Given a spec file containing entity "old-test".
-    And entity "old-test" is marked as test-ready with artifact "tests/old.test.ts".
+    And entity "old-test" is marked as test-reviewed with artifact "tests/old.test.ts".
     And the spec file is then deleted (or entity declaration removed).
 
     When @{run-resolve} is executed.
 
-    Then "old-test" appears in "Orphaned (removed from specs):" section.
-    And manifest entry is preserved with status='orphaned'.
-    And output shows warning: "⚠️ old-test - spec removed but test exists at tests/old.test.ts".
+    Then resolve:
+    1. Detects entity is no longer in spec files
+    2. Preserves manifest entry with status='orphaned'
+    3. Displays in "Orphaned (removed from specs):" section:
+       ```
+       ⚠️  old-test (behavior)
+           Artifact: tests/old.test.ts
+           Last status: current, reviewed
+       ```
+    4. Summary includes: "⚠️ 1 orphaned entity with artifacts"
+    
+    The manifest entry is preserved because an artifact exists.
+    Manual cleanup required via `bvf remove-orphans` command.
     Exit code is 0.
   #end
 
-  #decl behavior resolve-orphaned-without-artifact-is-deleted
-    Given a spec file containing entity "login-test".
-    And entity "login-test" is in state (pending, needs-review).
+  #decl behavior resolve-orphan-without-artifact-deletes
+    Given a spec file containing entity "draft-feature".
+    And entity "draft-feature" is in state (pending, needs-review).
     And manifest entry has no artifact field (never materialized).
     And the spec file is then deleted (or entity declaration removed).
 
     When @{run-resolve} is executed.
 
-    Then "login-test" appears in "Orphaned (removed from specs):" section.
-    And manifest entry is removed (no artifact, safe to delete).
+    Then resolve:
+    1. Detects entity is no longer in spec files
+    2. Detects manifest entry has no artifact
+    3. Removes manifest entry automatically (safe to delete)
+    4. Displays message:
+       ```
+       ℹ️  Removed orphaned entry: draft-feature (no artifact)
+       ```
+    5. Summary shows: "Removed: 1 orphaned entry (no artifacts)"
+    
+    Entities without artifacts are safe to auto-delete because
+    they represent incomplete workflow with no materialized assets.
     Exit code is 0.
   #end
 
-  #decl behavior resolve-orphaned-pending-with-artifact
+  #decl behavior resolve-orphan-pending-with-artifact-warns
     Given a spec file containing entity "updated-test".
     And entity "updated-test" was previously materialized with artifact "tests/updated.test.ts".
     And entity is now (pending, needs-review) after spec change.
@@ -527,9 +613,20 @@ code signals success vs structural failure.
 
     When @{run-resolve} is executed.
 
-    Then "updated-test" appears in "Orphaned (removed from specs):" section.
-    And manifest entry is preserved with status='orphaned' (has artifact).
-    And output shows warning with artifact path.
+    Then resolve:
+    1. Detects entity is no longer in spec files
+    2. Preserves manifest entry with status='orphaned'
+    3. Displays in "Orphaned (removed from specs):" section:
+       ```
+       ⚠️  updated-test (behavior)
+           Artifact: tests/updated.test.ts
+           Last status: pending, needs-review
+       ```
+    4. Summary includes: "⚠️ 1 orphaned entity with artifacts"
+    
+    Even though status was pending, the artifact exists so the
+    manifest entry is preserved. The test file may still be useful
+    or need manual cleanup.
     Exit code is 0.
   #end
 
@@ -599,25 +696,245 @@ code signals success vs structural failure.
     Exit code is 0.
   #end
 
-  #decl behavior resolve-with-diff
-    Given a project with stale entities whose specs changed.
+  #decl behavior resolve-with-diff-shows-summary
+    Given a project with mix of current, stale, and pending entities.
 
     When @{run-resolve} is executed with `--diff`.
 
-    Then the output is machine-parseable, one entity per line,
-    listing only non-current entities (stale, pending, orphaned):
+    Then the output shows:
+    1. Header line: "# Non-current entities"
+    2. One entity per line for non-current entities (stale, pending, orphaned):
+       ```
+       stale  instrument  run-resolve  specs/surfaces.bvf:12
+       stale  behavior    some-test    specs/cli-resolve.bvf:25
+       pending  behavior  new-thing    specs/cli-init.bvf:8
+       ```
+    3. Summary footer:
+       ```
+       # Summary: 2 stale, 1 pending, 0 orphaned
+       ```
+    
+    Format: `<status> <type> <name> <relative-path>:<line>`
+
+    The output includes headers and summary for human readability
+    while remaining easily parseable. Current (✓) entities are
+    omitted from the listing.
+    
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-with-diff-quiet-for-pipes
+    Given a project with non-current entities.
+
+    When @{run-resolve} is executed with `--diff --quiet`.
+
+    Then the output is machine-parseable with NO headers or summary,
+    one entity per line:
     ```
     stale  instrument  run-resolve  specs/surfaces.bvf:12
     stale  behavior    some-test    specs/cli-resolve.bvf:25
     pending  behavior  new-thing    specs/cli-init.bvf:8
     ```
-
+    
     Format: `<status> <type> <name> <relative-path>:<line>`
+    
+    The `--quiet` flag suppresses headers/summary for pipe-friendly
+    output suitable for scripts, grep, awk, etc.
+    
+    Exit code is 0.
+  #end
 
-    All non-current entities appear regardless of whether they
-    changed directly or became stale through dependencies.
-    The human-readable tree output is suppressed — `--diff` is
-    designed for piping into scripts or agent tooling.
+#end
+
+
+#decl feature resolve-auto-transitions on @{cli-tool}
+
+  When resolve detects spec or dependency changes, it automatically
+  transitions entities to appropriate workflow states. This feature
+  documents the complete state transition matrix.
+
+  Given a @{project-dir}(files: [], config: @{default-config})
+  and a @{manifest}(entries: []).
+
+  #decl behavior resolve-transition-current-reviewed-to-pending
+    Given entity "auth-test" is in state (current, reviewed).
+    And the spec file is edited (content changed).
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Auto-transitions to (pending, needs-review)
+    3. Preserves artifact path if present
+    4. Displays: ⏳ auth-test (behavior) [needs-review]
+    
+    Rationale: Any change to a reviewed entity invalidates the
+    review and requires fresh soundness review.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-transition-current-needs-review-to-pending
+    Given entity "test-ready" is in state (current, needs-review).
+    And the spec file is edited (content changed).
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Remains in state (pending, needs-review)
+    3. Updates hashes to reflect new content
+    4. Preserves artifact path if present
+    5. Displays: ⏳ test-ready (behavior) [needs-review]
+    
+    Rationale: Entity was already awaiting review, stays in same
+    state with refreshed hashes.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-transition-pending-reviewed-to-needs-review
+    Given entity "spec-approved" is in state (pending, reviewed).
+    And the spec file is edited after spec review.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Auto-transitions to (pending, needs-review)
+    3. Updates hashes
+    4. Displays: ⏳ spec-approved (behavior) [needs-review]
+    
+    Rationale: Spec review is invalidated by subsequent changes,
+    must be re-reviewed before test materialization.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-no-transition-pending-needs-review
+    Given entity "in-review" is in state (pending, needs-review).
+    And the spec file is edited.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Remains in state (pending, needs-review)
+    3. Updates hashes only
+    4. Displays: ⏳ in-review (behavior) [needs-review]
+    
+    Rationale: Already awaiting review, hash refresh tracks
+    latest content without changing workflow state.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-no-transition-pending-needs-elaboration
+    Given entity "draft" is in state (pending, needs-elaboration)
+    with note "needs authentication instrument".
+    And the spec file is edited.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Remains in state (pending, needs-elaboration)
+    3. Updates hashes only
+    4. Preserves note
+    5. Displays: ⏳ draft (behavior) [needs-elaboration]
+       with note below
+    
+    Rationale: Elaboration flag requires explicit resolution
+    via `bvf mark`, hash refresh happens automatically.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-transition-via-dependency-change
+    Given entities:
+    - "web-app" (surface) in state (current, reviewed)
+    - "login" (instrument) references "web-app", state (current, reviewed)
+    And "web-app" spec is edited.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects "web-app" has spec hash mismatch (direct change)
+    2. Auto-transitions "web-app" to (pending, needs-review)
+    3. Detects "login" has dependency hash mismatch (transitive)
+    4. Auto-transitions "login" to (pending, needs-review)
+    5. Displays both as: ⏳ [needs-review]
+    
+    Rationale: Dependency changes cascade - if a dependency
+    becomes stale, all dependents must be re-reviewed.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-transition-preserves-test-needs-fixing
+    Given entity "flaky-test" is in state (current, test-needs-fixing)
+    with artifact "tests/flaky.test.ts" and note "uses fake hashes".
+    And the spec file is NOT edited (no spec changes).
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. No hash mismatches detected
+    2. Entity remains in state (current, test-needs-fixing)
+    3. Displays: ⏳ flaky-test (behavior) [test-needs-fixing]
+       with note below
+    
+    Rationale: test-needs-fixing is a sticky flag that persists
+    until explicitly resolved via `bvf mark`.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-transition-test-needs-fixing-on-spec-change
+    Given entity "flaky-test" is in state (current, test-needs-fixing)
+    with artifact "tests/flaky.test.ts".
+    And the spec file is edited.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Auto-transitions to (pending, needs-review)
+    3. Preserves artifact path
+    4. Clears test-needs-fixing note
+    5. Displays: ⏳ flaky-test (behavior) [needs-review]
+    
+    Rationale: Spec changes invalidate both the review AND the
+    test-needs-fixing flag - entity restarts from soundness review.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-transition-spec-needs-elaboration-on-change
+    Given entity "incomplete" is in state (pending, spec-needs-elaboration)
+    with note "needs auth instrument".
+    And the spec file is edited to add the missing instrument.
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects spec hash mismatch
+    2. Remains in state (pending, spec-needs-elaboration)
+    3. Updates hashes
+    4. Preserves note (manual transition required)
+    5. Displays: ⏳ incomplete (behavior) [needs-elaboration]
+    
+    Rationale: Elaboration flags require explicit resolution via
+    `bvf mark` - reviewer must confirm the elaboration is adequate.
+    Exit code is 0.
+  #end
+
+  #decl behavior resolve-new-entity-starts-pending-needs-review
+    Given a new spec file is added with entity "new-feature".
+    And no manifest entry exists for "new-feature".
+
+    When @{run-resolve} is executed.
+
+    Then resolve:
+    1. Detects new entity (not in manifest)
+    2. Creates manifest entry with state (pending, needs-review)
+    3. Computes initial specHash and dependencyHash
+    4. Displays: ⏳ new-feature (behavior) [needs-review]
+    
+    Rationale: All new entities enter the workflow in the
+    "needs-review" state, awaiting soundness review.
     Exit code is 0.
   #end
 

@@ -19,6 +19,13 @@ The `bvf init` command bootstraps a new BVF project.
     - state-dir: .bvf-state
     A `specs/` directory is created.
     A `.bvf-state/` directory is created.
+    A `specs/example.bvf` file is created with sample entities:
+    - surface my-app
+    - fixture sample-data
+    - instrument interact
+    - behavior basic-test
+    Output prints "Created bvf.config", "Created specs/", "Created .bvf-state/", "Created specs/example.bvf".
+    Output prints "Next steps:" guidance with commands to try.
     Exit code is 0.
   #end
 
@@ -27,7 +34,7 @@ The `bvf init` command bootstraps a new BVF project.
 
     When @{run-init} is executed.
 
-    Then stderr says "BVF project already initialized."
+    Then stderr says "Error: Project already initialized (bvf.config exists)".
     Exit code is 1.
   #end
 

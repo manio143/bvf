@@ -1071,32 +1071,11 @@ async function cmdDeps(cmdArgs: string[]) {
     process.exit(1);
   }
 
-  // Helper to extract references from context string
-  function extractReferencesFromContext(context: string | undefined): string[] {
-    if (!context) return [];
-
-    const refs: string[] = [];
-    // Match @{name} patterns
-    const matches = context.matchAll(/@\{([^}]+)\}/g);
-    for (const match of matches) {
-      refs.push(match[1]);
-    }
-    return refs;
-  }
-
-  // Collect direct references
-  // If entity has references field (top-level entities), use it
-  // If entity has context field (behaviors), parse it
+  // Collect direct references from entity.references
   const directRefs = new Set<string>();
   if (entity.references && entity.references.length > 0) {
     for (const ref of entity.references) {
       directRefs.add(ref.name);
-    }
-  } else if (entity.context) {
-    // Parse behavior's context for references
-    const contextRefs = extractReferencesFromContext(entity.context);
-    for (const ref of contextRefs) {
-      directRefs.add(ref);
     }
   }
 
