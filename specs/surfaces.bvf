@@ -14,6 +14,13 @@ with it.
   a temporary project directory.
 #end
 
+#decl surface bvf-parser
+  The BVF parser module that transforms .bvf text into entity tree structures.
+  Can be invoked independently from the CLI for unit testing parse behavior.
+  Input: BVF source text and optional config object.
+  Output: { ok: boolean, entities: Entity[], errors: ParseError[] }.
+#end
+
 
 #decl instrument run-resolve(flags?) on @{cli-tool}
   Execute `bvf resolve` in the current project directory.
@@ -47,6 +54,15 @@ with it.
   Execute `bvf remove-orphans [entities...]` in the current project directory.
   Optional {flags} like `--force` or `--all`.
   Returns stdout, stderr, and exit code.
+#end
+
+#decl instrument run-parse(file?, config?) on @{bvf-parser}
+  Parse the given BVF file content (or all .bvf files in project-dir if not specified)
+  and return the parsed entity tree structure.
+  Optional {config} parameter provides BvfConfig for type/containment validation.
+  Returns { ok: boolean, entities: Entity[], errors: ParseError[] }.
+  For testing, this invokes the parser module directly (parseFile or parseBvfFile)
+  rather than going through the CLI, since parsing is a sub-operation of all CLI commands.
 #end
 
 
