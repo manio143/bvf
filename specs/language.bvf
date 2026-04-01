@@ -16,71 +16,33 @@ Documents the DSL syntax recognized by the BVF parser.
   ## 1. Fenced Code Blocks
 
   #decl behavior fenced-code-ignored
-    Given test.bvf contains:
-    ```
-    Some prose explaining syntax.
-
-    ```
-    #decl example demo
-      This is an example.
-    #end
-    ```
-
-    #decl actual real-entity
-      This is a real entity.
-    #end
-    ```
+    Given test.bvf contains prose, then a fenced block with entity "demo", then entity "real-entity" outside fence.
 
     When @{run-parse}
 
     Then entities.length = 1
     And entities[0].name = "real-entity"
-    And "demo" is NOT in entities
-    And fenced content (between ```) is completely ignored
+    And "demo" is NOT in entities (it was inside fence)
+    And fenced content (between triple-backticks) is completely ignored during parsing
   #end
 
   #decl behavior fenced-code-preserves-line-count
-    Given test.bvf contains:
-    ```
-    Line 1
-    ```
-    fenced line 2
-    fenced line 3
-    ```
-    #decl entity-on-line-5
-      Content
-    #end
-    ```
+    Given test.bvf contains line 1, then fenced block (lines 2-3), then "#decl entity-on-line-5" on line 5.
 
     When @{run-parse}
 
     Then entities[0].line = 5
-    And line numbers preserved despite fence removal
+    And line numbers preserved despite fence content removal
   #end
 
   #decl behavior multiple-fenced-blocks
-    Given test.bvf contains:
-    ```
-    First fence:
-    ```
-    #decl ignored-1
-    #end
-    ```
-
-    Second fence:
-    ```
-    #decl ignored-2
-    #end
-    ```
-
-    #decl actual-entity
-    #end
-    ```
+    Given test.bvf contains two separate fenced blocks each with example #decl statements, then one real entity "actual-entity" outside fences.
 
     When @{run-parse}
 
     Then entities.length = 1
     And entities[0].name = "actual-entity"
+    And both fenced blocks ignored
   #end
 
   ## 2. #for Expansion

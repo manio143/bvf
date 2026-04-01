@@ -46,35 +46,40 @@
     "specHash": "0506434a889635d05649924cef4c25a660aa5038ef7e5bb9a7d7f6cd38fbabeb",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:mark-needs-elaboration",
-    "materializedAt": "2026-03-31T05:55:52.043Z"
+    "materializedAt": "2026-03-31T05:55:52.043Z",
+    "status": "orphaned"
   },
   "mark-review-failed": {
     "name": "mark-review-failed",
     "specHash": "bd86f7fb5838cd01aa3469cacb6cddd21bbc8ad946b550588cc3256f4c1bb082",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:mark-review-failed",
-    "materializedAt": "2026-03-31T05:55:52.111Z"
+    "materializedAt": "2026-03-31T05:55:52.111Z",
+    "status": "orphaned"
   },
   "mark-current-with-artifact": {
     "name": "mark-current-with-artifact",
     "specHash": "a51e877fa36ea73dca8fb084287ba4509075edda48b31c3d491988bb9219d2de",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:mark-current-with-artifact",
-    "materializedAt": "2026-03-31T05:55:52.181Z"
+    "materializedAt": "2026-03-31T05:55:52.181Z",
+    "status": "orphaned"
   },
   "mark-current-requires-artifact": {
     "name": "mark-current-requires-artifact",
     "specHash": "3ddb6b1b00591ef660a7b3c1b1cda79bd47feb8ca1506c61e80cdd9fd596e074",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:mark-current-requires-artifact",
-    "materializedAt": "2026-03-31T05:55:52.251Z"
+    "materializedAt": "2026-03-31T05:55:52.251Z",
+    "status": "orphaned"
   },
   "mark-current-updates-stale-entity": {
     "name": "mark-current-updates-stale-entity",
     "specHash": "9b8cb136cb750633d12310bfc71b134647d92f8dc89e74ed1139aa69965f1ff1",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:mark-current-updates-stale-entity",
-    "materializedAt": "2026-03-31T05:55:52.320Z"
+    "materializedAt": "2026-03-31T05:55:52.320Z",
+    "status": "orphaned"
   },
   "mark-nonexistent-entity": {
     "name": "mark-nonexistent-entity",
@@ -391,7 +396,8 @@
     "specHash": "e6937d851cc805dde3c78ce95540bde993b6ec64ec5cc2237f82671c54fd9f14",
     "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785",
     "artifact": "test:resolve-with-diff",
-    "materializedAt": "2026-03-31T05:55:55.702Z"
+    "materializedAt": "2026-03-31T05:55:55.702Z",
+    "status": "orphaned"
   },
   "resolve-catches-unclosed-decl": {
     "name": "resolve-catches-unclosed-decl",
@@ -539,21 +545,24 @@
     "specHash": "1cd6a38e4b7e1a7212144983e7b15873c8c3cee61740c159dac15481fce5d1de",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:resolve-orphaned-entity-detected",
-    "materializedAt": "2026-03-31T05:55:57.152Z"
+    "materializedAt": "2026-03-31T05:55:57.152Z",
+    "status": "orphaned"
   },
   "resolve-review-failed-shows-stale": {
     "name": "resolve-review-failed-shows-stale",
     "specHash": "3c72b109a36880a8518cc0a9cebd5307a342e4f775bd356753017ce14754e1d7",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:resolve-review-failed-shows-stale",
-    "materializedAt": "2026-03-31T05:55:57.226Z"
+    "materializedAt": "2026-03-31T05:55:57.226Z",
+    "status": "orphaned"
   },
   "resolve-needs-elaboration-shows-pending": {
     "name": "resolve-needs-elaboration-shows-pending",
     "specHash": "baa3eb0e88209b15f77ba724003a2b5e7a1d455703cc9badac63521bfe2c307e",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "test:resolve-needs-elaboration-shows-pending",
-    "materializedAt": "2026-03-31T05:55:57.299Z"
+    "materializedAt": "2026-03-31T05:55:57.299Z",
+    "status": "orphaned"
   },
   "cli-tool": {
     "name": "cli-tool",
@@ -902,9 +911,9 @@
   },
   "remove-orphans-warns-if-artifact-exists": {
     "name": "remove-orphans-warns-if-artifact-exists",
-    "status": "current",
-    "reason": "reviewed",
-    "specHash": "bda963802a345600b19205fa4cea19c9cb92e7211de2bd292a0335b7f2bae362",
+    "status": "pending",
+    "reason": "needs-review",
+    "specHash": "348b65e963e4d591186f71e1c9b9657ad26b7ccd93c3c174430bc2109ea770f2",
     "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
     "artifact": "tests/cli-remove-orphans.test.ts",
     "materializedAt": "2026-04-01T05:58:55.412Z"
@@ -929,18 +938,18 @@
   },
   "remove-orphans-nonexistent-entry": {
     "name": "remove-orphans-nonexistent-entry",
-    "status": "current",
-    "reason": "reviewed",
-    "specHash": "6a713ce6648ff0c6f6e0c9b2f0847d078b023b68b173fae7b67a934f714ecb6b",
+    "status": "pending",
+    "reason": "needs-review",
+    "specHash": "53049bf2f772f58a77dc28a90880ed077d96969554e82dd6b9bb8e1d73232b84",
     "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
     "artifact": "tests/cli-remove-orphans.test.ts",
     "materializedAt": "2026-04-01T05:59:02.680Z"
   },
   "remove-orphans-non-orphaned-entry": {
     "name": "remove-orphans-non-orphaned-entry",
-    "status": "current",
-    "reason": "reviewed",
-    "specHash": "bec91c59abf24df80801cf5a020d3c884955385e2586bc168846a1afd46d2278",
+    "status": "pending",
+    "reason": "needs-review",
+    "specHash": "7fa7ec6d2a4140271a241bf4468e9f57748caee13f19460bb64108868912f055",
     "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c",
     "artifact": "tests/cli-remove-orphans.test.ts",
     "materializedAt": "2026-04-01T05:59:05.771Z"
@@ -956,7 +965,7 @@
   },
   "resolve-change-during-pending-review": {
     "name": "resolve-change-during-pending-review",
-    "status": "current",
+    "status": "orphaned",
     "reason": "reviewed",
     "specHash": "4e2e07d67aa882b222be2f8dffc73ff5ee984fade403fdd22df27fea2407dc43",
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
@@ -980,5 +989,625 @@
     "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649",
     "artifact": "tests/cli-resolve.test.ts",
     "materializedAt": "2026-04-01T07:42:51.275Z"
+  },
+  "cli-deps": {
+    "name": "cli-deps",
+    "status": "pending",
+    "specHash": "47f3648e2c84e4b7988c5922d350186bbcdbbe5bd88c4214b60fb876819b8b97",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c"
+  },
+  "cli-init": {
+    "name": "cli-init",
+    "status": "pending",
+    "specHash": "8718de560d66c11ab6bed524c0c377b674da66f97576e538b32db9c462154160",
+    "dependencyHash": "1db52bbca1c63f0182e48608762f8086d2e487bf2206fdee1eec9e372255ed74"
+  },
+  "cli-list": {
+    "name": "cli-list",
+    "status": "pending",
+    "specHash": "e33f84d47c9ac2cc36217f7994229a7345b046afffed47ef6a79113383b8985c",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e"
+  },
+  "list-flattens-nested-children": {
+    "name": "list-flattens-nested-children",
+    "status": "pending",
+    "specHash": "94b7b08b13175eff35108ef7f191b51bb47a0619dc57bd4b107c7471cc84db58",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e"
+  },
+  "list-deep-flattens-all-levels": {
+    "name": "list-deep-flattens-all-levels",
+    "status": "pending",
+    "specHash": "55b00ef0fad45c4adfc8f23ec8c9f243e8dcc55734e3735c73375cb32c70ca41",
+    "dependencyHash": "15e0d4fc96810b59cd4fe229b1b55ac9013c8e1a2a55c45a8e775d2e1a28e75e"
+  },
+  "cli-mark": {
+    "name": "cli-mark",
+    "status": "pending",
+    "specHash": "a0ca625e2e9c153306ce348fa5d4b34cdfa6f7f2c4f92025ba0fcc7331dc36d9",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "cli-mark-workflow-integration": {
+    "name": "cli-mark-workflow-integration",
+    "status": "pending",
+    "specHash": "b1bcfed0e812a88d869298e1903d9fb229185e76fcc342c285214a99c493c277",
+    "dependencyHash": "d4e372735a7f481821d7c7215a173214d604f58906a57372cd4dd7bbb215774e"
+  },
+  "cli-remove-orphans": {
+    "name": "cli-remove-orphans",
+    "status": "pending",
+    "specHash": "631ca815600ad64ed612caf5e325a9f2921ab0fe78f302d003e7de9c409c24ff",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c"
+  },
+  "remove-orphans-all-no-orphans": {
+    "name": "remove-orphans-all-no-orphans",
+    "status": "pending",
+    "specHash": "f307c9c82e53bb6a442d16c356bd41e75c08b07dac3806e82a5c12851b40a11e",
+    "dependencyHash": "53613f5759d20e0c85b86f68424b0ad1918a157669aa884fe497f46e1492f64c"
+  },
+  "resolve-parse-errors": {
+    "name": "resolve-parse-errors",
+    "status": "pending",
+    "specHash": "2678ed43c4394c689a2405ffafaea3037bb3b0b1108c7687fc55c8caee904df1",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003"
+  },
+  "resolve-reference-errors": {
+    "name": "resolve-reference-errors",
+    "status": "pending",
+    "specHash": "2e0d59d932215867cf5ed70d95d32b5b0d6281cc26543a0d044c17a3731c75e9",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003"
+  },
+  "resolve-entity-parsing": {
+    "name": "resolve-entity-parsing",
+    "status": "pending",
+    "specHash": "5fea59acc2f4911865fa318c37b894fc18ab49193d89e3ea718415318ca6b4bc",
+    "dependencyHash": "75f3903f04b188f768031365b812b45058a16095d4e262cf7d0ccf3bc955d003"
+  },
+  "resolve-status-tracking": {
+    "name": "resolve-status-tracking",
+    "status": "pending",
+    "specHash": "6498424b6a02e6eed3b616f93c493b2d1bac79ba00e5b852b60d7a3bf77a31ad",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-change-during-pending-needs-review": {
+    "name": "resolve-change-during-pending-needs-review",
+    "status": "pending",
+    "specHash": "eb484078b671fdfbb7fdae01fbd8c4b42f1372b12dbc5ca005fcd355d6c8aec4",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-change-during-pending-needs-elaboration": {
+    "name": "resolve-change-during-pending-needs-elaboration",
+    "status": "pending",
+    "specHash": "87fcc9931d20e60de37f302608769001518ee9fa40baea2c4daa90e25a65ed42",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-change-during-pending-reviewed": {
+    "name": "resolve-change-during-pending-reviewed",
+    "status": "pending",
+    "specHash": "5920bf616163d2108f5b174cbbf81543a11f7b3085187a1db0b0fd63e3fe6f33",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-orphan-with-artifact-warns": {
+    "name": "resolve-orphan-with-artifact-warns",
+    "status": "pending",
+    "specHash": "88cfe8e6bf10beff2b4903297e5854aa3c75fa59b4e756356685c5abbdc68243",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-orphan-without-artifact-deletes": {
+    "name": "resolve-orphan-without-artifact-deletes",
+    "status": "pending",
+    "specHash": "5971ec3d0dda6d4d9c367dd5f6992c733124064ff9fbf10234b48515be80cef9",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-orphan-pending-with-artifact-warns": {
+    "name": "resolve-orphan-pending-with-artifact-warns",
+    "status": "pending",
+    "specHash": "caf9812710740a553db67f9ed66eca99edc37eca2f7d6eba93221b81551eda72",
+    "dependencyHash": "2b921915f720c9a6edeabf49d93adc7c067f3f9ad26cda068087b0083784c649"
+  },
+  "resolve-output-format": {
+    "name": "resolve-output-format",
+    "status": "pending",
+    "specHash": "313b501c41bbad27d01be97c201f7a3c858fa596ce366169310f13800c4cb7cc",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-with-diff-shows-summary": {
+    "name": "resolve-with-diff-shows-summary",
+    "status": "pending",
+    "specHash": "06c129959df9a8082c5f2732c09b0aef081c7f53c6d71b37d8b5e59e5a2c8f11",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-with-diff-quiet-for-pipes": {
+    "name": "resolve-with-diff-quiet-for-pipes",
+    "status": "pending",
+    "specHash": "e9d4e74563e9da29ff072a27e8912ca1e0f7a91e3bd5a1462d306db813bd6ffb",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-auto-transitions": {
+    "name": "resolve-auto-transitions",
+    "status": "pending",
+    "specHash": "f8f4a018e78085584cd2f51d93fb6e0ed27a72d6dd085c1bba89d4f36c0429ec",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-current-reviewed-to-pending": {
+    "name": "resolve-transition-current-reviewed-to-pending",
+    "status": "pending",
+    "specHash": "a9b2dd8aa1158835eb7a780d85644ac7c3601657433239a2959ea5eca31be75c",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-current-needs-review-to-pending": {
+    "name": "resolve-transition-current-needs-review-to-pending",
+    "status": "pending",
+    "specHash": "81542cab6aae69f030713bbae356e2fa9b7a50992df7bc544e950b1260aae61f",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-pending-reviewed-to-needs-review": {
+    "name": "resolve-transition-pending-reviewed-to-needs-review",
+    "status": "pending",
+    "specHash": "8201e9bec2d83d7106b0e67f778a530817b416c2dc064b97146663c97fd103d6",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-no-transition-pending-needs-review": {
+    "name": "resolve-no-transition-pending-needs-review",
+    "status": "pending",
+    "specHash": "f73ead067a94d78efec0d6bbd635c605b239bd92670a771365dddac69ec41b30",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-no-transition-pending-needs-elaboration": {
+    "name": "resolve-no-transition-pending-needs-elaboration",
+    "status": "pending",
+    "specHash": "8a06fc9d5f60645c44c086e785b28b17a4d3827f6425c576440ad3384b1c6758",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-via-dependency-change": {
+    "name": "resolve-transition-via-dependency-change",
+    "status": "pending",
+    "specHash": "d47987a3503c947973d9d3a1e3c44e89c1473ea616877fb2ff2166611febb5f4",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-preserves-test-needs-fixing": {
+    "name": "resolve-transition-preserves-test-needs-fixing",
+    "status": "pending",
+    "specHash": "08ab853e62c993f5021587516d0751d84db4d7b0f48f1ba65b20fd9771b33017",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-test-needs-fixing-on-spec-change": {
+    "name": "resolve-transition-test-needs-fixing-on-spec-change",
+    "status": "pending",
+    "specHash": "fbc2a3fb1f82a4ddd221cfc65cadaad773bf75544ccd613df6fe90d55cbe6778",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-transition-spec-needs-elaboration-on-change": {
+    "name": "resolve-transition-spec-needs-elaboration-on-change",
+    "status": "pending",
+    "specHash": "cf359bed599784bbcd262ead607f5b34ef4400d2a0175de2992d04e375891248",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-new-entity-starts-pending-needs-review": {
+    "name": "resolve-new-entity-starts-pending-needs-review",
+    "status": "pending",
+    "specHash": "fc1503f4c4e10658bb84f8239962755d5b9be78b977cb95053a20b805edeb13f",
+    "dependencyHash": "5f8064f0cb4922344b71e5ba4bf8f8e73581bbbebe80ad4e4085fe4fab71f785"
+  },
+  "resolve-exit-codes": {
+    "name": "resolve-exit-codes",
+    "status": "pending",
+    "specHash": "7f9df1685a0c005d0059fa0f9fa07bbba29551a189ce9fb362ef1e5fa7af7367",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef"
+  },
+  "config-materializable": {
+    "name": "config-materializable",
+    "status": "pending",
+    "specHash": "20a254c0dfb3a6b240ef05e8c81edf482ab6162a75cda2b82901298380a2bde8",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef"
+  },
+  "config-optional-grouping": {
+    "name": "config-optional-grouping",
+    "status": "pending",
+    "specHash": "4b792b963512c3275abb660327d55d89a01bff6eb47873c29e9f43b08b3333ed",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef"
+  },
+  "config-taxonomy": {
+    "name": "config-taxonomy",
+    "status": "pending",
+    "specHash": "6e051dd10ce23e706dd71b643e3312654cfeec07403b07b377ac2614bd6356f9",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef"
+  },
+  "config-settings": {
+    "name": "config-settings",
+    "status": "pending",
+    "specHash": "90a0e423905eb1caa5d68d61224f1837f202ba2ee756d9f35fd79994ca7b7774",
+    "dependencyHash": "85ab7d1c28e1e56c8b15516f54c7d8d0311fff552a993c0d4685de58ccdd6997"
+  },
+  "config-errors": {
+    "name": "config-errors",
+    "status": "pending",
+    "specHash": "afa6461186184b6308c7125662f9c3291818f9da56b436f696b92ac3533e00cb",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef"
+  },
+  "config-generic-display": {
+    "name": "config-generic-display",
+    "status": "pending",
+    "specHash": "08666bbf0fa8a2882739d301bdb53c9293276b67c2e6c0243b2beb8aacf808ba",
+    "dependencyHash": "ac34144845ad8c02847e2814370cd70ce0b36bd35a18ebe92e09e727d8d056ef"
+  },
+  "language-syntax": {
+    "name": "language-syntax",
+    "status": "pending",
+    "specHash": "d66fc0c540b6382d4597b7a774e693910b499c369631ebac05e735096b480256",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "fenced-code-ignored": {
+    "name": "fenced-code-ignored",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "c0edce85cc54ffe36c22cf42e2bc2a91b72d8972431d951bbf41a1252b345152",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "fenced-code-preserves-line-count": {
+    "name": "fenced-code-preserves-line-count",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "5213849309549a0c851334af4348c7577aecbb07abf42a28c125eae2c594c785",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "multiple-fenced-blocks": {
+    "name": "multiple-fenced-blocks",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "049510948da524de38a2d026c61405889bf62850f142b7e8b8600c4838851d41",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-expansion-basic": {
+    "name": "for-expansion-basic",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "bc583c16758f2218aa171bc55c7506ef660c8780fface46f8d64b7f96aa959dd",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-expansion-with-quoted-strings": {
+    "name": "for-expansion-with-quoted-strings",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "3b971caee79a6b3eecec494531d121fcf7fecde80c8150c7ed9951b2618b0a1a",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-expansion-multi-variable": {
+    "name": "for-expansion-multi-variable",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "02c873b4ef2a81a9dcb9d9318f6e45a379ec7572c21e8089c21c7bb046d388da",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-requires-in-keyword": {
+    "name": "for-requires-in-keyword",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "54bd47246873e6aecc8968b2a88fe33a4d9f933ac183a7a06d8d96e2c57b7375",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-requires-array-syntax": {
+    "name": "for-requires-array-syntax",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "7f8612394da9701c004836505755e1ad80a512beb84aba6716852921913dcd58",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-requires-container": {
+    "name": "for-requires-container",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "cf164fd830dd7290f05acaa8587b069a17a6c9dc68beb0642a56475d14b367e0",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-closes-with-end": {
+    "name": "for-closes-with-end",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "08ba78e52448351a77cc312310ecdba2d074bd4c5cbc11e732a43f0dc83b3052",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-tuple-count-mismatch": {
+    "name": "for-tuple-count-mismatch",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "48a060ce4f81fc4f33894376e3e1063576e6432fc296c58a686a85f11cf44d8a",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-single-var-quotes-strings": {
+    "name": "for-single-var-quotes-strings",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "8c14362a0f62d2e74bf1116f972dc682f7ad16d27a457f02f9238a970dec4e44",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-multi-var-no-quotes": {
+    "name": "for-multi-var-no-quotes",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "f644b5836c6c732f63a11482c4d11a6900cd77d46bb760033d5213e1a93bf3b4",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-nested-loops-supported": {
+    "name": "for-nested-loops-supported",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "80e8f7e7848ad6cfc81e274ea2467e932f8626e4044c420ff92c5d932f394a78",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-nested-variable-scoping": {
+    "name": "for-nested-variable-scoping",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "756deeaf6614e5923ae2b6d754066c7037c1a0c5539246c6dec7fa0dfc3934d1",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "for-validates-template-variables": {
+    "name": "for-validates-template-variables",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "9038af47a9c361a3f2817ec414b995e23a5f64bbe9bddbde3a45bc53ba109570",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "reference-with-single-param": {
+    "name": "reference-with-single-param",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "6a76a4cd9a9ab8efc5b834b5f45eb5766cafdfdf0b9f0b1028ae723a0bd3e0b9",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "reference-with-multiple-params": {
+    "name": "reference-with-multiple-params",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "53a2af1c74562d3f750d1d9f5914930004c8ab6a70848b78424a8e442563d8c2",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "bare-reference-valid": {
+    "name": "bare-reference-valid",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "6072b2567a70817baa6ca3639a0d6128e29c8bd1a2bafcb24c2f051ce2c456c2",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "inline-reference-with-params": {
+    "name": "inline-reference-with-params",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "d11e77adbc8f2ff8410ad6f36484a6bbc2c2c91405a3b0c467e4f8b80d2477d3",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "reference-param-from-entity-param": {
+    "name": "reference-param-from-entity-param",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "90a04cdf062633a3e2302de11a3b1c3d263b81fad39291dfb3e1a3349c24cfd6",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "optional-param-syntax": {
+    "name": "optional-param-syntax",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "2ba2424ad40560f280a7b9e17466bfcdc42c46677010e966beecad22356d3f85",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "required-param-syntax": {
+    "name": "required-param-syntax",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "f5c87138f0ccfdb8c60726e19882ff8711633be1e480e62401969e2fc596155a",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "param-with-default-value": {
+    "name": "param-with-default-value",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "a6ba967abdefd61317be8e41aa4a7038837d8a39de6da1fa45f5c1086af6ed6d",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "mixed-required-optional-params": {
+    "name": "mixed-required-optional-params",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "efec3be83da60f5b48b70fde8986bf20013a8843f0572ac3704db5590a9e8a43",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-basic-syntax": {
+    "name": "decl-basic-syntax",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "222c2e81c3df899a98d0a5d5777f0eccdf34334c64965e665d92255d5fcd8d28",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-with-params": {
+    "name": "decl-with-params",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "c9a0b021552bc9472df95773626cd164a1d512beb1886560171068412d6d244d",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-hyphenated-type-name": {
+    "name": "decl-hyphenated-type-name",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "86464c6ff84c9557e73854e4a7dd004dacd249f46c3e528ac37a692035e4dbc9",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-hyphenated-entity-name": {
+    "name": "decl-hyphenated-entity-name",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "5082c2981b2ae871af9de9f17a501ef9c027316e270b7160e03aeb939d061666",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-closes-with-end": {
+    "name": "decl-closes-with-end",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "472674258486a203c4b0c70d7d9b7b45703961869712f9721ba0416249a94297",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-unclosed-error": {
+    "name": "decl-unclosed-error",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "4770c14502c8a6d3447b7bf0427558162b0dfb577390fb420dd72c6076609f93",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-invalid-type-error": {
+    "name": "decl-invalid-type-error",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "f03ae1fe165c0a8c1d4e4cef62c67ab0d7b365f3908a051f8c7dc377dab17ffe",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-nesting-rules": {
+    "name": "decl-nesting-rules",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "f15934665dbca2392f52c5000dec6144fb03ffd6cffa10400b1f8b50e8c229df",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "decl-invalid-nesting-error": {
+    "name": "decl-invalid-nesting-error",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "4604e357b94a0270a45b5f7045c1ef738c36c3322c14360c72c7f67a6381a1a4",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "clause-on-basic": {
+    "name": "clause-on-basic",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "c4eb944f6099f6668ab5b9b1e46bef5cf6a9c0cf6d0f5c19078e89c087be75d5",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "clause-using-basic": {
+    "name": "clause-using-basic",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "e8b346c781e5890168cce14618723f27ee15c3b72d9014c5cdb39ca3bf3bee0d",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "clause-with-params": {
+    "name": "clause-with-params",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "8bace591f7ec90528ffa385503e765968bbe3d0c154ea075519a8d8885edff33",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "multiple-clauses": {
+    "name": "multiple-clauses",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "56adcac7d7bc0d438cf756c1e275f394b5e97d4d35f81bdcc5eda78e93817a2a",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "references-from-body": {
+    "name": "references-from-body",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "0319d8a591c768ff179447aa9ad42c055bd753f3b247cd41b83526e8d64a2b55",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "references-include-clauses": {
+    "name": "references-include-clauses",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "b7d405dd83e40397f9aa46fd8a62aa8cbf300dc90b68096cf0d3480c2fb2dcd1",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "references-deduplicated": {
+    "name": "references-deduplicated",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "7949245ea3e160f36020aa8fcd63ccc65ee3be9a69c51b787bf475509a590fd9",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "param-usage-extraction": {
+    "name": "param-usage-extraction",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "f39b4ff5304029d2fa71938f097ed067ab45dd2feaa4929c657ef6e6f3407a57",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "param-usage-deduplicated": {
+    "name": "param-usage-deduplicated",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "b35910556192ce27f6de9f46e8cd500d3490c18c01f6db4302f8021583397c21",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "template-name-with-placeholders": {
+    "name": "template-name-with-placeholders",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "e69a785e7dd75232d449dd0394e5f1b5194bb5ce3a119f098b1febc36c843fda",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "template-body-substitution": {
+    "name": "template-body-substitution",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "6e8c1511222aa5102aebe6747b98bd6687364a45c42cd803bfc0413ba7eb2391",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "invalid-decl-syntax": {
+    "name": "invalid-decl-syntax",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "96475f46a7eda5c0010c86f26a138b6288c4a74029ac709aac5c95eecabf630d",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "invalid-param-syntax": {
+    "name": "invalid-param-syntax",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "8526c63dfb2a697ad5256385bfbca1f1daa85be903d8667a57adbffbab34220c",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "parser-skips-to-next-decl": {
+    "name": "parser-skips-to-next-decl",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "6a545d5a2118802d213e3e2d18bdd64747ba2f8283fda76b43eb624a83dfc526",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "prose-ignored": {
+    "name": "prose-ignored",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "6fead8fc471cb429588b11a9a62740c2f604172c9ce9af7cb4e387022c336d79",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "empty-lines-ignored": {
+    "name": "empty-lines-ignored",
+    "status": "pending",
+    "reason": "reviewed",
+    "specHash": "8fd9f0b7164430cc69e3f9827747ca343b4d05c84df21022521fe13ca26c99ea",
+    "dependencyHash": "cba758437685d49589cfd81bc9c5d33121621e03e2eae63380c2690a98bccf98"
+  },
+  "bvf-parser": {
+    "name": "bvf-parser",
+    "status": "pending",
+    "specHash": "4e12897f5717152748eabedf947ad9765b3ca44cdc51cf7368de057d62a9653b",
+    "dependencyHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "run-deps": {
+    "name": "run-deps",
+    "status": "pending",
+    "specHash": "27b6411e1a59e0d7e49f52b3abeb5c293623402e0242ca3babebde3bab41f7ea",
+    "dependencyHash": "e912fb59510ac1fa749fb088d6ec5a27c44f7910899d3615a48ee1b259b0500d"
+  },
+  "run-remove-orphans": {
+    "name": "run-remove-orphans",
+    "status": "pending",
+    "specHash": "2eafa61645d2e6fe00be34a91aa90d76b9b2e19c5a924dc62c1d87ed712c4337",
+    "dependencyHash": "e912fb59510ac1fa749fb088d6ec5a27c44f7910899d3615a48ee1b259b0500d"
+  },
+  "run-parse": {
+    "name": "run-parse",
+    "status": "pending",
+    "specHash": "6158d9df722018006f96fe41fbdb0e552d560e97519f1e826ea5766a7c5cd43d",
+    "dependencyHash": "4d8fbfae55a41e4376c1af37cab1a236069ae5d59679f0b093a5295836100fdb"
   }
 }
