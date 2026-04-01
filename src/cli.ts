@@ -1080,13 +1080,28 @@ async function cmdDeps(cmdArgs: string[]) {
   }
 
   // Collect transitive references (excluding direct)
+  // Walk the dependency graph recursively
   const transitiveRefs = new Set<string>();
-  if (entity.transitiveDependencies && entity.transitiveDependencies.length > 0) {
-    for (const dep of entity.transitiveDependencies) {
-      if (!directRefs.has(dep)) {
-        transitiveRefs.add(dep);
+  const visited = new Set<string>();
+  
+  function collectTransitive(entityName: string) {
+    if (visited.has(entityName)) return;
+    visited.add(entityName);
+    
+    const ent = entityMap.get(entityName);
+    if (!ent || !ent.references) return;
+    
+    for (const ref of ent.references) {
+      if (!directRefs.has(ref.name)) {
+        transitiveRefs.add(ref.name);
       }
+      collectTransitive(ref.name);
     }
+  }
+  
+  // Start from direct references and walk their dependencies
+  for (const refName of directRefs) {
+    collectTransitive(refName);
   }
 
   // Collect parent chain
